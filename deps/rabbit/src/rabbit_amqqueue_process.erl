@@ -1889,6 +1889,7 @@ update_state_in_mnesia(State, QName) ->
       end).
 
 update_state_in_khepri(State, QName) ->
+    Decorators = rabbit_queue_decorator:list(),
     rabbit_misc:execute_mnesia_transaction(
       fun() ->
               [Q] = rabbit_amqqueue:lookup_as_list_in_khepri(rabbit_queue, QName),
@@ -1897,7 +1898,7 @@ update_state_in_khepri(State, QName) ->
               %% The amqqueue was read from this transaction, no need
               %% to handle migration.
               rabbit_amqqueue:store_queue_in_khepri(Q2),
-              rabbit_amqqueue:store_queue_ram_in_khepri(Q2)
+              rabbit_amqqueue:store_queue_ram_in_khepri(Q2, Decorators)
       end).
 
 store_queue(Q) ->
@@ -1912,8 +1913,9 @@ store_queue_in_mnesia(Q) ->
       end).
 
 store_queue_in_khepri(Q) ->
+    Decorators = rabbit_queue_decorator:list(),
     rabbit_khepri:transaction(
       fun() ->
               rabbit_amqqueue:store_queue_in_khepri(Q),
-              rabbit_amqqueue:store_queue_ram_in_khepri(Q)
+              rabbit_amqqueue:store_queue_ram_in_khepri(Q, Decorators)
       end).
