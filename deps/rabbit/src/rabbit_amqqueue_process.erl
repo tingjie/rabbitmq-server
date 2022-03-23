@@ -1914,9 +1914,8 @@ store_queue_in_mnesia(Q) ->
       end).
 
 store_queue_in_khepri(Q) ->
-    Decorators = rabbit_queue_decorator:active(Q),
     Queue = amqqueue:set_decorators(Q),
     rabbit_khepri:transaction(
       fun() ->
-              rabbit_amqqueue:optimised_store_queue_in_khepri(Queue),
+              rabbit_amqqueue:optimised_store_queue_in_khepri(Queue)
       end).
