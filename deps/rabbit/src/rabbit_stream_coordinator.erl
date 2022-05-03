@@ -1020,7 +1020,7 @@ phase_update_mnesia(StreamId, Args, #{reference := QName,
                                   Q
                           end
                   end,
-            try rabbit_amqqueue:update_in_tx(QName, Fun) of
+            try rabbit_amqqueue:update(QName, Fun) of
                 not_found ->
                     rabbit_log:debug("~ts: resource for stream id ~ts not found, "
                                      "recovering from rabbit_durable_queue",
