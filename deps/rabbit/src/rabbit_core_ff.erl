@@ -131,7 +131,8 @@
                         maintenance_mode_status,
                         user_limits,
                         virtual_host_metadata],
-      migration_fun => {?MODULE, mds_phase1_migration}
+      callbacks     => #{enable => {?MODULE, mds_phase1_migration_enable},
+                         post_enable => {?MODULE, mds_phase1_migration_post_enable}}
      }}).
 
 %% -------------------------------------------------------------------
