@@ -931,6 +931,7 @@ configure_metadata_store(Config) ->
                 ok ->
                     Config;
                 Skip ->
+                    ct:pal("Enabling metadata store failed: ~p", [Skip]),
                     Skip
             end;
         _ ->
