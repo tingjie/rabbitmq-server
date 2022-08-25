@@ -389,6 +389,7 @@ apply_defs(Map, ActingUser, VHost) when is_binary(VHost) ->
     apply_defs(Map, ActingUser, fun () -> ok end, VHost);
 apply_defs(Map, ActingUser, SuccessFun) when is_function(SuccessFun) ->
     Version = maps:get(rabbitmq_version, Map, maps:get(rabbit_version, Map, undefined)),
+    rabbit_store:pre_import(),
     try
         concurrent_for_all(users, ActingUser, Map,
                 fun(User, _Username) ->
@@ -425,6 +426,7 @@ apply_defs(Map, ActingUser, SuccessFun) when is_function(SuccessFun) ->
     catch {error, E} -> {error, format(E)};
           exit:E     -> {error, format(E)}
     after
+        rabbit_store:post_import(),
         rabbit_runtime:gc_all_processes()
     end.
 
@@ -436,6 +438,7 @@ apply_defs(Map, ActingUser, SuccessFun) when is_function(SuccessFun) ->
 apply_defs(Map, ActingUser, SuccessFun, VHost) when is_function(SuccessFun); is_binary(VHost) ->
     rabbit_log:info("Asked to import definitions for a virtual host. Virtual host: ~tp, acting user: ~tp",
                     [VHost, ActingUser]),
+    rabbit_store:pre_import(),
     try
         validate_limits(Map, VHost),
 
@@ -462,6 +465,7 @@ apply_defs(Map, ActingUser, SuccessFun, VHost) when is_function(SuccessFun); is_
     catch {error, E} -> {error, format(E)};
           exit:E     -> {error, format(E)}
     after
+        rabbit_store:post_import(),
         rabbit_runtime:gc_all_processes()
     end.
 
@@ -474,6 +478,7 @@ apply_defs(Map, ActingUser, SuccessFun, VHost) when is_function(SuccessFun); is_
 apply_defs(Map, ActingUser, SuccessFun, ErrorFun, VHost) ->
     rabbit_log:info("Asked to import definitions for a virtual host. Virtual host: ~tp, acting user: ~tp",
                     [VHost, ActingUser]),
+    rabbit_store:pre_import(),
     try
         validate_limits(Map, VHost),
 
@@ -500,6 +505,7 @@ apply_defs(Map, ActingUser, SuccessFun, ErrorFun, VHost) ->
     catch {error, E} -> ErrorFun(format(E));
           exit:E     -> ErrorFun(format(E))
     after
+        rabbit_store:post_import(),
         rabbit_runtime:gc_all_processes()
     end.
 
