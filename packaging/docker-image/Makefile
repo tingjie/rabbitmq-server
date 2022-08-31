@@ -35,7 +35,7 @@ IMAGE_TAG_1 ?= $(subst +,-,$(VERSION))
 endif
 
 OTP_VERSION ?= 25.0.4
-OTP_SHA256 ?= 8fc707f92a124b2aeb0f65dcf9ac8e27b2a305e7bcc4cc1b2fdf770eec0165bf
+OTP_SHA256 ?= 05878cb51a64b33c86836b12a21903075c300409b609ad5e941ddb0feb8c2120
 REPO ?= pivotalrabbitmq/rabbitmq
 SKIP_PGP_VERIFY ?= false
 PGP_KEYSERVER ?= pgpkeys.eu
