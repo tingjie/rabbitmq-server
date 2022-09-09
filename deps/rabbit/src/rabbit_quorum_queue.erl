@@ -493,7 +493,6 @@ handle_tick(QName,
                               rabbit_log:info("~ts: stale nodes detected. Purging ~w",
                                               [rabbit_misc:rs(QName), Stale]),
                               %% pipeline purge command
-                              {ok, Q} = rabbit_amqqueue:lookup(QName),
                               ok = ra:pipeline_command(amqqueue:get_pid(Q),
                                                        rabbit_fifo:make_purge_nodes(Stale)),
 
@@ -506,14 +505,14 @@ handle_tick(QName,
           end),
     ok.
 
-repair_leader_record(QName, Self) ->
-    {ok, Q} = rabbit_amqqueue:lookup(QName),
+repair_leader_record(Q, Self) ->
     Node = node(),
     case amqqueue:get_pid(Q) of
         {_, Node} ->
             %% it's ok - we don't need to do anything
             ok;
         _ ->
+            QName = amqqueue:get_name(Q),
             rabbit_log:debug("~ts: repairing leader record",
                              [rabbit_misc:rs(QName)]),
             {_, Name} = erlang:process_info(Self, registered_name),
