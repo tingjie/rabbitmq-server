@@ -190,7 +190,7 @@ list_exchanges() ->
 count_exchanges() ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> count_in_mnesia(rabbit_exchange) end,
-      fun() -> count_in_khepri(khepri_exchanges_path()) end).
+      fun() -> rabbit_khepri:count_children(khepri_exchanges_path() ++ [?STAR]) end).
 
 list_exchange_names() ->
     rabbit_khepri:try_mnesia_or_khepri(
@@ -654,7 +654,7 @@ list_queue_names() ->
 count_queues() ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> count_in_mnesia(rabbit_queue) end,
-      fun() -> count_in_khepri(khepri_queues_path()) end).
+      fun() -> rabbit_khepri:count_children(khepri_queues_path() ++ [?STAR]) end).
 
 count_queues(VHost) ->
     try
@@ -1235,12 +1235,6 @@ list_in_khepri_tx(Path) ->
 
 count_in_mnesia(Table) ->
     mnesia:table_info(Table, size).
-
-count_in_khepri(Path) ->
-    case rabbit_khepri:match(Path ++ [?STAR_STAR]) of
-        {ok, Map} -> maps:size(Map);
-        _            -> 0
-    end.
 
 list_names_in_mnesia(Table) ->
     mnesia:dirty_all_keys(Table).
@@ -2138,7 +2132,7 @@ list_queues_for_count(VHost) ->
       end,
       fun() -> list_queues_with_possible_retry_in_khepri(
                  fun() ->
-                         count_in_khepri(khepri_queues_path() ++ [VHost])
+                         rabbit_khepri:count_children(khepri_queues_path() ++ [VHost])
                  end)
       end).
 
