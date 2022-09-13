@@ -41,6 +41,7 @@
          list/1,
          list_child_nodes/1,
          list_child_data/1,
+         count_children/1,
 
          put/2, put/3,
          clear_payload/1,
@@ -408,7 +409,8 @@ cas(Path, Pattern, Data) ->
     khepri:compare_and_swap(?STORE_ID, Path, Pattern, Data).
 
 get(Path) ->
-    case khepri:get(?STORE_ID, Path, #{expect_specific_node => true}) of
+    case khepri:get(?STORE_ID, Path, #{expect_specific_node => true,
+                                       favor => low_latency}) of
         {ok, Result} ->
             [PropsAndData] = maps:values(Result),
             {ok, PropsAndData};
@@ -439,7 +441,7 @@ tx_match_and_get_data(Path) ->
     Ret = khepri_tx:get(Path),
     keep_data_only_in_result(Ret).
 
-exists(Path) -> khepri:exists(?STORE_ID, Path).
+exists(Path) -> khepri:exists(?STORE_ID, Path, #{favor => low_latency}).
 
 find(Path, Condition) -> khepri:find(?STORE_ID, Path, Condition).
 
@@ -459,6 +461,14 @@ list_child_nodes(Path) ->
 list_child_data(Path) ->
     Ret = list(Path),
     keep_data_only_in_result(Ret).
+
+count_children(Path) ->
+    case khepri:get(?STORE_ID, Path, #{expect_specific_node => false}) of
+        {ok, Map} ->
+            lists:sum([L || #{child_list_length := L} <- maps:values(Map)]);
+        _ ->
+            0
+    end.
 
 keep_data_only(Result) ->
     maps:fold(
