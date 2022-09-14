@@ -1914,8 +1914,14 @@ continue('$end_of_table')    -> false;
 continue({[_|_], _})         -> true;
 continue({[], Continuation}) -> continue(mnesia:select(Continuation)).
 
-binding_has_for_source_in_khepri(SrcName) ->
-    maps:size(match_source_in_khepri_tx(SrcName)) > 0.
+binding_has_for_source_in_khepri(#resource{virtual_host = VHost, name = Name}) ->
+    Path = khepri_routes_path() ++ [VHost, Name, ?STAR_STAR],
+    case khepri_tx:get(Path) of
+        {ok, Map} ->
+            maps:size(Map) > 0;
+        Error ->
+            Error
+    end.
 
 match_source_in_khepri_tx(#resource{virtual_host = VHost, name = Name}) ->
     Path = khepri_routes_path() ++ [VHost, Name, ?STAR_STAR],
