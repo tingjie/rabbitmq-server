@@ -39,7 +39,7 @@
          list_durable_queues_by_type/1, list_queue_names/0, count_queues/0, count_queues/1,
          delete_queue/2, internal_delete_queue/3, update_queue/2, lookup_queues/1,
          lookup_queue/1, lookup_durable_queue/1, delete_transient_queues/1,
-         update_queue_decorators/1, not_found_or_absent_queue_dirty/1,
+         update_queue_decorators/2, not_found_or_absent_queue_dirty/1,
          lookup_durable_queues/1, exists_queue/1, list_queues_by_type/1]).
 
 -export([store_queue/2, store_queues/1, store_queue_without_recover/2,
@@ -853,10 +853,10 @@ store_queues(Qs) ->
                 end)
       end).
 
-update_queue_decorators(Name) ->
+update_queue_decorators(Name, Decorators) ->
     rabbit_khepri:try_mnesia_or_khepri(
-      fun() -> update_queue_decorators_in_mnesia(Name) end,
-      fun() -> update_queue_decorators_in_khepri(Name) end).
+      fun() -> update_queue_decorators_in_mnesia(Name, Decorators) end,
+      fun() -> update_queue_decorators_in_khepri(Name, Decorators) end).
 
 
 %% Routing - HOT CODE PATH
@@ -2217,26 +2217,23 @@ update_queue_in_khepri(Name, Fun) ->
             not_found
     end.
 
-update_queue_decorators_in_mnesia(Name) ->
+update_queue_decorators_in_mnesia(Name, Decorators) ->
     rabbit_misc:execute_mnesia_transaction(
       fun() ->
               case mnesia:wread({rabbit_queue, Name}) of
-                  [Q] -> ok = mnesia:write(rabbit_queue, rabbit_queue_decorator:set(Q), write);
+                  [Q] -> ok = mnesia:write(rabbit_queue, amqqueue:set_decorators(Q, Decorators),
+                                           write);
                   []  -> ok
               end
       end).
 
-update_queue_decorators_in_khepri(Name) ->
-    Path = khepri_queue_path(Name),
-    %% Decorators are stored on an ETS table, we need to query them before the transaction.
+update_queue_decorators_in_khepri(Name, Decorators) ->
+    %% Decorators are stored on an ETS table, so we need to query them before the transaction.
     %% Also, to verify which ones are active could lead to any kind of side-effects.
-    %% Thus it needs to be done outside of the transaction
-    Decorators = case rabbit_khepri:get_data(Path) of
-                     {ok, Q} ->
-                         rabbit_queue_decorator:active(Q);
-                     _ ->
-                         []
-                 end,
+    %% Thus it needs to be done outside of the transaction.
+    %% Decorators have just been calculated on `rabbit_queue_decorator:maybe_recover/1`, thus
+    %% we can update them here directly.
+    Path = khepri_queue_path(Name),
     rabbit_khepri:transaction(
       fun() ->
               case khepri_tx:get(Path) of

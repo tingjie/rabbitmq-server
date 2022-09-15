@@ -33,7 +33,7 @@
 -export([notify_sent/2, notify_sent_queue_down/1, resume/2]).
 -export([notify_down_all/2, notify_down_all/3, activate_limit_all/2, credit/5]).
 -export([on_node_up/1, on_node_down/1]).
--export([update/2, store_queue/1, update_decorators/1, policy_changed/2]).
+-export([update/2, store_queue/1, update_decorators/2, policy_changed/2]).
 -export([update_mirroring/1, sync_mirrors/1, cancel_sync_mirrors/1]).
 -export([emit_unresponsive/6, emit_unresponsive_local/5, is_unresponsive/2]).
 -export([has_synchronised_mirrors_online/1, is_match/2, is_in_virtual_host/2]).
@@ -282,10 +282,10 @@ update(Name, Fun) ->
 ensure_rabbit_queue_record_is_initialized(Q) ->
     store_queue(Q).
 
--spec update_decorators(name()) -> 'ok'.
+-spec update_decorators(name(), [atom()] | none | undefined) -> 'ok'.
 
-update_decorators(Name) ->
-    rabbit_store:update_queue_decorators(Name).
+update_decorators(Name, Decorators) ->
+    rabbit_store:update_queue_decorators(Name, Decorators).
 
 -spec policy_changed(amqqueue:amqqueue(), amqqueue:amqqueue()) ->
           'ok'.
