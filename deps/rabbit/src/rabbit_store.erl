@@ -13,7 +13,7 @@
 -include("amqqueue.hrl").
 
 -export([list_exchanges/0, count_exchanges/0, list_exchange_names/0,
-         update_exchange_decorators/1, update_exchange_scratch/2,
+         update_exchange_decorators/2, update_exchange_scratch/2,
          create_exchange/2, list_exchanges/1, list_durable_exchanges/0,
          lookup_exchange/1, lookup_many_exchanges/1, peek_exchange_serial/2,
          next_exchange_serial/1, delete_exchange_in_khepri/3,
@@ -333,10 +333,10 @@ update_exchange_in_khepri(Name, Fun) ->
         [] -> not_found
     end.
 
-update_exchange_decorators(Name) ->
+update_exchange_decorators(Name, Decorators) ->
     rabbit_khepri:try_mnesia_or_khepri(
-      fun() -> update_exchange_decorators(Name, mnesia) end,
-      fun() -> update_exchange_decorators(Name, khepri) end).
+      fun() -> update_exchange_decorators(Name, Decorators, mnesia) end,
+      fun() -> update_exchange_decorators(Name, Decorators, khepri) end).
 
 update_exchange_scratch(Name, ScratchFun) ->
     rabbit_khepri:try_mnesia_or_khepri(
@@ -1260,22 +1260,25 @@ lookup_many(Fun, Names, khepri) when is_list(Names) ->
                         end
                 end, [], Names).
 
-update_exchange_decorators(Name, mnesia) ->
+update_exchange_decorators(Name, Decorators, mnesia) ->
     rabbit_misc:execute_mnesia_transaction(
       fun() ->
               case mnesia:wread({rabbit_exchange, Name}) of
-                  [X] -> store_ram_exchange(X),
-                         ok;
-                  []  -> ok
+                  [X] ->
+                      X1 = X#exchange{decorators = Decorators},
+                      ok = mnesia:write(rabbit_exchange, X1, write);
+                  []  ->
+                      ok
               end
       end);
-update_exchange_decorators(#resource{virtual_host = VHost, name = Name} = XName, khepri) ->
+update_exchange_decorators(#resource{virtual_host = VHost, name = Name} = XName,
+                           Decorators, khepri) ->
     Path = khepri_exchange_path(XName),
     retry(
       fun () ->
               case rabbit_khepri:get(Path) of
                   {ok, #{data := X, payload_version := Vsn}} ->
-                      X1 = rabbit_exchange_decorator:set(X),
+                      X1 = X#exchange{decorators = Decorators},
                       Conditions = #if_all{conditions = [Name, #if_payload_version{version = Vsn}]},
                       UpdatePath = khepri_exchanges_path() ++ [VHost, Conditions],
                       case rabbit_khepri:put(UpdatePath, X1) of

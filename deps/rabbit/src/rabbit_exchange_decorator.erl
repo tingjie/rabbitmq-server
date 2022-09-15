@@ -110,5 +110,5 @@ maybe_recover(X = #exchange{name       = Name,
         Old -> ok;
         _   -> %% TODO create a tx here for non-federation decorators
                [M:create(none, X) || M <- New -- Old],
-               rabbit_exchange:update_decorators(Name)
+               rabbit_exchange:update_decorators(Name, Decs1)
     end.

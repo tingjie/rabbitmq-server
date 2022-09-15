@@ -12,7 +12,7 @@
 -export([recover/1, policy_changed/2, callback/4, declare/7,
          assert_equivalence/6, assert_args_equivalence/2, check_type/1, exists/1,
          lookup/1, lookup_many/1, lookup_or_die/1, list/0, list/1, lookup_scratch/2,
-         update_scratch/3, update_decorators/1, immutable/1,
+         update_scratch/3, update_decorators/2, immutable/1,
          info_keys/0, info/1, info/2, info_all/1, info_all/2, info_all/4,
          route/2, delete/3, validate_binding/2, count/0]).
 -export([list_names/0, is_amq_prefixed/1]).
@@ -294,10 +294,10 @@ update_scratch_fun(App, Fun, Decorators) ->
                        decorators = Decorators}
     end.
 
--spec update_decorators(name()) -> 'ok'.
+-spec update_decorators(name(), [atom()] | none | undefined) -> 'ok'.
 
-update_decorators(Name) ->
-    rabbit_store:update_exchange_decorators(Name).
+update_decorators(Name, Decorators) ->
+    rabbit_store:update_exchange_decorators(Name, Decorators).
 
 -spec immutable(rabbit_types:exchange()) -> rabbit_types:exchange().
 
