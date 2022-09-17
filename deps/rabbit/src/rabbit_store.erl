@@ -1997,17 +1997,8 @@ remove_bindings_for_destination_in_mnesia(DstName, OnlyDurable) ->
     remove_bindings_for_destination_in_mnesia(DstName, OnlyDurable, fun remove_routes/1).
 
 remove_bindings_for_destination_in_khepri(DstName, OnlyDurable) ->
-    BindingsMap =
-        case OnlyDurable of
-            false ->
-                TransientBindingsMap = match_destination_in_khepri(DstName),
-                maps:foreach(fun(K, _V) -> khepri_tx:delete(K) end, TransientBindingsMap),
-                TransientBindingsMap;
-            true  ->
-                BindingsMap0 = match_destination_in_khepri(DstName),
-                maps:foreach(fun(K, _V) -> khepri_tx:delete(K) end, BindingsMap0),
-                BindingsMap0
-        end,
+    BindingsMap = match_destination_in_khepri(DstName),
+    maps:foreach(fun(K, _V) -> khepri_tx:delete(K) end, BindingsMap),
     Bindings = maps:fold(fun(_, Set, Acc) ->
                                  sets:to_list(Set) ++ Acc
                          end, [], BindingsMap),
