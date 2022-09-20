@@ -1926,11 +1926,6 @@ binding_has_for_source_in_khepri(#resource{virtual_host = VHost, name = Name}) -
             Error
     end.
 
-match_source_in_khepri_tx(#resource{virtual_host = VHost, name = Name}) ->
-    Path = khepri_routes_path() ++ [VHost, Name, ?STAR_STAR],
-    {ok, Map} = rabbit_khepri:tx_match_and_get_data(Path),
-    Map.
-
 match_source_in_khepri(#resource{virtual_host = VHost, name = Name}) ->
     Path = khepri_routes_path() ++ [VHost, Name, ?STAR_STAR],
     {ok, Map} = rabbit_khepri:match_and_get_data(Path),
@@ -2021,9 +2016,10 @@ remove_bindings_for_source_in_mnesia(SrcName, ShouldIndexTable) ->
             mnesia:dirty_match_object(rabbit_semi_durable_route, Match)),
       ShouldIndexTable).
 
-remove_bindings_for_source_in_khepri(SrcName) ->
-    Bindings = match_source_in_khepri_tx(SrcName),
-    maps:foreach(fun(K, _V) -> khepri_tx:delete(K) end, Bindings),
+remove_bindings_for_source_in_khepri(SrcName = #resource{virtual_host = VHost, name = Name}) ->
+    Path = khepri_routes_path() ++ [VHost, Name],
+    {ok, Bindings} = rabbit_khepri:tx_match_and_get_data(Path ++ [?STAR_STAR]),
+    {ok, _} = khepri_tx:delete(Path),
     maps:fold(fun(_, Set, Acc) ->
                       sets:to_list(Set) ++ Acc
               end, [], Bindings).
