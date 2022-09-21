@@ -934,6 +934,19 @@ configure_metadata_store(Config) ->
                     ct:pal("Enabling metadata store failed: ~p", [Skip]),
                     Skip
             end;
+        {khepri, FFs0} ->
+            FFs = [raft_based_metadata_store_phase1 | FFs0],
+            lists:foldl(fun(FF, ok) ->
+                                case enable_feature_flag(Config, FF) of
+                                    ok ->
+                                        ok;
+                                    Skip ->
+                                        ct:pal("Enabling metadata store failed: ~p", [Skip]),
+                                        Skip
+                                end;
+                           (_FF, Skip) ->
+                                Skip
+                        end, ok, FFs);
         _ ->
             Config
     end.

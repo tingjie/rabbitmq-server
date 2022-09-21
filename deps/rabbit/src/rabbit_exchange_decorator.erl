@@ -24,8 +24,7 @@
 %% It's possible in the future we might make decorators
 %% able to manipulate messages as they are published.
 
--type(tx() :: 'transaction' | 'none').
--type(serial() :: pos_integer() | tx()).
+-type(serial() :: pos_integer() | 'none').
 
 -callback description() -> [proplists:property()].
 
@@ -36,10 +35,10 @@
 -callback serialise_events(rabbit_types:exchange()) -> boolean().
 
 %% called after declaration and recovery
--callback create(tx(), rabbit_types:exchange()) -> 'ok'.
+-callback create(serial(), rabbit_types:exchange()) -> 'ok'.
 
 %% called after exchange (auto)deletion.
--callback delete(tx(), rabbit_types:exchange(), [rabbit_types:binding()]) ->
+-callback delete(serial(), rabbit_types:exchange()) ->
     'ok'.
 
 %% called when the policy attached to this exchange changes.
@@ -109,6 +108,7 @@ maybe_recover(X = #exchange{name       = Name,
     case New of
         Old -> ok;
         _   -> %% TODO create a tx here for non-federation decorators
-               [M:create(none, X) || M <- New -- Old],
+               Serial = rabbit_exchange:serial(X),
+               [M:create(Serial, X) || M <- New -- Old],
                rabbit_exchange:update_decorators(Name, Decs1)
     end.

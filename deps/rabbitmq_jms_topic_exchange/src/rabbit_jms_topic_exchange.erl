@@ -22,7 +22,7 @@
         , route/2
         , validate/1
         , create/2
-        , delete/3
+        , delete/2
         , validate_binding/2
         , add_binding/3
         , remove_bindings/3
@@ -132,46 +132,42 @@ route( #exchange{name = XName}
 validate(_X) -> ok.
 
 % After exchange declaration and recovery
-create(transaction, #exchange{name = XName}) ->
+create(none, #exchange{name = XName}) ->
   add_initial_record(XName);
-create(_Tx, _X) ->
+create(_Serial, _X) ->
   ok.
 
 % Delete an exchange
-delete(transaction, #exchange{name = XName}, _Bs) ->
+delete(none, #exchange{name = XName}) ->
   delete_state(XName),
   ok;
-delete(_Tx, _X, _Bs) ->
+delete(_Serial, _X) ->
   ok.
 
 % Before add binding
 validate_binding(_X, _B) -> ok.
 
 % A new binding has ben added or recovered
-add_binding( Tx
+add_binding( none
            , #exchange{name = XName}
            , #binding{key = BindingKey, destination = Dest, args = Args}
            ) ->
-  Selector = get_string_arg(Args, ?RJMS_COMPILED_SELECTOR_ARG),
-  BindGen = generate_binding_fun(Selector),
-  case {Tx, BindGen} of
-    {transaction, {ok, BindFun}} ->
-      add_binding_fun(XName, {{BindingKey, Dest}, BindFun});
-    {none, {error, _}} ->
-      parsing_error(XName, Selector, Dest);
-    _ ->
-      ok
-  end,
-  ok.
+    Selector = get_string_arg(Args, ?RJMS_COMPILED_SELECTOR_ARG),
+    BindGen = generate_binding_fun(Selector),
+    case BindGen of
+        {ok, BindFun} ->
+            add_binding_fun(XName, {{BindingKey, Dest}, BindFun});
+        {error, _} ->
+            parsing_error(XName, Selector, Dest)
+    end,
+    ok.
 
 % Binding removal
-remove_bindings( transaction
+remove_bindings( none
                , #exchange{name = XName}
                , Bindings
                ) ->
   remove_binding_funs(XName, Bindings),
-  ok;
-remove_bindings(_Tx, _X, _Bs) ->
   ok.
 
 % Exchange argument equivalence
@@ -318,9 +314,12 @@ add_initial_record(XName) ->
 add_binding_fun(XName, BindingKeyAndFun) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              #?JMS_TOPIC_RECORD{x_selector_funs = BindingFuns} =
-                  read_state_for_update_in_mnesia(XName),
-              write_state_fun_in_mnesia(XName, put_item(BindingFuns, BindingKeyAndFun))
+              rabbit_misc:execute_mnesia_transaction(
+                fun() ->
+                        #?JMS_TOPIC_RECORD{x_selector_funs = BindingFuns} =
+                            read_state_for_update_in_mnesia(XName),
+                        write_state_fun_in_mnesia(XName, put_item(BindingFuns, BindingKeyAndFun))
+                end)
       end,
       fun() ->
               Path = khepri_jms_topic_exchange_path(XName),
@@ -344,9 +343,12 @@ remove_binding_funs(XName, Bindings) ->
   BindingKeys = [ {BindingKey, DestName} || #binding{key = BindingKey, destination = DestName} <- Bindings ],
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              #?JMS_TOPIC_RECORD{x_selector_funs = BindingFuns} =
-                  read_state_for_update_in_mnesia(XName),
-              write_state_fun_in_mnesia(XName, remove_items(BindingFuns, BindingKeys))
+              rabbit_misc:execute_mnesia_transaction(
+                fun() ->
+                        #?JMS_TOPIC_RECORD{x_selector_funs = BindingFuns} =
+                            read_state_for_update_in_mnesia(XName),
+                        write_state_fun_in_mnesia(XName, remove_items(BindingFuns, BindingKeys))
+                end)
       end,
       fun() ->
               Path = khepri_jms_topic_exchange_path(XName),
@@ -376,7 +378,8 @@ remove_items(Dict, [Key | Keys]) -> remove_items(dict:erase(Key, Dict), Keys).
 delete_state(XName) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              mnesia:delete(?JMS_TOPIC_TABLE, XName, write)
+              rabbit_misc:execute_mnesia_transaction(
+                fun() -> mnesia:delete(?JMS_TOPIC_TABLE, XName, write) end)
       end,
       fun() ->
               rabbit_khepri:delete(khepri_jms_topic_exchange_path(XName))
@@ -410,7 +413,10 @@ read_state_in_khepri(XName) ->
 write_state_fun(XName, BFuns) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              write_state_fun_in_mnesia(XName, BFuns)
+              rabbit_misc:execute_mnesia_transaction(
+                fun() ->
+                        write_state_fun_in_mnesia(XName, BFuns)
+                end)
       end,
       fun() ->
               {ok, _} = rabbit_khepri:put(khepri_jms_topic_exchange_path(XName), BFuns),

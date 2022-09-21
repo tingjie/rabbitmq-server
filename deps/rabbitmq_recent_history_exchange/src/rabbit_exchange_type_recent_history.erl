@@ -15,7 +15,7 @@
 -import(rabbit_misc, [table_lookup/2]).
 
 -export([description/0, serialise_events/0, route/2]).
--export([validate/1, validate_binding/2, create/2, delete/3, add_binding/3,
+-export([validate/1, validate_binding/2, create/2, delete/2, add_binding/3,
          remove_bindings/3, assert_args_equivalence/2, policy_changed/2]).
 -export([setup_schema/0, disable_plugin/0]).
 -export([info/1, info/2]).
@@ -86,10 +86,10 @@ validate(#exchange{arguments = Args}) ->
     end.
 
 validate_binding(_X, _B) -> ok.
-create(_Tx, _X) -> ok.
+create(_Serial, _X) -> ok.
 policy_changed(_X1, _X2) -> ok.
 
-delete(transaction, #exchange{ name = XName }, _Bs) ->
+delete(none, #exchange{ name = XName }) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
               rabbit_misc:execute_mnesia_transaction(
@@ -100,11 +100,9 @@ delete(transaction, #exchange{ name = XName }, _Bs) ->
       fun() ->
               rabbit_khepri:delete(khepri_recent_history_path(XName))
       end),
-    ok;
-delete(none, _Exchange, _Bs) ->
     ok.
 
-add_binding(transaction, #exchange{ name = XName },
+add_binding(none, #exchange{ name = XName },
             #binding{ destination = #resource{kind = queue} = QName }) ->
     case rabbit_amqqueue:lookup(QName) of
         {error, not_found} ->
@@ -114,7 +112,7 @@ add_binding(transaction, #exchange{ name = XName },
             deliver_messages([Q], Msgs)
     end,
     ok;
-add_binding(transaction, #exchange{ name = XName },
+add_binding(none, #exchange{ name = XName },
             #binding{ destination = #resource{kind = exchange} = DestName }) ->
     case rabbit_exchange:lookup(DestName) of
         {error, not_found} ->
@@ -132,11 +130,9 @@ add_binding(transaction, #exchange{ name = XName },
                  end
              end || Msg <- Msgs]
     end,
-    ok;
-add_binding(none, _Exchange, _Binding) ->
     ok.
 
-remove_bindings(_Tx, _X, _Bs) -> ok.
+remove_bindings(_Serial, _X, _Bs) -> ok.
 
 assert_args_equivalence(X, Args) ->
     rabbit_exchange:assert_args_equivalence(X, Args).

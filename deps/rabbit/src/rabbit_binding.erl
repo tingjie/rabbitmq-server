@@ -15,7 +15,7 @@
          list_for_source_and_destination/2, list_explicit/0,
          list_between/2, has_any_between/2]).
 -export([new_deletions/0, combine_deletions/2, add_deletion/3,
-         process_deletions/2, notify_deletions/2, group_bindings_fold/3]).
+         process_deletions/1, notify_deletions/2, group_bindings_fold/3]).
 -export([info_keys/0, info/1, info/2, info_all/1, info_all/2, info_all/4]).
 
 -export([implicit_for_destination/1, reverse_binding/1, populate_index_route_table/0]).
@@ -429,34 +429,18 @@ notify_bindings_deletion(Bs, ActingUser) ->
      || B <- Bs],
     ok.
 
--spec process_deletions(deletions(), 'true' | 'false' | 'all') -> rabbit_misc:thunk('ok').
-process_deletions(Deletions, true) ->
+-spec process_deletions(deletions()) -> rabbit_misc:thunk('ok').
+process_deletions(Deletions) ->
     dict:map(fun (_XName, {X, deleted, Bindings}) ->
                      Bs = lists:flatten(Bindings),
-                     rabbit_exchange:callback(X, delete, transaction, [X, Bs]),
+                     Serial = rabbit_exchange:serial(X),
+                     rabbit_exchange:callback(X, delete, Serial, [X]),
                      {X, deleted, Bs, none};
                  (_XName, {X, not_deleted, Bindings}) ->
                      Bs = lists:flatten(Bindings),
                      Serial = rabbit_exchange:serial(X),
-                     rabbit_exchange:callback(X, remove_bindings, transaction, [X, Bs]),
-                     {X, not_deleted, Bs, Serial}
-             end, Deletions);
-process_deletions(Deletions, Tag) when Tag == false; Tag == all ->
-    dict:map(fun (_XName, {X, deleted, Bs, Serial} = Del) ->
-                     rabbit_exchange:callback(X, delete, Serial, [X, Bs]),
-                     Del;
-                 (_XName, {X, not_deleted, Bs, Serial} = Del) ->
                      rabbit_exchange:callback(X, remove_bindings, Serial, [X, Bs]),
-                     Del;
-                 (_XName, {X, deleted, Bindings}) ->
-                     Bs = lists:flatten(Bindings),
-                     rabbit_exchange:callback(X, delete, [transaction, none], [X, Bs]),
-                     {X, deleted, Bs, none};
-                 (_XName, {X, not_deleted, Bindings}) ->
-                     Bs = lists:flatten(Bindings),
-                     Serial = rabbit_exchange:serial(X),
-                     rabbit_exchange:callback(X, remove_bindings, [transaction, Serial], [X, Bs]),
-                     {X, not_deleted, Bs, Serial}
+                     {X, not_deleted, Bs, none}
              end, Deletions).
 
 binding_checks(Binding, ConnPid) ->
