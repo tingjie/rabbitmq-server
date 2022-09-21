@@ -18,12 +18,13 @@
          lookup_exchange/1, lookup_many_exchanges/1, peek_exchange_serial/2,
          next_exchange_serial/1, delete_exchange_in_khepri/3,
          delete_exchange_in_mnesia/3, delete_exchange/3,
-         recover_exchanges/1, store_durable_exchanges/1, match_exchanges/1]).
+         recover_exchanges/1, store_durable_exchanges/1, match_exchanges/1,
+         delete_exchange_serial/1]).
 
 -export([exists_binding/1, add_binding/2, delete_binding/2, list_bindings/1,
          list_bindings_for_source/1, list_bindings_for_destination/1,
          list_bindings_for_source_and_destination/2, list_explicit_bindings/0,
-         recover_bindings/0, recover_bindings/1, delete_binding/1,
+         recover_bindings/0, recover_bindings/1,
          index_route_table_definition/0, populate_index_route_table/0]).
 
 %% TODO used by rabbit_policy, to become internal
@@ -170,16 +171,15 @@ khepri_exchange_type_topic_path() ->
 
 %% API
 %% --------------------------------------------------------------
-create_exchange(#exchange{name = XName} = X, PrePostCommitFun) ->
+create_exchange(#exchange{name = XName} = X, PostCommitFun) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              execute_mnesia_transaction(
-                fun() -> create_exchange_in_mnesia({rabbit_exchange, XName}, X) end,
-                PrePostCommitFun)
+              PostCommitFun(
+                rabbit_misc:execute_mnesia_transaction(
+                  fun() -> create_exchange_in_mnesia({rabbit_exchange, XName}, X) end))
       end,
       fun() ->
-              PrePostCommitFun(create_exchange_in_khepri(khepri_exchange_path(XName), X),
-                               all)
+              PostCommitFun(create_exchange_in_khepri(khepri_exchange_path(XName), X))
       end).
 
 list_exchanges() ->
@@ -286,6 +286,20 @@ peek_exchange_serial_in_mnesia(XName, LockType) ->
         _                                  -> 1
     end.
 
+delete_exchange_serial(XName) ->
+    rabbit_khepri:try_mnesia_or_khepri(
+      fun() ->
+              rabbit_misc:execute_mnesia_transaction(
+                fun() ->
+                        mnesia:delete({rabbit_exchange_serial, XName})
+                end)
+      end,
+      fun() ->
+              Path = khepri_exchange_serial_path(XName),
+              {ok, _} = rabbit_khepri:delete(Path),
+              ok
+      end).
+
 next_exchange_serial(X) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
@@ -307,14 +321,12 @@ next_exchange_serial_in_mnesia(#exchange{name = XName}) ->
 
 next_exchange_serial_in_khepri(#exchange{name = XName}) ->
     Path = khepri_exchange_serial_path(XName),
-    Extra = #{keep_while => #{khepri_exchange_path(XName) => #if_node_exists{exists = true}}},
     Serial = case khepri_tx:get(Path) of
                  {ok, #{Path := #{data := #exchange_serial{next = Serial0}}}} -> Serial0;
                  _ -> 1
              end,
     {ok, _} = khepri_tx:put(Path,
-                            #exchange_serial{name = XName, next = Serial + 1},
-                            Extra),
+                            #exchange_serial{name = XName, next = Serial + 1}),
     Serial.
 
 update_exchange_in_mnesia(Name, Fun) ->
@@ -377,20 +389,21 @@ delete_exchange_in_khepri(X = #exchange{name = XName}, OnlyDurable, RemoveBindin
     {ok, _} = khepri_tx:delete(khepri_exchange_path(XName)),
     remove_bindings_in_khepri(X, OnlyDurable, RemoveBindingsForSource).
 
-delete_exchange(XName, IfUnused, PrePostCommitFun) ->
+delete_exchange(XName, IfUnused, PostCommitFun) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
               DeletionFun = case IfUnused of
                                 true  -> fun conditional_delete_exchange_in_mnesia/2;
                                 false -> fun unconditional_delete_exchange_in_mnesia/2
                             end,
-              execute_mnesia_transaction(
-                fun() ->
-                        case lookup_tx_in_mnesia({rabbit_exchange, XName}) of
-                            [X] -> DeletionFun(X, false);
-                            [] -> {error, not_found}
-                        end
-                end, PrePostCommitFun)
+              PostCommitFun(
+                rabbit_misc:execute_mnesia_transaction(
+                  fun() ->
+                          case lookup_tx_in_mnesia({rabbit_exchange, XName}) of
+                              [X] -> DeletionFun(X, false);
+                              [] -> {error, not_found}
+                          end
+                  end))
       end,
       fun() ->
               DeletionFun = case IfUnused of
@@ -403,7 +416,7 @@ delete_exchange(XName, IfUnused, PrePostCommitFun) ->
                             [X] -> DeletionFun(X, false);
                             [] -> {error, not_found}
                         end
-                end, PrePostCommitFun)
+                end, PostCommitFun)
       end).
 
 recover_exchanges(VHost) ->
@@ -543,16 +556,6 @@ recover_bindings(RecoverFun) ->
               ok
       end).
 
-%% Implicit bindings are implicit as of rabbitmq/rabbitmq-server#1721.
-delete_binding(Binding) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              delete_binding_in_mnesia(Binding)
-      end,
-      fun() ->
-              delete_binding_in_khepri(Binding)
-      end).
-
 %% Queues
 list_queues() ->
     rabbit_khepri:try_mnesia_or_khepri(
@@ -688,7 +691,7 @@ delete_transient_queues(Queues) ->
       fun() ->
               rabbit_misc:execute_mnesia_transaction(
                 fun () ->
-                        [{QName, rabbit_binding:process_deletions(delete_transient_queue_in_mnesia(QName), true)}
+                        [{QName, delete_transient_queue_in_mnesia(QName)}
                          || QName <- Queues]
                 end)
       end,
@@ -1323,17 +1326,6 @@ create_exchange_in_khepri(Path, X) ->
             {existing, ExistingX}
     end.
 
-execute_mnesia_transaction(TxFun, PrePostCommitFun) ->
-    case mnesia:is_transaction() of
-        true  -> throw(unexpected_transaction);
-        false -> ok
-    end,
-    PrePostCommitFun(rabbit_misc:execute_mnesia_transaction(
-                       fun () ->
-                               Result = TxFun(),
-                               PrePostCommitFun(Result, true)
-                       end), false).
-
 execute_khepri_transaction(TxFun, PostCommitFun) ->
     execute_khepri_transaction(TxFun, PostCommitFun, #{}).
 
@@ -1345,7 +1337,7 @@ execute_khepri_transaction(TxFun, PostCommitFun, Options) ->
     PostCommitFun(rabbit_khepri:transaction(
                     fun () ->
                             TxFun()
-                    end, rw, Options), all).
+                    end, rw, Options)).
 
 remove_bindings_in_mnesia(X = #exchange{name = XName}, OnlyDurable, RemoveBindingsForSource) ->
     Bindings = case RemoveBindingsForSource of
@@ -1361,23 +1353,19 @@ remove_bindings_in_khepri(X = #exchange{name = XName}, OnlyDurable, RemoveBindin
                end,
     {deleted, X, Bindings, remove_bindings_for_destination_in_khepri(XName, OnlyDurable)}.
 
-map_create_tx(true) -> transaction;
-map_create_tx(false) -> none.
-    
 recover_exchanges(VHost, mnesia) ->
     rabbit_misc:table_filter(
       fun (#exchange{name = XName}) ->
               XName#resource.virtual_host =:= VHost andalso
                   mnesia:read({rabbit_exchange, XName}) =:= []
       end,
-      fun (X, Tx) ->
-      X1 = case Tx of
-                       true  -> store_exchange_in_mnesia(X);
-                       false -> rabbit_exchange_decorator:set(X)
-                   end,
-              %% TODO how do we guarantee that lower down the callback
-              %% we use the right transaction type? mnesia/khepri
-              rabbit_exchange:callback(X1, create, map_create_tx(Tx), [X1])
+      fun (X, true) ->
+              X;
+          (X, false) ->
+              X1 = rabbit_misc:execute_mnesia_transaction(
+                     fun() -> store_exchange_in_mnesia(X) end),
+              Serial = rabbit_exchange:serial(X1),
+              rabbit_exchange:callback(X1, create, Serial, [X1])
       end,
       rabbit_durable_exchange);
 recover_exchanges(VHost, khepri) ->
@@ -1392,7 +1380,8 @@ recover_exchanges(VHost, khepri) ->
       end, rw, #{timeout => infinity}),
     %% TODO once mnesia is gone, this callback should go back to `rabbit_exchange`
     [begin
-         rabbit_exchange:callback(X, create, [transaction, none], [X])
+         Serial = rabbit_exchange:serial(X),
+         rabbit_exchange:callback(X, create, Serial, [X])
      end || X <- Exchanges],
     Exchanges.
 
@@ -1539,7 +1528,6 @@ add_binding_in_mnesia(Binding, ChecksFun) ->
                           []  ->
                               ok = sync_route(#route{binding = Binding}, BindingType,
                                               should_index_table(Src), fun mnesia:write/3),
-                              rabbit_exchange:callback(Src, add_binding, transaction, [Src, Binding]),
                               MaybeSerial = rabbit_exchange:serialise_events(Src),
                               Serial = serial_in_mnesia(MaybeSerial, Src),
                               fun () ->
@@ -1581,7 +1569,7 @@ add_binding_in_khepri(#binding{source = SrcName,
                     case Serial of
                         already_exists -> ok;
                         _ ->
-                            rabbit_exchange:callback(Src, add_binding, [transaction, Serial], [Src, Binding])
+                            rabbit_exchange:callback(Src, add_binding, Serial, [Src, Binding])
                     end,
                     ok;
                 {error, _} = Err ->
@@ -1617,8 +1605,7 @@ remove_binding_in_mnesia(Src, Dst, B) ->
                     should_index_table(Src), fun delete/3),
     Deletions0 = maybe_auto_delete_exchange_in_mnesia(
                    B#binding.source, [B], rabbit_binding:new_deletions(), false),
-    Deletions = rabbit_binding:process_deletions(Deletions0, true),
-    fun() -> rabbit_binding:process_deletions(Deletions, false) end.
+    fun() -> rabbit_binding:process_deletions(Deletions0) end.
 
 sync_route(Route, durable, ShouldIndexTable, Fun) ->
     ok = Fun(rabbit_durable_route, Route, write),
@@ -1732,7 +1719,7 @@ remove_binding_in_khepri(#binding{source = SrcName,
         {error, _} = Err ->
             Err;
         Deletions ->
-            rabbit_binding:process_deletions(Deletions, false)
+            rabbit_binding:process_deletions(Deletions)
     end.
 
 -spec index_route_table_definition() -> list(tuple()).
@@ -1851,13 +1838,6 @@ unconditional_delete_exchange_in_mnesia(X, OnlyDurable) ->
 
 unconditional_delete_exchange_in_khepri(X, OnlyDurable) ->
     delete_exchange_in_khepri(X, OnlyDurable, true).
-
-delete_binding_in_mnesia(Binding) ->
-    mnesia:dirty_delete(rabbit_durable_route, Binding),
-    mnesia:dirty_delete(rabbit_semi_durable_route, Binding),
-    mnesia:dirty_delete(rabbit_reverse_route,
-                        rabbit_binding:reverse_binding(Binding)),
-    mnesia:dirty_delete(rabbit_route, Binding).
 
 delete_binding_in_khepri(Binding) ->
     Path = khepri_route_path(Binding),
@@ -2016,7 +1996,7 @@ remove_bindings_for_source_in_mnesia(SrcName, ShouldIndexTable) ->
             mnesia:dirty_match_object(rabbit_semi_durable_route, Match)),
       ShouldIndexTable).
 
-remove_bindings_for_source_in_khepri(SrcName = #resource{virtual_host = VHost, name = Name}) ->
+remove_bindings_for_source_in_khepri(#resource{virtual_host = VHost, name = Name}) ->
     Path = khepri_routes_path() ++ [VHost, Name],
     {ok, Bindings} = rabbit_khepri:tx_match_and_get_data(Path ++ [?STAR_STAR]),
     {ok, _} = khepri_tx:delete(Path),
@@ -2052,7 +2032,7 @@ recover_semi_durable_route_txn(#route{binding = B} = Route, X, mnesia) ->
               end
       end,
       fun (no_recover, _) -> ok;
-          (_Serial, true) -> rabbit_exchange:callback(X, add_binding, transaction, [X, B]);
+          (_Serial, true) -> ok;
           (Serial, false) -> rabbit_exchange:callback(X, add_binding, Serial, [X, B])
       end);
 recover_semi_durable_route_txn(_Path, _X, khepri) ->
@@ -2166,8 +2146,7 @@ delete_queue_in_mnesia(QueueName, Reason) ->
                   {[], []} ->
                       ok;
                   _ ->
-                      Deletions0 = internal_delete_queue_in_mnesia(QueueName, false, Reason),
-                      rabbit_binding:process_deletions(Deletions0, true)
+                      internal_delete_queue_in_mnesia(QueueName, false, Reason)
               end
       end).
 

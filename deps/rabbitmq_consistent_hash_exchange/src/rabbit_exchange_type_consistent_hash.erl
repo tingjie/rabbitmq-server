@@ -15,7 +15,7 @@
 
 -export([description/0, serialise_events/0, route/2]).
 -export([validate/1, validate_binding/2,
-         create/2, delete/3, policy_changed/2,
+         create/2, delete/2, policy_changed/2,
          add_binding/3, remove_bindings/3, assert_args_equivalence/2]).
 -export([init/0]).
 -export([info/1, info/2]).
@@ -162,17 +162,9 @@ validate_binding(_X, #binding { key = K }) ->
             {error, {binding_invalid, "The binding key must be an integer: ~tp", [K]}}
     end.
 
-maybe_initialise_hash_ring_state(transaction, #exchange{name = Name}) ->
-    maybe_initialise_hash_ring_state(transaction, Name);
-maybe_initialise_hash_ring_state(transaction, X = #resource{}) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              maybe_initialise_hash_ring_state_in_mnesia(X)
-      end,
-      fun() ->
-              maybe_initialise_hash_ring_state_in_khepri(X)
-      end);
-maybe_initialise_hash_ring_state(_, X) ->
+maybe_initialise_hash_ring_state(#exchange{name = Name}) ->
+    maybe_initialise_hash_ring_state(Name);
+maybe_initialise_hash_ring_state(X = #resource{}) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
               rabbit_misc:execute_mnesia_transaction(
@@ -231,12 +223,12 @@ recover_exchange_and_bindings(#exchange{name = XName} = X) ->
       fun() ->
               %% TODO should this happen on a single transaction?
               rabbit_log:debug("Consistent hashing exchange: recovered exchange ~s", [rabbit_misc:rs(XName)]),
-              create(transaction, X),
+              create(none, X),
               rabbit_log:debug("Consistent hashing exchange: recovered exchange ~s", [rabbit_misc:rs(XName)]),
               Bindings = rabbit_binding:list_for_source(XName),
               rabbit_log:debug("Consistent hashing exchange: have ~b bindings to recover for exchange ~s",
                                [length(Bindings), rabbit_misc:rs(XName)]),
-              [add_binding(transaction, X, B) || B <- lists:usort(Bindings)],
+              [add_binding(none, X, B) || B <- lists:usort(Bindings)],
               rabbit_log:debug("Consistent hashing exchange: recovered bindings for exchange ~s",
                                [rabbit_misc:rs(XName)])
       end).
@@ -245,90 +237,116 @@ recover_exchange_and_bindings_in_mnesia(#exchange{name = XName} = X) ->
     mnesia:transaction(
         fun () ->
             rabbit_log:debug("Consistent hashing exchange: will recover exchange ~ts", [rabbit_misc:rs(XName)]),
-            create(transaction, X),
+            create(none, X),
             rabbit_log:debug("Consistent hashing exchange: recovered exchange ~ts", [rabbit_misc:rs(XName)]),
             Bindings = rabbit_binding:list_for_source(XName),
             rabbit_log:debug("Consistent hashing exchange: have ~b bindings to recover for exchange ~ts",
                              [length(Bindings), rabbit_misc:rs(XName)]),
-            [add_binding(transaction, X, B) || B <- lists:usort(Bindings)],
+            [add_binding(none, X, B) || B <- lists:usort(Bindings)],
             rabbit_log:debug("Consistent hashing exchange: recovered bindings for exchange ~ts",
                              [rabbit_misc:rs(XName)])
     end).
 
-create(transaction, X) ->
-    maybe_initialise_hash_ring_state(transaction, X);
-create(Tx, X) ->
-    maybe_initialise_hash_ring_state(Tx, X).
+create(_Serial, X) ->
+    maybe_initialise_hash_ring_state(X).
 
-delete(transaction, #exchange{name = Name}, _Bs) ->
+delete(_Serial, #exchange{name = Name}) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              mnesia:write_lock_table(?HASH_RING_STATE_TABLE),
-              ok = mnesia:delete({?HASH_RING_STATE_TABLE, Name})
+              rabbit_misc:execute_mnesia_transaction(
+                fun() ->
+                        mnesia:write_lock_table(?HASH_RING_STATE_TABLE),
+                        ok = mnesia:delete({?HASH_RING_STATE_TABLE, Name})
+                end)
       end,
       fun() ->
               {ok, _} = rabbit_khepri:delete(khepri_consistent_hash_path(Name)),
               ok
-      end);
-delete(_Tx, _X, _Bs) ->
-    ok.
+      end).
 
 policy_changed(_X1, _X2) -> ok.
 
-add_binding(transaction, _X, #binding{source = S, destination = D, key = K}) ->
+add_binding(_Serial, _X, #binding{source = S, destination = D, key = K}) ->
     Weight = rabbit_data_coercion:to_integer(K),
     rabbit_log:debug("Consistent hashing exchange: adding binding from "
                      "exchange ~ts to destination ~ts with routing key '~ts'", [rabbit_misc:rs(S), rabbit_misc:rs(D), K]),
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              add_binding_in_mnesia(S, D, Weight)
+              rabbit_misc:execute_mnesia_transaction(
+                fun() -> add_binding_in_mnesia(S, D, K, Weight) end)
       end,
       fun() ->
-              add_binding_in_khepri(S, D, Weight)
-      end);
-add_binding(none, _X, _B) ->
-    ok.
+              add_binding_in_khepri(S, D, K, Weight)
+      end).
 
-add_binding_in_mnesia(S, D, Weight) ->
+add_binding_in_mnesia(S, D, K, Weight) ->
     case mnesia:read(?HASH_RING_STATE_TABLE, S) of
         [State0 = #chx_hash_ring{bucket_map = BM0,
                                  next_bucket_number = NexN0}] ->
-            NextN    = NexN0 + Weight,
-            %% hi/lo bucket counters are 0-based but weight is 1-based
-            Range   = lists:seq(NexN0, (NextN - 1)),
-            BM      = lists:foldl(fun(Key, Acc) ->
-                                          maps:put(Key, D, Acc)
-                                  end, BM0, Range),
-            State   = State0#chx_hash_ring{bucket_map = BM,
-                                           next_bucket_number = NextN},
-            ok = mnesia:write(?HASH_RING_STATE_TABLE, State, write),
-            ok;
+            case map_has_value(BM0, D) of
+                true ->
+                    rabbit_log:debug("Consistent hashing exchange: NOT adding binding from "
+                                     "exchange ~s to destination ~s with routing key '~s' "
+                                     "because this binding (possibly with a different "
+                                     "routing key) already exists",
+                                     [rabbit_misc:rs(S), rabbit_misc:rs(D), K]);
+                false ->
+                    rabbit_log:debug("Consistent hashing exchange: adding binding from "
+                                     "exchange ~s to destination ~s with routing key '~s'",
+                                     [rabbit_misc:rs(S), rabbit_misc:rs(D), K]),
+                    NextN    = NexN0 + Weight,
+                    %% hi/lo bucket counters are 0-based but weight is 1-based
+                    Range   = lists:seq(NexN0, (NextN - 1)),
+                    BM      = lists:foldl(fun(Key, Acc) ->
+                                                  maps:put(Key, D, Acc)
+                                          end, BM0, Range),
+                    State   = State0#chx_hash_ring{bucket_map = BM,
+                                                   next_bucket_number = NextN},
+                    ok = mnesia:write(?HASH_RING_STATE_TABLE, State, write),
+                    ok
+            end;
         [] ->
             maybe_initialise_hash_ring_state_in_mnesia(S),
-            add_binding_in_mnesia(S, D, Weight)
+            add_binding_in_mnesia(S, D, K, Weight)
     end.
 
-add_binding_in_khepri(S, D, Weight) ->
+add_binding_in_khepri(S, D, K, Weight) ->
     Path = khepri_consistent_hash_path(S),
-    rabbit_khepri:transaction(
-      fun() ->
-              add_binding_in_khepri_tx(S, Path, D, Weight)
-      end).
+    case rabbit_khepri:transaction(
+           fun() ->
+                   add_binding_in_khepri_tx(S, Path, D, Weight)
+           end) of
+        already_exists ->
+            rabbit_log:debug("Consistent hashing exchange: NOT adding binding from "
+                             "exchange ~s to destination ~s with routing key '~s' "
+                             "because this binding (possibly with a different "
+                             "routing key) already exists",
+                             [rabbit_misc:rs(S), rabbit_misc:rs(D), K]);
+        created ->
+            rabbit_log:debug("Consistent hashing exchange: adding binding from "
+                             "exchange ~s to destination ~s with routing key '~s'",
+                             [rabbit_misc:rs(S), rabbit_misc:rs(D), K])
+    end.
 
 add_binding_in_khepri_tx(X, Path, D, Weight) ->
     case khepri_tx:get(Path) of
         {ok, #{Path := #{data := Chx0 = #chx_hash_ring{bucket_map = BM0,
                                                        next_bucket_number = NexN0}}}} ->
-            NextN   = NexN0 + Weight,
-            %% hi/lo bucket counters are 0-based but weight is 1-based
-            Range   = lists:seq(NexN0, (NextN - 1)),
-            BM      = lists:foldl(fun(Key, Acc) ->
-                                          maps:put(Key, D, Acc)
-                                  end, BM0, Range),
-            Chx = Chx0#chx_hash_ring{bucket_map = BM,
-                                     next_bucket_number = NextN},
-            {ok, _} = khepri_tx:put(Path, Chx),
-            ok;
+            case map_has_value(BM0, D) of
+                true ->
+                    already_exists;
+                false ->
+                    NextN   = NexN0 + Weight,
+                    %% hi/lo bucket counters are 0-based but weight is 1-based
+                    Range   = lists:seq(NexN0, (NextN - 1)),
+                    BM      = lists:foldl(fun(Key, Acc) ->
+                                                  maps:put(Key, D, Acc)
+                                          end, BM0, Range),
+                    Chx = Chx0#chx_hash_ring{bucket_map = BM,
+                                             next_bucket_number = NextN},
+                    {ok, _} = khepri_tx:put(Path, Chx),
+                    created
+            end;
         _ ->
             case khepri_tx:create(Path, #chx_hash_ring{exchange = X,
                                                        next_bucket_number = 0,
@@ -340,15 +358,7 @@ add_binding_in_khepri_tx(X, Path, D, Weight) ->
             add_binding_in_khepri_tx(X, Path, D, Weight)
     end.
 
-remove_bindings(transaction, _X, Bindings) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              remove_bindings_in_mnesia(Bindings)
-      end,
-      fun() ->
-              remove_bindings_in_khepri(Bindings)
-      end);
-remove_bindings(none, _X, Bindings) ->
+remove_bindings(_Serial, _X, Bindings) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
               rabbit_misc:execute_mnesia_transaction(
@@ -570,6 +580,25 @@ hash_on(Args) ->
         {Header, undefined}    -> Header;
         {undefined, Property}  -> Property
     end.
+
+-spec map_has_value(#{bucket() => rabbit_types:binding_destination()},
+                    rabbit_types:binding_destination()) ->
+    boolean().
+map_has_value(Map, Val) ->
+    I = maps:iterator(Map),
+    map_has_value0(maps:next(I), Val).
+
+-spec map_has_value0(none | {bucket(),
+                             rabbit_types:binding_destination(),
+                             maps:iterator()},
+                     rabbit_types:binding_destination()) ->
+    boolean().
+map_has_value0(none, _Val) ->
+    false;
+map_has_value0({_Bucket, SameVal, _I}, SameVal) ->
+    true;
+map_has_value0({_Bucket, _OtherVal, I}, Val) ->
+    map_has_value0(maps:next(I), Val).
 
 khepri_consistent_hash_path(#exchange{name = Name}) ->
     khepri_consistent_hash_path(Name);

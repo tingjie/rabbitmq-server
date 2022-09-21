@@ -41,12 +41,14 @@ recover(VHost) ->
 -spec callback
         (rabbit_types:exchange(), fun_name(), atom(), [any()]) -> 'ok'.
 
-callback(X = #exchange{decorators = Decorators}, Fun, Serials, Args) when is_list(Serials) ->
+callback(X = #exchange{decorators = Decorators, name = XName}, Fun, Serial, Args) ->
+    case Fun of
+        delete -> rabbit_store:delete_exchange_serial(XName);
+        _ -> ok
+    end,
     Modules = rabbit_exchange_decorator:select(all, Decorators),
-    [callback0(X, Fun, Serial, Modules, Args) || Serial <- Serials],
-    ok;
-callback(X, Fun, Serial, Args) ->
-    callback(X, Fun, [Serial], Args).
+    callback0(X, Fun, Serial, Modules, Args),
+    ok.
 
 callback0(#exchange{type = XType}, Fun, Serial, Modules0, Args) when is_atom(Serial) ->
     Modules = Modules0 ++ [type_to_module(XType)],
@@ -125,22 +127,19 @@ declare(XName, Type, Durable, AutoDelete, Internal, Args, Username) ->
                                           ?EXCHANGE_DELETE_IN_PROGRESS_COMPONENT,
                                           XName#resource.name) of
         not_found ->
-            PrePostCommitFun =
-                fun ({new, Exchange} = Response, all) ->
+            PostCommitFun =
+                fun ({new, Exchange} = Response) ->
                         %% Khepri can't run this inside of a transaction, support both
                         %% transactional and non-transactional ops at once. If
                         %% exchange decorators need a transaction, they must run their own
-                        ok = callback(X, create, [transaction, none], [Exchange]),
+                        Serial = rabbit_exchange:serial(Exchange),
+                        ok = callback(X, create, Serial, [Exchange]),
                         rabbit_event:notify(exchange_created, info(Exchange)),
                         Response;
-                    ({new, Exchange} = Response, Tx) ->
-                        ok = callback(X, create, map_create_tx(Tx), [Exchange]),
-                        rabbit_event:notify_if(not Tx, exchange_created, info(Exchange)),
-                        Response;
-                    (Response, _Tx) ->
+                    (Response) ->
                         Response
                 end,
-            case rabbit_store:create_exchange(X, PrePostCommitFun) of
+            case rabbit_store:create_exchange(X, PostCommitFun) of
                 {new, Exchange} -> Exchange;
                 {existing, Exchange} -> Exchange;
                 Err -> Err
@@ -150,9 +149,6 @@ declare(XName, Type, Durable, AutoDelete, Internal, Args, Username) ->
                                 exchange.delete in progress~n.", [XName]),
             X
     end.
-
-map_create_tx(true)  -> transaction;
-map_create_tx(false) -> none.
 
 %% Used with binaries sent over the wire; the type may not exist.
 
@@ -448,7 +444,7 @@ delete(XName, IfUnused, Username) ->
         rabbit_runtime_parameters:set(XName#resource.virtual_host,
                                       ?EXCHANGE_DELETE_IN_PROGRESS_COMPONENT,
                                       XName#resource.name, true, Username),
-        Deletions = rabbit_store:delete_exchange(XName, IfUnused, fun process_deletions/2),
+        Deletions = rabbit_store:delete_exchange(XName, IfUnused, fun process_deletions/1),
         rabbit_binding:notify_deletions(Deletions, Username)
     after
         rabbit_runtime_parameters:clear(XName#resource.virtual_host,
@@ -456,14 +452,14 @@ delete(XName, IfUnused, Username) ->
                                         XName#resource.name, Username)
     end.
 
-process_deletions({error, _} = E, _IsTransaction) ->
+process_deletions({error, _} = E) ->
     E;
-process_deletions({deleted, #exchange{name = XName} = X, Bs, Deletions}, IsTransaction) ->
+process_deletions({deleted, #exchange{name = XName} = X, Bs, Deletions}) ->
     rabbit_binding:process_deletions(
       rabbit_binding:add_deletion(
-        XName, {X, deleted, Bs}, Deletions), IsTransaction);
-process_deletions(Deletions, IsTransaction) ->
-    rabbit_binding:process_deletions(Deletions, IsTransaction).
+        XName, {X, deleted, Bs}, Deletions));
+process_deletions(Deletions) ->
+    rabbit_binding:process_deletions(Deletions).
 
 -spec validate_binding
         (rabbit_types:exchange(), rabbit_types:binding())

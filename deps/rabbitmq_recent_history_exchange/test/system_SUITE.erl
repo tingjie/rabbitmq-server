@@ -58,7 +58,9 @@ end_per_suite(Config) ->
 init_per_group(mnesia_store, Config) ->
     rabbit_ct_helpers:set_config(Config, [{metadata_store, mnesia}]);
 init_per_group(khepri_store, Config) ->
-    rabbit_ct_helpers:set_config(Config, [{metadata_store, khepri}]);
+    rabbit_ct_helpers:set_config(
+      Config,
+      [{metadata_store, {khepri, [rabbit_recent_history_exchange_raft_based_metadata_store]}}]);
 init_per_group(_, Config) ->
     Config1 = rabbit_ct_helpers:set_config(Config, [
                                                     {rmq_nodename_suffix, ?MODULE},

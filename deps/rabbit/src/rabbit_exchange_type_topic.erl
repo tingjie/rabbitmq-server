@@ -13,7 +13,7 @@
 
 -export([description/0, serialise_events/0, route/2]).
 -export([validate/1, validate_binding/2,
-         create/2, delete/3, policy_changed/2, add_binding/3,
+         create/2, delete/2, policy_changed/2, add_binding/3,
          remove_bindings/3, assert_args_equivalence/2]).
 -export([info/1, info/2]).
 
@@ -52,32 +52,30 @@ route(X, Delivery) ->
 
 validate(_X) -> ok.
 validate_binding(_X, _B) -> ok.
-create(_Tx, _X) -> ok.
+create(_Serial, _X) -> ok.
 
-delete(transaction, #exchange{name = X}, _Bs) ->
+delete(_Serial, #exchange{name = X}) ->
     rabbit_khepri:try_mnesia_or_khepri(
-      fun() -> delete_in_mnesia(X) end,
-      fun() -> rabbit_store:delete_topic_trie_bindings_for_exchange(X) end);
-delete(none, _Exchange, _Bs) ->
-    ok.
+      fun() ->
+              rabbit_misc:execute_mnesia_transaction(
+                fun() -> delete_in_mnesia(X) end)
+      end,
+      fun() -> rabbit_store:delete_topic_trie_bindings_for_exchange(X) end).
 
 policy_changed(_X1, _X2) -> ok.
 
-add_binding(transaction, _Exchange, Binding) ->
-    internal_add_binding(Binding);
-add_binding(none, _Exchange, _Binding) ->
-    ok.
+add_binding(_Serial, _Exchange, Binding) ->
+    internal_add_binding(Binding).
 
-remove_bindings(transaction, _X, Bs) ->
+remove_bindings(_Serial, _X, Bs) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              remove_bindings_in_mnesia(Bs)
+              rabbit_misc:execute_mnesia_transaction(
+                fun() -> remove_bindings_in_mnesia(Bs) end)
       end,
       fun() ->
               rabbit_store:delete_topic_trie_bindings(Bs)
-      end);
-remove_bindings(none, _X, _Bs) ->
-    ok.
+      end).
 
 assert_args_equivalence(X, Args) ->
     rabbit_exchange:assert_args_equivalence(X, Args).
@@ -113,9 +111,12 @@ delete_in_mnesia(X) ->
 internal_add_binding(#binding{source = X, key = K, destination = D, args = Args}) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              FinalNode = follow_down_create(X, split_topic_key(K)),
-              trie_add_binding(X, FinalNode, D, Args),
-              ok
+              rabbit_misc:execute_mnesia_transaction(
+                fun() ->
+                        FinalNode = follow_down_create(X, split_topic_key(K)),
+                        trie_add_binding(X, FinalNode, D, Args),
+                        ok
+                end)
       end,
       fun () -> rabbit_store:add_topic_trie_binding(X, K, D, Args) end).
 
