@@ -752,17 +752,30 @@ exists_queue(Name) ->
               rabbit_khepri:exists(khepri_queue_path(Name))
       end).
 
-update_queue(Name, Fun) ->
+update_queue(#resource{virtual_host = VHost, name = Name} = QName, Fun) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> rabbit_misc:execute_mnesia_transaction(
                  fun() ->
-                         update_queue_in_mnesia(Name, Fun)
+                         update_queue_in_mnesia(QName, Fun)
                  end)
       end,
-      fun() -> rabbit_khepri:transaction(
-                 fun() ->
-                         update_queue_in_khepri(Name, Fun)
-                 end, rw)
+      fun() ->
+              Path = khepri_queue_path(QName),
+              retry(
+                fun() ->
+                        case rabbit_khepri:get(Path) of
+                            {ok, #{Path := #{data := Q, payload_version := Vsn}}} ->
+                                Conditions = #if_all{conditions = [Name, #if_payload_version{version = Vsn}]},
+                                Q1 = Fun(Q),
+                                UpdatePath = khepri_queues_path() ++ [VHost, Conditions],
+                                case rabbit_khepri:put(UpdatePath, Q1) of
+                                    {ok, _} -> Q1;
+                                    Err -> Err
+                                end;
+                            _  ->
+                                not_found
+                        end
+                end)
       end).
 
 store_queue(DurableQ, Q) ->
@@ -2259,14 +2272,15 @@ retry(Fun) ->
 
 retry(Fun, Until) ->
     case Fun() of
-        ok -> ok;
         {error, Reason} ->
             case erlang:system_time(millisecond) of
                 V when V >= Until ->
                     throw({error, Reason});
                 _ ->
                     retry(Fun, Until)
-            end
+            end;
+        Reply ->
+            Reply
     end.
 
 khepri_create_tx(Path, Value) ->
