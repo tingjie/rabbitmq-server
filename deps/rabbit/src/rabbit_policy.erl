@@ -371,15 +371,8 @@ list0_op(VHost, DefnFun) ->
     [p(P, DefnFun)
      || P <- rabbit_runtime_parameters:list(VHost, <<"operator_policy">>)].
 
-list0_op_in_khepri(VHost, DefnFun) ->
-    [p(P, DefnFun)
-     || P <- rabbit_runtime_parameters:list_in_khepri_tx(VHost, <<"operator_policy">>)].
-
 list0(VHost, DefnFun) ->
     [p(P, DefnFun) || P <- rabbit_runtime_parameters:list(VHost, <<"policy">>)].
-
-list0_in_khepri(VHost, DefnFun) ->
-    [p(P, DefnFun) || P <- rabbit_runtime_parameters:list_in_khepri_tx(VHost, <<"policy">>)].
 
 sort_by_priority(PropList) ->
     lists:sort(fun (A, B) -> not priority_comparator(A, B) end, PropList).
@@ -519,29 +512,15 @@ update_queue_in_mnesia(Q0, Policies, OpPolicies) when ?is_amqqueue(Q0) ->
     end.
 
 update_matched_objects_in_khepri(VHost) ->
-    case rabbit_khepri:transaction(
-           fun() ->
-                   case (catch {list0_in_khepri(VHost, fun ident/1),
-                                list0_op_in_khepri(VHost, fun ident/1)}) of
-                       {'EXIT', _} = Err ->
-                           {error, Err};
-                       {Policies, OpPolicies} ->
-                           Exchanges = rabbit_store:list_exchanges_in_khepri_tx(VHost),
-                           Queues = rabbit_store:list_queues_in_khepri_tx(VHost),
-                           {ok, #{policies => Policies,
-                                  op_policies => OpPolicies,
-                                  exchanges => Exchanges,
-                                  queues => Queues}}
-                   end
-           end, ro) of
-        {error, {'EXIT', {throw, {error, {no_such_vhost, _}}}}} ->
+    case (catch {list0(VHost, fun ident/1),
+                 list0_op(VHost, fun ident/1)}) of
+        {'EXIT', {throw, {error, {no_such_vhost, _}}}} ->
             {[], []}; %% [2]
-        {error, {'EXIT', Exit}} ->
+        {'EXIT', Exit} ->
             exit(Exit);
-        {ok, #{policies := Policies,
-               op_policies := OpPolicies,
-               exchanges := Exchanges0,
-               queues := Queues0}} ->
+        {Policies, OpPolicies} ->
+            Exchanges0 = rabbit_store:list_exchanges(VHost),
+            Queues0 = rabbit_store:list_queues(VHost),
             Exchanges = [get_updated_exchange(X, Policies, OpPolicies) || X <- Exchanges0],
             Queues = [get_updated_queue(Q, Policies, OpPolicies) || Q <- Queues0],
             rabbit_khepri:transaction(

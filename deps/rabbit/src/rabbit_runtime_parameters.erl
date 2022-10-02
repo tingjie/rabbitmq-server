@@ -52,8 +52,6 @@
          list_global/0, list_global_formatted/0, list_global_formatted/2,
          lookup_global/1, global_info_keys/0, clear_global/2]).
 
--export([list_in_khepri_tx/2]).
-
 -export([clear_data_in_khepri/1,
          mnesia_write_to_khepri/2,
          mnesia_delete_to_khepri/2]).
