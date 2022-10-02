@@ -543,11 +543,10 @@ check_stop_in_mnesia(Group, Delegate, Id) ->
             running
     end.
 
-check_stop_in_khepri(Group, Delegate, Id) ->
+check_stop_in_khepri(Group, Delegate, {SimpleId, _} = Id) ->
     case child(Delegate, Id) of
         undefined ->
-            rabbit_khepri:transaction(
-              fun() -> delete_in_khepri(Group, Id) end),
+            {ok, _} = rabbit_khepri:delete(khepri_mirrored_supervisor_path(Group, SimpleId)),
             deleted;
         _         -> running
     end.

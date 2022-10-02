@@ -31,7 +31,7 @@
 -export([update_exchange_in_mnesia/2, update_exchange_in_khepri/2]).
 
 %% TODO used by rabbit policy. to become internal
--export([list_exchanges_in_mnesia/1, list_queues_in_khepri_tx/1,
+-export([list_exchanges_in_mnesia/1,
          list_queues_in_mnesia/1, update_queue_in_mnesia/2, update_queue_in_khepri/2]).
 %% TODO used by topic exchange. Should it be internal?
 -export([match_source_and_destination_in_khepri/2]).
@@ -56,8 +56,7 @@
 -export([store_durable_queue/1]).
 
 %% TODO to become internal
--export([list_exchanges_in_khepri_tx/1,
-         lookup_queue_in_khepri_tx/1]).
+-export([lookup_queue_in_khepri_tx/1]).
 
 -export([mnesia_write_to_khepri/2,
          mnesia_delete_to_khepri/2,
@@ -256,12 +255,6 @@ lookup_many_exchanges(Names) ->
       fun() -> lookup_many(rabbit_exchange, Names, mnesia) end,
       fun() -> lookup_many(fun khepri_exchange_path/1, Names, khepri) end).
 
-%% TODO rabbit_policy:update_matched_objects_in_khepri
-list_exchanges_in_khepri_tx(VHostPath) ->
-    Path = khepri_exchanges_path() ++ [VHostPath, ?STAR_STAR],
-    {ok, Map} = rabbit_khepri:tx_match_and_get_data(Path),
-    maps:values(Map).
-
 peek_exchange_serial(XName, LockType) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
@@ -300,7 +293,8 @@ delete_exchange_serial(XName) ->
               ok
       end).
 
-next_exchange_serial(X) ->
+next_exchange_serial(#exchange{name = #resource{name = Name, virtual_host = VHost} = XName} = X) ->
+    %% TODO Serial can store just the number. The record isn't necessary!
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
               rabbit_misc:execute_mnesia_transaction(fun() ->
@@ -308,9 +302,23 @@ next_exchange_serial(X) ->
                                                      end)
       end,
       fun() ->
-              rabbit_khepri:transaction(fun() ->
-                                                next_exchange_serial_in_khepri(X)
-                                        end, rw)
+              Path = khepri_exchange_serial_path(XName),
+              retry(
+                fun() ->
+                        case rabbit_khepri:get(Path) of
+                            {ok, #{data := #exchange_serial{next = Serial},
+                                   payload_version := Vsn}} ->
+                                Conditions = #if_all{conditions = [Name, #if_payload_version{version = Vsn}]},
+                                UpdatePath = khepri_exchange_serials_path() ++ [VHost, Conditions],
+                                XS = #exchange_serial{name = XName, next = Serial + 1},
+                                {ok, _} = rabbit_khepri:put(UpdatePath, XS),
+                                Serial;
+                            _ ->
+                                XS = #exchange_serial{name = XName, next = 2},
+                                {ok, _} = rabbit_khepri:put(Path, XS),
+                                1
+                        end
+                end)
       end).
 
 next_exchange_serial_in_mnesia(#exchange{name = XName}) ->
@@ -359,10 +367,18 @@ update_exchange_scratch(Name, ScratchFun) ->
                 end)
       end,
       fun() ->
-              rabbit_khepri:transaction(
+              retry(
                 fun() ->
-                        update_exchange_in_khepri(Name, ScratchFun)
-                end, rw)
+                        Path = khepri_exchange_path(Name),
+                        case rabbit_khepri:get(Path) of
+                            {ok, #{data := X}} ->
+                                X1 = ScratchFun(X),
+                                {ok, _} = rabbit_khepri:put(Path, X1),
+                                X1;
+                            _ ->
+                                not_found
+                        end
+                end)
       end).
 
 store_durable_exchanges(Xs) ->
@@ -437,16 +453,25 @@ exists_binding(#binding{source = SrcName,
       end,
       fun() ->
               Path = khepri_route_path(Binding),
-              rabbit_khepri:transaction(
-                fun () ->
-                        case {lookup_resource_in_khepri_tx(SrcName),
-                              lookup_resource_in_khepri_tx(DstName)} of
-                            {[_Src], [_Dst]} ->
-                                exists_binding_in_khepri(Path, Binding);
-                            Errs -> not_found_errs_in_khepri(
-                                      not_found(Errs, SrcName, DstName))
-                        end
-                end, ro)
+              case rabbit_khepri:transaction(
+                     fun () ->
+                             case {lookup_resource_in_khepri_tx(SrcName),
+                                   lookup_resource_in_khepri_tx(DstName)} of
+                                 {[_Src], [_Dst]} ->
+                                     case khepri_tx:get(Path) of
+                                         {ok, #{Path := #{data := Set}}} ->
+                                             {ok, Set};
+                                         _ ->
+                                             {ok, not_found}
+                                     end;
+                                 Errs ->
+                                     Errs
+                             end
+                     end) of
+                  {ok, not_found} -> false;
+                  {ok, Set} -> sets:is_element(Binding, Set);
+                  Errs -> not_found_errs_in_khepri(not_found(Errs, SrcName, DstName))
+              end
       end).
 
 add_binding(Binding, ChecksFun) ->
@@ -622,12 +647,6 @@ list_queues_in_mnesia(VHost) ->
               list_in_mnesia(rabbit_queue, Pattern)
       end).
 
-%% TODO to become internal, used by rabbit_policy
-list_queues_in_khepri_tx(VHostPath) ->
-    Path = khepri_queues_path(),
-    {ok, Map} = rabbit_khepri:tx_match_and_get_data(Path ++ [VHostPath, ?STAR_STAR]),
-    maps:values(Map).
-
 list_durable_queues(VHost) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> list_queues_with_possible_retry_in_mnesia(
@@ -764,7 +783,7 @@ update_queue(#resource{virtual_host = VHost, name = Name} = QName, Fun) ->
               retry(
                 fun() ->
                         case rabbit_khepri:get(Path) of
-                            {ok, #{Path := #{data := Q, payload_version := Vsn}}} ->
+                            {ok, #{data := Q, payload_version := Vsn}} ->
                                 Conditions = #if_all{conditions = [Name, #if_payload_version{version = Vsn}]},
                                 Q1 = Fun(Q),
                                 UpdatePath = khepri_queues_path() ++ [VHost, Conditions],
@@ -969,17 +988,23 @@ destinations(SrcName, RoutingKey) ->
 %% Exchange type topic
 add_topic_trie_binding(XName, RoutingKey, Destination, Args) ->
     Path = khepri_exchange_type_topic_path(XName) ++ split_topic_trie_key(RoutingKey),
+    {Path0, [Last]} = lists:split(length(Path) - 1, Path),
     Binding = #{destination => Destination, arguments => Args},
-    rabbit_khepri:transaction(
+    retry(
       fun() ->
-              Set0 = case khepri_tx:get(Path) of
-                         {ok, #{Path := #{data := S}}} -> S;
-                         _ -> sets:new()
-                     end,
-              Set = sets:add_element(Binding, Set0),
-              {ok, _} = khepri_tx:put(Path, Set),
-              ok
-      end, rw).
+              case rabbit_khepri:get(Path) of
+                  {ok, #{data := Set0, payload_version := Vsn}} ->
+                      Set = sets:add_element(Binding, Set0),
+                      Conditions = #if_all{conditions = [Last, #if_payload_version{version = Vsn}]},
+                      UpdatePath = Path0 ++ [Conditions],
+                      {ok, _} = rabbit_khepri:put(UpdatePath, Set),
+                      ok;
+                  _ ->
+                      Set = sets:add_element(Binding, sets:new()),
+                      {ok, _} = rabbit_khepri:put(Path, Set),
+                      ok
+              end
+      end).
 
 add_topic_trie_binding_tx(XName, RoutingKey, Destination, Args) ->
     Path = khepri_exchange_type_topic_path(XName) ++ split_topic_trie_key(RoutingKey),
@@ -997,18 +1022,15 @@ route_delivery_for_exchange_type_topic(XName, RoutingKey) ->
     Root = khepri_exchange_type_topic_path(XName),
     Path = Root ++ Words,
     Fanout = Root ++ [<<"#">>],
-    Map = rabbit_khepri:transaction(
-            fun() ->
-                    case khepri_tx:get(Fanout, #{expect_specific_node => true}) of
-                        {ok, #{Fanout := #{data := _}} = Map} ->
-                            Map;
-                        _ ->
-                            case khepri_tx:get(Path) of
-                                {ok, Map} -> Map;
-                                _ -> #{}
-                            end
-                    end
-            end, ro),
+    Map = case rabbit_khepri:get(Fanout) of
+              {ok, #{data := _} = Map0} ->
+                  #{Fanout => Map0};
+              _ ->
+                  case rabbit_khepri:match(Path) of
+                      {ok, Map0} -> Map0;
+                      _ -> #{}
+                  end
+          end,
     maps:fold(fun(_, #{data := Data}, Acc) ->
                       Bindings = sets:to_list(Data),
                       [maps:get(destination, B) || B <- Bindings] ++ Acc;
@@ -1026,6 +1048,7 @@ delete_topic_trie_bindings(Bs) ->
                 Path = khepri_exchange_type_topic_path(X) ++ split_topic_trie_key(K),
                 {Path, #{destination => D, arguments => Args}}
             end || #binding{source = X, key = K, destination = D, args = Args} <- Bs],
+    %% TODO can we use a retry instead of a transaction? I think so!
     rabbit_khepri:transaction(
       fun() ->
               [begin
@@ -1037,6 +1060,8 @@ delete_topic_trie_bindings(Bs) ->
                                {0, 0} ->
                                    khepri_tx:delete(Path),
                                    %% TODO can we use a keep_while condition?
+                                   %% TODO remove this when Khepri automatically removes
+                                   %% paths withtout nodes and data
                                    remove_path_if_empty(lists:droplast(Path));
                                _ ->
                                    khepri_tx:put(Path, Set)
@@ -1425,11 +1450,18 @@ binding_action_in_mnesia(#binding{source      = SrcName,
 table_for_resource(#resource{kind = exchange}) -> rabbit_exchange;
 table_for_resource(#resource{kind = queue})    -> rabbit_queue.
 
-lookup_resources(Src, Dst) ->
-    rabbit_khepri:transaction(
-      fun() ->
-              {lookup_resource_in_khepri_tx(Src), lookup_resource_in_khepri_tx(Dst)}
-      end, ro).
+lookup_resource(#resource{kind = queue} = Name) ->
+    Path = khepri_queue_path(Name),
+    case rabbit_khepri:get_data(Path) of
+        {ok, Q} -> [Q];
+        _ -> []
+    end;
+lookup_resource(#resource{kind = exchange} = Name) ->
+    Path = khepri_exchange_path(Name),
+    case rabbit_khepri:get_data(Path) of
+        {ok, X} -> [X];
+        _ -> []
+    end.
 
 lookup_resource_in_khepri_tx(#resource{kind = queue} = Name) ->
     lookup_tx_in_khepri(khepri_queue_path(Name));
@@ -1555,7 +1587,7 @@ add_binding_in_mnesia(Binding, ChecksFun) ->
 
 add_binding_in_khepri(#binding{source = SrcName,
                                destination = DstName} = Binding, ChecksFun) ->
-    case lookup_resources(SrcName, DstName) of
+    case {lookup_resource(SrcName), lookup_resource(DstName)} of
         {[Src], [Dst]} ->
             case ChecksFun(Src, Dst) of
                 {ok, _BindingType} ->
@@ -2209,25 +2241,30 @@ update_queue_decorators_in_mnesia(Name, Decorators) ->
               end
       end).
 
-update_queue_decorators_in_khepri(Name, Decorators) ->
+update_queue_decorators_in_khepri(#resource{virtual_host = VHost, name = Name} = QName,
+                                  Decorators) ->
     %% Decorators are stored on an ETS table, so we need to query them before the transaction.
     %% Also, to verify which ones are active could lead to any kind of side-effects.
     %% Thus it needs to be done outside of the transaction.
     %% Decorators have just been calculated on `rabbit_queue_decorator:maybe_recover/1`, thus
     %% we can update them here directly.
-    Path = khepri_queue_path(Name),
-    rabbit_khepri:transaction(
+    Path = khepri_queue_path(QName),
+    retry(
       fun() ->
-              case khepri_tx:get(Path) of
-                  {ok, #{Path := #{data := Q0}}} ->
+              case rabbit_khepri:get(Path) of
+                  {ok, #{data := Q0, payload_version := Vsn}} ->
                       Q1 = amqqueue:reset_mirroring_and_decorators(Q0),
                       Q2 = amqqueue:set_decorators(Q1, Decorators),
-                      store_in_khepri(Path, Q2),
-                      ok;
+                      Conditions = #if_all{conditions = [Name, #if_payload_version{version = Vsn}]},
+                      UpdatePath = khepri_queues_path() ++ [VHost, Conditions],
+                      case rabbit_khepri:put(UpdatePath, Q2) of
+                          {ok, _} -> ok;
+                          Err -> Err
+                      end;
                   _  ->
                       ok
               end
-      end, rw).
+      end).
 
 store_in_khepri(Path, Value) ->
     case khepri_tx:put(Path, Value) of
