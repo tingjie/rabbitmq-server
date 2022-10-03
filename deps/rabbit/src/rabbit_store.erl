@@ -126,7 +126,7 @@ khepri_exchange_path(#resource{virtual_host = VHost, name = Name}) ->
     [?MODULE, exchanges, VHost, Name].
 
 khepri_exchange_serials_path() ->
-    [?MODULE, exchanges_serials].
+    [?MODULE, exchange_serials].
 
 khepri_exchange_serial_path(#resource{virtual_host = VHost, name = Name}) ->
     [?MODULE, exchange_serials, VHost, Name].
@@ -266,7 +266,7 @@ peek_exchange_serial(XName, LockType) ->
       fun() ->
               Path = khepri_exchange_serial_path(XName),
               case rabbit_khepri:get_data(Path) of
-                  {ok, #exchange_serial{next = Serial}} ->
+                  {ok, Serial} ->
                       Serial;
                   _ ->
                       1
@@ -294,7 +294,6 @@ delete_exchange_serial(XName) ->
       end).
 
 next_exchange_serial(#exchange{name = #resource{name = Name, virtual_host = VHost} = XName} = X) ->
-    %% TODO Serial can store just the number. The record isn't necessary!
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
               rabbit_misc:execute_mnesia_transaction(fun() ->
@@ -302,21 +301,25 @@ next_exchange_serial(#exchange{name = #resource{name = Name, virtual_host = VHos
                                                      end)
       end,
       fun() ->
+              %% Just storing the serial number is enough, no need to keep #exchange_serial{}
               Path = khepri_exchange_serial_path(XName),
               retry(
                 fun() ->
                         case rabbit_khepri:get(Path) of
-                            {ok, #{data := #exchange_serial{next = Serial},
+                            {ok, #{data := Serial,
                                    payload_version := Vsn}} ->
                                 Conditions = #if_all{conditions = [Name, #if_payload_version{version = Vsn}]},
                                 UpdatePath = khepri_exchange_serials_path() ++ [VHost, Conditions],
-                                XS = #exchange_serial{name = XName, next = Serial + 1},
-                                {ok, _} = rabbit_khepri:put(UpdatePath, XS),
-                                Serial;
+                                case rabbit_khepri:put(UpdatePath, Serial + 1) of
+                                    {ok, _} ->
+                                        Serial;
+                                    Err ->
+                                        Err
+                                end;
                             _ ->
-                                XS = #exchange_serial{name = XName, next = 2},
-                                {ok, _} = rabbit_khepri:put(Path, XS),
-                                1
+                                Serial = 1,
+                                {ok, _} = rabbit_khepri:put(Path, Serial + 1),
+                                Serial
                         end
                 end)
       end).
@@ -330,11 +333,10 @@ next_exchange_serial_in_mnesia(#exchange{name = XName}) ->
 next_exchange_serial_in_khepri(#exchange{name = XName}) ->
     Path = khepri_exchange_serial_path(XName),
     Serial = case khepri_tx:get(Path) of
-                 {ok, #{Path := #{data := #exchange_serial{next = Serial0}}}} -> Serial0;
+                 {ok, #{Path := #{data := Serial0}}} -> Serial0;
                  _ -> 1
              end,
-    {ok, _} = khepri_tx:put(Path,
-                            #exchange_serial{name = XName, next = Serial + 1}),
+    {ok, _} = khepri_tx:put(Path, Serial + 1),
     Serial.
 
 update_exchange_in_mnesia(Name, Fun) ->
@@ -1109,11 +1111,10 @@ mnesia_write_to_khepri(rabbit_exchange_serial, Exchanges) ->
     rabbit_khepri:transaction(
       fun() ->
               [begin
-                   #exchange_serial{name = Resource} = Exchange,              
+                   #exchange_serial{name = Resource, next = Serial} = Exchange,
                    Path = khepri_path:combine_with_conditions(khepri_exchange_serial_path(Resource),
                                                               [#if_node_exists{exists = false}]),
-                   Extra = #{keep_while => #{khepri_exchange_path(Resource) => #if_node_exists{exists = true}}},
-                   case khepri_tx:put(Path, Exchange, Extra) of
+                   case khepri_tx:put(Path, Serial) of
                        {ok, _} -> ok;
                        Error -> throw(Error)
                    end
