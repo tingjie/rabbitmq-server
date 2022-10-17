@@ -192,7 +192,7 @@ mds_migration_post_enable(#{feature_name := FeatureName}) ->
 
 clear_data_in_khepri(?JMS_TOPIC_TABLE) ->
     case rabbit_khepri:delete(khepri_jms_topic_exchange_path()) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
@@ -200,21 +200,21 @@ clear_data_in_khepri(?JMS_TOPIC_TABLE) ->
 
 mnesia_write_to_khepri(?JMS_TOPIC_TABLE, #?JMS_TOPIC_RECORD{x_name = XName, x_selector_funs = BFuns}) ->
     case rabbit_khepri:create(khepri_jms_topic_exchange_path(XName), BFuns) of
-        {ok, _} -> ok;
-        {error, {mismatching_node, _}} -> ok;
+        ok -> ok;
+        {error, {khepri, mismatching_node, _}} -> ok;
         Error -> throw(Error)
     end.
 
 mnesia_delete_to_khepri(?JMS_TOPIC_TABLE, #?JMS_TOPIC_RECORD{x_name = XName}) ->
     case rabbit_khepri:delete(khepri_jms_topic_exchange_path(XName)) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
     end;
 mnesia_delete_to_khepri(?JMS_TOPIC_TABLE, Key) ->
     case rabbit_khepri:delete(khepri_jms_topic_exchange_path(Key)) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
@@ -326,9 +326,8 @@ add_binding_fun(XName, BindingKeyAndFun) ->
               case rabbit_khepri:transaction(
                      fun() ->
                              case khepri_tx:get(Path) of
-                                 {ok, #{Path := #{data := BindingFuns}}} ->
-                                     {ok, _} = khepri_tx:put(Path, put_item(BindingFuns, BindingKeyAndFun)),
-                                     ok;
+                                 {ok, BindingFuns} ->
+                                     ok = khepri_tx:put(Path, put_item(BindingFuns, BindingKeyAndFun));
                                  Err ->
                                      Err
                              end
@@ -355,9 +354,8 @@ remove_binding_funs(XName, Bindings) ->
               case rabbit_khepri:transaction(
                      fun() ->
                              case khepri_tx:get(Path) of
-                                 {ok, #{Path := #{data := BindingFuns}}} ->
-                                     {ok, _} = khepri_tx:put(Path, remove_items(BindingFuns, BindingKeys)),
-                                     ok;
+                                 {ok, BindingFuns} ->
+                                     ok = khepri_tx:put(Path, remove_items(BindingFuns, BindingKeys));
                                  Err ->
                                      Err
                              end
@@ -403,7 +401,7 @@ read_state_no_error(XName) ->
 
 read_state_in_khepri(XName) ->
     case rabbit_khepri:get(khepri_jms_topic_exchange_path(XName)) of
-        {ok, #{data := BindingFuns}} ->
+        {ok, BindingFuns} ->
             BindingFuns;
         _ ->
             exchange_state_corrupt_error(XName)
@@ -419,8 +417,7 @@ write_state_fun(XName, BFuns) ->
                 end)
       end,
       fun() ->
-              {ok, _} = rabbit_khepri:put(khepri_jms_topic_exchange_path(XName), BFuns),
-              ok
+              ok = rabbit_khepri:put(khepri_jms_topic_exchange_path(XName), BFuns)
       end).
 
 write_state_fun_in_mnesia(XName, BFuns) ->

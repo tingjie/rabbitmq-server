@@ -113,7 +113,7 @@ route(#exchange {name      = Name,
       fun() ->
               Path = khepri_consistent_hash_path(Name),
               case rabbit_khepri:get(Path) of
-                  {ok, #{data := #chx_hash_ring{bucket_map = BM}}} ->
+                  {ok, #chx_hash_ring{bucket_map = BM}} ->
                       case maps:size(BM) of
                           0 -> [];
                           N ->
@@ -191,8 +191,8 @@ maybe_initialise_hash_ring_state_in_khepri(X) ->
     case rabbit_khepri:create(Path, #chx_hash_ring{exchange = X,
                                                    next_bucket_number = 0,
                                                    bucket_map = #{}}) of
-        {ok, _} -> ok;
-        {error, {mismatching_node, _}} -> ok;
+        ok -> ok;
+        {error, {khepri, mismatching_node, _}} -> ok;
         Error -> Error
     end.
 
@@ -260,8 +260,7 @@ delete(_Serial, #exchange{name = Name}) ->
                 end)
       end,
       fun() ->
-              {ok, _} = rabbit_khepri:delete(khepri_consistent_hash_path(Name)),
-              ok
+              ok = rabbit_khepri:delete(khepri_consistent_hash_path(Name))
       end).
 
 policy_changed(_X1, _X2) -> ok.
@@ -330,8 +329,8 @@ add_binding_in_khepri(S, D, K, Weight) ->
 
 add_binding_in_khepri_tx(X, Path, D, Weight) ->
     case khepri_tx:get(Path) of
-        {ok, #{Path := #{data := Chx0 = #chx_hash_ring{bucket_map = BM0,
-                                                       next_bucket_number = NexN0}}}} ->
+        {ok, Chx0 = #chx_hash_ring{bucket_map = BM0,
+                                   next_bucket_number = NexN0}} ->
             case map_has_value(BM0, D) of
                 true ->
                     already_exists;
@@ -344,15 +343,15 @@ add_binding_in_khepri_tx(X, Path, D, Weight) ->
                                           end, BM0, Range),
                     Chx = Chx0#chx_hash_ring{bucket_map = BM,
                                              next_bucket_number = NextN},
-                    {ok, _} = khepri_tx:put(Path, Chx),
+                    ok = khepri_tx:put(Path, Chx),
                     created
             end;
         _ ->
             case khepri_tx:create(Path, #chx_hash_ring{exchange = X,
                                                        next_bucket_number = 0,
                                                        bucket_map = #{}}) of
-                {ok, _} -> ok;
-                {error, {mismatching_node, _}} -> ok;
+                ok -> ok;
+                {error, {khepri, mismatching_node, _}} -> ok;
                 Error -> throw(Error)
             end,
             add_binding_in_khepri_tx(X, Path, D, Weight)
@@ -423,8 +422,8 @@ remove_bindings_in_khepri(Bindings) ->
 remove_binding_in_khepri(#binding{source = S, destination = D}) ->
     Path = khepri_consistent_hash_path(S),
     case khepri_tx:get(Path) of
-        {ok, #{Path := #{data := State0 = #chx_hash_ring{bucket_map = BM0,
-                                                         next_bucket_number = NexN0}}}} ->
+        {ok, State0 = #chx_hash_ring{bucket_map = BM0,
+                                     next_bucket_number = NexN0}} ->
             %% Buckets with lower numbers stay as is; buckets that
             %% belong to this binding are removed; buckets with
             %% greater numbers are updated (their numbers are adjusted downwards)
@@ -448,8 +447,7 @@ remove_binding_in_khepri(#binding{source = S, destination = D}) ->
                     State = State0#chx_hash_ring{bucket_map = BM1,
                                                  next_bucket_number = NextN},
 
-                    {ok, _} = khepri_tx:put(Path, State),
-                    ok
+                    ok = khepri_tx:put(Path, State)
             end;
         _ ->
             {not_found, S}
@@ -469,7 +467,7 @@ ring_state(VirtualHost, Exchange) ->
       fun() ->
               Path = khepri_consistent_hash_path(Resource),
               case rabbit_khepri:get(Path) of
-                  {ok, #{data := State}} -> {ok, State};
+                  {ok, State} -> {ok, State};
                   _ -> {error, not_found}
               end
       end).
@@ -487,7 +485,7 @@ mds_migration_post_enable(#{feature_name := FeatureName}) ->
 
 clear_data_in_khepri(?HASH_RING_STATE_TABLE) ->
     case rabbit_khepri:delete(khepri_consistent_hash_path()) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
@@ -495,21 +493,21 @@ clear_data_in_khepri(?HASH_RING_STATE_TABLE) ->
 
 mnesia_write_to_khepri(?HASH_RING_STATE_TABLE, #chx_hash_ring{exchange = XName} = Record) ->
     case rabbit_khepri:create(khepri_consistent_hash_path(XName), Record) of
-        {ok, _} -> ok;
-        {error, {mismatching_node, _}} -> ok;
+        ok -> ok;
+        {error, {khepri, mismatching_node, _}} -> ok;
         Error -> throw(Error)
     end.
 
 mnesia_delete_to_khepri(?HASH_RING_STATE_TABLE, #chx_hash_ring{exchange = XName}) ->
     case rabbit_khepri:delete(khepri_consistent_hash_path(XName)) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
     end;
 mnesia_delete_to_khepri(?HASH_RING_STATE_TABLE, Key) ->
     case rabbit_khepri:delete(khepri_consistent_hash_path(Key)) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
