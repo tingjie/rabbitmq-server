@@ -742,7 +742,7 @@ node_restart(Config) ->
     rabbit_ct_broker_helpers:restart_node(Config, 1),
     rabbit_ct_broker_helpers:restart_node(Config, 2),
 
-    ?assertEqual(4, count_all_hash_ring_buckets(Config)),
+    ?assertEqual(4, count_buckets_of_exchange(Config, X)),
     assert_ring_consistency(Config, X),
 
     clean_up_test_topology(Config, X, QsNode1 ++ QsNode2),
@@ -842,10 +842,6 @@ from_mnesia_to_khepri(Config) ->
         Skip ->
             Skip
     end.
-
-count_all_hash_ring_buckets(Config) ->
-    Rows = hash_ring_rows(Config),
-    lists:foldl(fun(#chx_hash_ring{bucket_map = M}, Acc) -> Acc + maps:size(M) end, 0, Rows).
 
 clean_up_test_topology(Config) ->
     clean_up_test_topology(Config, none, ?AllQs).

@@ -197,17 +197,17 @@ mnesia_update_fun(Key, Term) ->
     end.
 
 khepri_update(Key, Term) ->
-    rabbit_khepri:transaction(khepri_update_fun(Key, Term)).
+    rabbit_khepri:transaction(khepri_update_fun(Key, Term), rw).
 
 khepri_update(VHost, Comp, Name, Term) ->
     rabbit_khepri:transaction(
       rabbit_vhost:with_in_khepri_tx(
-        VHost, khepri_update_fun({VHost, Comp, Name}, Term))).
+        VHost, khepri_update_fun({VHost, Comp, Name}, Term)), rw).
 
 khepri_update_fun(Key, Term) ->
     Path = khepri_rp_path(Key),
     fun () ->
-            case khepri_tx:put(Path, c(Key, Term)) of
+            case khepri_tx_adv:put(Path, c(Key, Term)) of
                 {ok, #{Path := #{data := Params}}} ->
                     {old, Params#runtime_parameters.value};
                 {ok, _} ->
@@ -308,19 +308,17 @@ mnesia_clear(VHost, Component, Name) ->
 khepri_clear(Key) ->
     Path = khepri_rp_path(Key),
     F = fun () ->
-                {ok, _} = khepri_tx:delete(Path),
-                ok
+                ok = khepri_tx:delete(Path)
         end,
     ok = rabbit_khepri:transaction(F).
 
 khepri_clear(VHost, Component, Name) ->
     Path = khepri_rp_path({VHost, Component, Name}),
     F = fun () ->
-                {ok, _} = khepri_tx:delete(Path),
-                ok
+                ok = khepri_tx:delete(Path)
         end,
     ok = rabbit_khepri:transaction(
-           rabbit_vhost:with_in_khepri_tx(VHost, F)).
+           rabbit_vhost:with_in_khepri_tx(VHost, F), rw).
 
 event_notify(_Event, _VHost, <<"policy">>, _Props) ->
     ok;
@@ -342,8 +340,8 @@ list_in_mnesia() ->
              rabbit_misc:dirty_read_all(?TABLE), Comp /= <<"policy">>].
 
 list_in_khepri() ->
-    Path = khepri_vhost_rp_path(?STAR, ?STAR, ?STAR),
-    {ok, Map} = rabbit_khepri:match_and_get_data(Path),
+    Path = khepri_vhost_rp_path(?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR),
+    {ok, Map} = rabbit_khepri:match(Path),
     [p(P) || #runtime_parameters{ key = {_VHost, Comp, _Name}} = P <- maps:values(Map),
              Comp /= <<"policy">>].
 
@@ -380,9 +378,9 @@ list_in_mnesia(VHost, Component) ->
       end).
 
 list_in_khepri('_', Component) ->
-    list_in_khepri(?STAR, Component);
+    list_in_khepri(?KHEPRI_WILDCARD_STAR, Component);
 list_in_khepri(VHost, '_') ->
-    list_in_khepri(VHost, ?STAR);
+    list_in_khepri(VHost, ?KHEPRI_WILDCARD_STAR);
 list_in_khepri(VHost, Component) ->
     rabbit_khepri:transaction(
       fun() ->
@@ -390,21 +388,21 @@ list_in_khepri(VHost, Component) ->
       end, ro).
 
 list_in_khepri_tx('_', Component) ->
-    list_in_khepri_tx(?STAR, Component);
+    list_in_khepri_tx(?KHEPRI_WILDCARD_STAR, Component);
 list_in_khepri_tx(VHost, '_') ->
-    list_in_khepri_tx(VHost, ?STAR);
+    list_in_khepri_tx(VHost, ?KHEPRI_WILDCARD_STAR);
 list_in_khepri_tx(VHost, Component) ->
-    Path = khepri_vhost_rp_path(VHost, Component, ?STAR),
+    Path = khepri_vhost_rp_path(VHost, Component, ?KHEPRI_WILDCARD_STAR),
     case VHost of
-        ?STAR -> ok;
+        ?KHEPRI_WILDCARD_STAR -> ok;
         %% Inside of a transaction, using `rabbit_vhost:exists` will cause
         %% a deadlock and timeout on the transaction, as it uses `rabbit_khepri:exists`.
         %% The `with` function uses the `khepri_tx` API instead
         _     -> rabbit_vhost:with_in_khepri_tx(VHost, fun() -> ok end)
     end,
-    case khepri_tx:get(Path) of
+    case khepri_tx:get_many(Path) of
         {ok, Result} ->
-            [p(P) || #{data := #runtime_parameters{key = {_VHost, Comp, _Name}}} = #{data := P} <-
+            [p(P) || #runtime_parameters{key = {_VHost, Comp, _Name}} = P <-
                          maps:values(Result),
                      Comp =/= <<"policy">> orelse Component =:= <<"policy">>];
         _ ->
@@ -428,12 +426,12 @@ list_global_in_mnesia() ->
 
 list_global_in_khepri() ->
     %% list only atom keys
-    Path = khepri_global_rp_path(?STAR),
+    Path = khepri_global_rp_path(?KHEPRI_WILDCARD_STAR),
     rabbit_khepri:transaction(
         fun () ->
                 case khepri_tx:get(Path) of
                     {ok, Result} ->
-                        [p(P) || #{data := P} <- maps:values(Result),
+                        [p(P) || P <- maps:values(Result),
                                  is_atom(P#runtime_parameters.key)];
                     _ ->
                         []
@@ -529,8 +527,8 @@ lookup0_in_mnesia(Key, DefaultFun) ->
 lookup0_in_khepri(Key, DefaultFun) ->
     Path = khepri_rp_path(Key),
     case rabbit_khepri:get(Path) of
-        {ok, #{data := R}}           -> R;
-        {error, {node_not_found, _}} -> DefaultFun()
+        {ok, R}                      -> R;
+        {error, {khepri, node_not_found, _}} -> DefaultFun()
     end.
 
 lookup_missing(Key, Default) ->
@@ -554,12 +552,12 @@ lookup_missing_in_khepri(Key, Default) ->
     rabbit_khepri:transaction(
       fun () ->
               case khepri_tx:get(Path) of
-                  {ok, #{Path := #{data := R}}} ->
-                      R;
-                  {ok, _} ->
+                  {ok, undefined} ->
                       Record = c(Key, Default),
                       khepri_tx:put(Path, Record),
-                      Record
+                      Record;
+                  {ok, R} ->
+                      R
               end
       end).
 
@@ -594,7 +592,7 @@ khepri_vhost_rp_path(VHost, Component, Name) ->
 clear_data_in_khepri(rabbit_runtime_parameters) ->
     Path = khepri_rp_path(),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok -> ok;
         Error -> throw(Error)
     end.
 
@@ -604,13 +602,13 @@ mnesia_write_to_khepri(rabbit_runtime_parameters, RuntimeParams) ->
               lists:foreach(fun(#runtime_parameters{key = {VHost, Comp, Name}} = RuntimeParam) ->
                                     Path = khepri_vhost_rp_path(VHost, Comp, Name),
                                     case khepri_tx:put(Path, RuntimeParam) of
-                                        {ok, _} -> ok;
+                                        ok -> ok;
                                         Error -> throw(Error)
                                     end;
                                (#runtime_parameters{key = Key} = RuntimeParam) ->
                                     Path = khepri_global_rp_path(Key),
                                     case khepri_tx:put(Path, RuntimeParam) of
-                                        {ok, _} -> ok;
+                                        ok -> ok;
                                         Error -> throw(Error)
                                     end
                             end, RuntimeParams)
@@ -620,14 +618,14 @@ mnesia_delete_to_khepri(rabbit_runtime_parameters,
   #runtime_parameters{key = {VHost, Comp, Name}}) ->
     Path = khepri_vhost_rp_path(VHost, Comp, Name),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok    -> ok;
         Error -> throw(Error)
     end;
 mnesia_delete_to_khepri(rabbit_runtime_parameters,
   #runtime_parameters{key = Key}) ->
     Path = khepri_global_rp_path(Key),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok    -> ok;
         Error -> throw(Error)
     end.
 

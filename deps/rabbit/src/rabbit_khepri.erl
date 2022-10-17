@@ -26,21 +26,18 @@
 
 
          create/2,
+         adv_create/2,
          update/2,
          cas/3,
 
          get/1,
-         get_data/1,
+         adv_get/1,
          match/1,
          match/2,
-         match_and_get_data/1,
-         match_and_get_data/2,
-         tx_match_and_get_data/1,
          exists/1,
          find/2,
          list/1,
          list_child_nodes/1,
-         list_child_data/1,
          count_children/1,
 
          put/2, put/3,
@@ -398,88 +395,54 @@ get_sys_status(Proc) ->
 %% RabbitMQ. They might be moved to Khepri in the future.
 
 create(Path, Data) -> khepri:create(?STORE_ID, Path, Data).
+adv_create(Path, Data) -> khepri_adv:create(?STORE_ID, Path, Data).
 update(Path, Data) -> khepri:update(?STORE_ID, Path, Data).
 cas(Path, Pattern, Data) ->
     khepri:compare_and_swap(?STORE_ID, Path, Pattern, Data).
 
 get(Path) ->
-    case khepri:get(?STORE_ID, Path, #{expect_specific_node => true,
-                                       favor => low_latency}) of
-        {ok, Result} ->
-            [PropsAndData] = maps:values(Result),
-            {ok, PropsAndData};
-        Error ->
-            Error
-    end.
+    khepri:get(?STORE_ID, Path, #{favor => low_latency}).
 
-get_data(Path) ->
-    case get(Path) of
-        {ok, #{data := Data}} -> {ok, Data};
-        {ok, Result}          -> {error, {no_data, Result}};
-        Error                 -> Error
-    end.
+adv_get(Path) ->
+    khepri_adv:get(?STORE_ID, Path, #{favor => low_latency}).
 
 match(Path) ->
     match(Path, #{}).
 
-match(Path, Options) -> khepri:get(?STORE_ID, Path, Options).
-
-match_and_get_data(Path) ->
-    match_and_get_data(Path, #{}).
-
-match_and_get_data(Path, Options) ->
-    Ret = match(Path, Options),
-    keep_data_only_in_result(Ret).
-
-tx_match_and_get_data(Path) ->
-    Ret = khepri_tx:get(Path),
-    keep_data_only_in_result(Ret).
+match(Path, Options) -> khepri:get_many(?STORE_ID, Path, Options).
 
 exists(Path) -> khepri:exists(?STORE_ID, Path, #{favor => low_latency}).
 
 find(Path, Condition) -> khepri:find(?STORE_ID, Path, Condition).
 
-list(Path) -> khepri:list(?STORE_ID, Path).
+list(Path) -> khepri:get_many(?STORE_ID, Path ++ [?KHEPRI_WILDCARD_STAR]).
 
 list_child_nodes(Path) ->
-    Options = #{expect_specific_node => true,
-                include_child_names => true},
-    case khepri:get(?STORE_ID, Path, Options) of
+    Options = #{props_to_return => [child_names]},
+    case khepri_adv:get_many(?STORE_ID, Path, Options) of
         {ok, Result} ->
-            [#{child_names := ChildNames}] = maps:values(Result),
-            {ok, ChildNames};
+            case maps:values(Result) of
+                [#{child_names := ChildNames}] ->
+                    {ok, ChildNames};
+                [] ->
+                    []
+            end;
         Error ->
             Error
     end.
 
-list_child_data(Path) ->
-    Ret = list(Path),
-    keep_data_only_in_result(Ret).
-
 count_children(Path) ->
-    case khepri:get(?STORE_ID, Path, #{expect_specific_node => false}) of
+    Options = #{props_to_return => [child_list_length]},
+    case khepri_adv:get_many(?STORE_ID, Path, Options) of
         {ok, Map} ->
             lists:sum([L || #{child_list_length := L} <- maps:values(Map)]);
         _ ->
             0
     end.
 
-keep_data_only(Result) ->
-    maps:fold(
-      fun
-          (Path, #{data := Data}, Acc) -> Acc#{Path => Data};
-          (_, _, Acc)                  -> Acc
-      end, #{}, Result).
-
-keep_data_only_in_result({ok, Result}) ->
-    Result1 = keep_data_only(Result),
-    {ok, Result1};
-keep_data_only_in_result(Error) ->
-    Error.
-
 clear_payload(Path) -> khepri:clear_payload(?STORE_ID, Path).
 
-delete(Path) -> khepri:delete(?STORE_ID, Path).
+delete(Path) -> khepri:delete_many(?STORE_ID, Path).
 
 delete_or_fail(Path) ->
     case khepri:delete(?STORE_ID, Path) of
@@ -508,12 +471,12 @@ transaction(Fun, ReadWrite) ->
 
 transaction(Fun, ReadWrite, Options) ->
     case khepri:transaction(?STORE_ID, Fun, ReadWrite, Options) of
-        {atomic, Result} -> Result;
-        {aborted, Reason} -> throw({error, Reason})
+        {ok, Result} -> Result;
+        {error, Reason} -> throw({error, Reason})
     end.
 
 clear_store() ->
-    khepri:clear_store(?STORE_ID).
+    khepri:delete_many(?STORE_ID, "*").
 
 info() ->
     ok = setup(),
@@ -531,6 +494,7 @@ is_enabled(Blocking) ->
       raft_based_metadata_store_phase1, Blocking) =:= true.
 
 nodes_if_khepri_enabled() ->
+    rabbit_log:warning("TRACE is_enabled ~p", [is_enabled(non_blocking)]),
     case is_enabled(non_blocking) of
         true  -> nodes();
         false -> []

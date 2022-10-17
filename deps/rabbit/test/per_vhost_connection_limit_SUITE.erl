@@ -110,7 +110,8 @@ init_per_group(cluster_size_3_direct, Config) ->
     init_per_multinode_group(cluster_size_3_direct, Config1, 3);
 
 init_per_group(cluster_rename, Config) ->
-    init_per_multinode_group(cluster_rename, Config, 2).
+    Config1 = rabbit_ct_helpers:set_config(Config, [{connection_type, direct}]),
+    init_per_multinode_group(cluster_rename, Config1, 2).
 
 init_per_multinode_group(Group, Config, NodeCount) ->
     Suffix = rabbit_ct_helpers:testcase_absname(Config, "", "-"),
@@ -715,6 +716,7 @@ vhost_limit_after_node_renamed(Config) ->
 from_mnesia_to_khepri(Config) ->
     VHost = <<"/">>,
     ?assertEqual(0, count_connections_in(Config, VHost)),
+    [_Conn] = open_connections(Config, [{0, VHost}]),
     ?awaitMatch(1, count_connections_in(Config, VHost), ?AWAIT, ?INTERVAL),
     case rabbit_ct_broker_helpers:enable_feature_flag(Config, raft_based_metadata_store_phase1) of
         ok ->

@@ -493,6 +493,7 @@ handle_tick(QName,
                               rabbit_log:info("~ts: stale nodes detected. Purging ~w",
                                               [rabbit_misc:rs(QName), Stale]),
                               %% pipeline purge command
+                              {ok, Q} = rabbit_amqqueue:lookup(QName),
                               ok = ra:pipeline_command(amqqueue:get_pid(Q),
                                                        rabbit_fifo:make_purge_nodes(Stale)),
 

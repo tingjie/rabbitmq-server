@@ -272,7 +272,7 @@ end_per_testcase(Testcase, Config) ->
       TableDefs),
 
     %% Clear all data in Khepri.
-    {ok, _} = rabbit_khepri:clear_store(),
+    ok = rabbit_khepri:clear_store(),
 
     rabbit_ct_helpers:testcase_finished(Config, Testcase).
 
@@ -435,6 +435,7 @@ get_existing_vhost_info(_) ->
               [{name, VHostName},
                {description, VHostDesc},
                {tags, VHostTags},
+               {default_queue_type, undefined},
                {metadata, #{description => VHostDesc,
                             tags => VHostTags}},
                {tracing, false},
@@ -1346,7 +1347,7 @@ list_user_permissions(_) ->
                 _With,
                 rabbit_auth_backend_internal:match_user_vhost('_', '_'),
                 rabbit_auth_backend_internal:match_path_in_khepri(
-                  ?user_perm_path(?STAR, ?STAR))))),
+                  ?user_perm_path(?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR))))),
      ?with(?assertEqual(
               [rabbit_auth_backend_internal:extract_user_permission_params(
                  rabbit_auth_backend_internal:vhost_perms_info_keys(),
@@ -2017,7 +2018,7 @@ list_topic_permissions(_) ->
                 rabbit_auth_backend_internal:
                 match_user_vhost_topic_permission('_', '_', '_'),
                 rabbit_auth_backend_internal:
-                match_path_in_khepri(?topic_perm_path(?STAR, ?STAR, ?STAR))))),
+                match_path_in_khepri(?topic_perm_path(?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR))))),
      ?with(?assertEqual(
               [rabbit_auth_backend_internal:extract_topic_permission_params(
                  rabbit_auth_backend_internal:vhost_topic_perms_info_keys(),
@@ -2628,9 +2629,11 @@ mock_feature_flag_state(State) ->
     meck:expect(rabbit_khepri, is_enabled, fun(_) -> State end).
 
 add_vhost(mnesia, VHostName, VHostDesc, VHostTags) ->
-    rabbit_vhost:do_add_to_mnesia(VHostName, VHostDesc, VHostTags);
+    rabbit_vhost:do_add_to_mnesia(VHostName, #{description => VHostDesc,
+                                               tags => VHostTags});
 add_vhost(khepri, VHostName, VHostDesc, VHostTags) ->
-    rabbit_vhost:do_add_to_khepri(VHostName, VHostDesc, VHostTags).
+    rabbit_vhost:do_add_to_khepri(VHostName, #{description => VHostDesc,
+                                               tags => VHostTags}).
 
 lookup_vhost(mnesia, VHostName) ->
     rabbit_vhost:lookup_in_mnesia(VHostName);
@@ -2805,5 +2808,6 @@ check_storage(mnesia, Table, Content) ->
     ?assertEqual(Content, lists:sort(ets:tab2list(Table)));
 check_storage(khepri, Path, Content) ->
     rabbit_khepri:info(),
-    Path1 = Path ++ [?STAR_STAR],
-    ?assertEqual({ok, Content}, rabbit_khepri:match_and_get_data(Path1)).
+    Path1 = Path ++ [#if_all{conditions = [?KHEPRI_WILDCARD_STAR_STAR,
+                                           #if_has_data{has_data = true}]}],
+    ?assertEqual({ok, Content}, rabbit_khepri:match(Path1)).

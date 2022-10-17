@@ -252,7 +252,7 @@ check_resource_access_in_mnesia(Username, VHostPath, Name, Permission) ->
 
 check_resource_access_in_khepri(Username, VHostPath, Name, Permission) ->
     Path = khepri_user_permission_path(Username, VHostPath),
-    case rabbit_khepri:get_data(Path) of
+    case rabbit_khepri:get(Path) of
         {ok, #user_permission{permission = P}} ->
             do_check_resource_access(Name, Permission, P);
         _ ->
@@ -297,7 +297,7 @@ check_topic_access_in_mnesia(
 check_topic_access_in_khepri(
   Username, VHostPath, Name, Permission, Context) ->
     Path = khepri_topic_permission_path(Username, VHostPath, Name),
-    case rabbit_khepri:get_data(Path) of
+    case rabbit_khepri:get(Path) of
         {ok, #topic_permission{permission = P}} ->
             do_check_topic_access(Permission, Context, P);
         _ ->
@@ -444,9 +444,9 @@ add_user_sans_validation_in_mnesia(Username, User) ->
 add_user_sans_validation_in_khepri(Username, User) ->
     Path = khepri_user_path(Username),
     case rabbit_khepri:create(Path, User) of
-        {ok, _} ->
+        ok ->
             ok;
-        {error, {mismatching_node, _}} ->
+        {error, {khepri, mismatching_node, _}} ->
             throw({error, {user_already_exists, Username}});
         {error, _} = Error ->
             throw(Error)
@@ -502,7 +502,7 @@ delete_user_in_khepri(Username) ->
         fun() ->
                 Path = khepri_user_path(Username),
                 case khepri_tx:delete(Path) of
-                    {ok, _} -> ok;
+                    ok      -> ok;
                     Error   -> khepri_tx:abort(Error)
                 end
         end)).
@@ -522,7 +522,7 @@ lookup_user_in_mnesia(Username) ->
 
 lookup_user_in_khepri(Username) ->
     Path = khepri_user_path(Username),
-    case rabbit_khepri:get_data(Path) of
+    case rabbit_khepri:get(Path) of
         {ok, User} -> {ok, User};
         _          -> {error, not_found}
     end.
@@ -759,7 +759,7 @@ set_permissions_in_khepri(Username, VirtualHost, UserPermission) ->
                 Ret = khepri_tx:put(
                         Path, UserPermission, Extra),
                 case Ret of
-                    {ok, _} -> ok;
+                    ok      -> ok;
                     Error   -> khepri_tx:abort(Error)
                 end
         end)).
@@ -794,7 +794,7 @@ clear_permissions(Username, VirtualHost, ActingUser) ->
 clear_vhost_permissions_in_khepri(VirtualHost, ActingUser) ->
     rabbit_log:debug("Asked to clear permissions for everyone in virtual host '~s'",
                      [VirtualHost]),
-    Path = khepri_user_permission_path(?STAR, VirtualHost),
+    Path = khepri_user_permission_path(?KHEPRI_WILDCARD_STAR, VirtualHost),
     case rabbit_khepri:delete(Path) of
         {ok, Result} ->
             _ = maps:fold(
@@ -838,8 +838,8 @@ clear_permissions_in_khepri(Username, VirtualHost) ->
         Username, VirtualHost,
         fun () ->
                 Path = khepri_user_permission_path(Username, VirtualHost),
-                case khepri_tx:delete(Path) of
-                    {ok, _} -> ok;
+                case khepri_tx:delete_many(Path) of
+                    ok      -> ok;
                     Error   -> khepri_tx:abort(Error)
                 end
         end)).
@@ -864,10 +864,10 @@ update_user_in_khepri(Username, Fun) ->
         Username,
         fun () ->
                 Path = khepri_user_path(Username),
-                {ok, #{Path := #{data := User}}} = khepri_tx:get(Path),
+                {ok, User} = khepri_tx:get(Path),
                 case khepri_tx:put(Path, Fun(User)) of
-                    {ok, #{Path := #{data := User}}} -> ok;
-                    Error                            -> khepri_tx:abort(Error)
+                    ok -> ok;
+                    Error -> khepri_tx:abort(Error)
                 end
         end)).
 
@@ -966,7 +966,7 @@ set_topic_permissions_in_khepri(
                             #if_node_exists{exists = true}}},
                 Ret = khepri_tx:put(Path, TopicPermission, Extra),
                 case Ret of
-                    {ok, _} -> ok;
+                    ok -> ok;
                     Error   -> khepri_tx:abort(Error)
                 end
         end)).
@@ -1004,7 +1004,7 @@ clear_topic_permissions(Username, VirtualHost, ActingUser) ->
 clear_vhost_topic_permissions_in_khepri(VirtualHost, ActingUser) ->
     rabbit_log:debug("Asked to clear topic permissions for everyone in virtual host '~s'",
                      [VirtualHost]),
-    Path = khepri_topic_permission_path(?STAR, VirtualHost, ?STAR),
+    Path = khepri_topic_permission_path(?KHEPRI_WILDCARD_STAR, VirtualHost, ?KHEPRI_WILDCARD_STAR),
     case rabbit_khepri:delete(Path) of
         {ok, Result} ->
             _ = maps:fold(
@@ -1039,7 +1039,7 @@ clear_topic_permissions_in_mnesia(Username, VirtualHost) ->
         end)).
 
 clear_topic_permissions_in_khepri(Username, VirtualHost) ->
-    clear_topic_permissions_in_khepri(Username, VirtualHost, ?STAR).
+    clear_topic_permissions_in_khepri(Username, VirtualHost, ?KHEPRI_WILDCARD_STAR).
 
 clear_topic_permissions(Username, VirtualHost, Exchange, ActingUser) ->
     rabbit_log:debug("Asked to clear topic permissions on exchange '~ts' for '~ts' in virtual host '~ts'",
@@ -1105,8 +1105,8 @@ clear_topic_permissions_in_khepri_tx_fun(Username, VirtualHost, Exchange) ->
       fun () ->
               Path = khepri_topic_permission_path(
                        Username, VirtualHost, Exchange),
-              case khepri_tx:delete(Path) of
-                  {ok, _} -> ok;
+              case khepri_tx:delete_many(Path) of
+                  ok      -> ok;
                   Error   -> khepri_tx:abort(Error)
               end
       end).
@@ -1326,7 +1326,7 @@ all_users_in_mnesia() ->
 
 all_users_in_khepri() ->
     Path = khepri_users_path(),
-    case rabbit_khepri:list_child_data(Path) of
+    case rabbit_khepri:list(Path) of
         {ok, Users} -> maps:values(Users);
         _           -> []
     end.
@@ -1350,7 +1350,7 @@ list_users(Ref, AggregatorPid) ->
 list_permissions() ->
     MnesiaThunk = match_user_vhost('_', '_'),
     KhepriThunk = match_path_in_khepri(
-                    khepri_user_permission_path(?STAR, ?STAR)),
+                    khepri_user_permission_path(?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR)),
     list_permissions(perms_info_keys(), MnesiaThunk, KhepriThunk).
 
 list_permissions(Keys, MnesiaThunk, KhepriThunk) ->
@@ -1387,7 +1387,7 @@ list_user_permissions(Username) ->
     KhepriThunk = with_user_in_khepri(
                     Username,
                     match_path_in_khepri(
-                      khepri_user_permission_path(Username, ?STAR))),
+                      khepri_user_permission_path(Username, ?KHEPRI_WILDCARD_STAR))),
     list_permissions(user_perms_info_keys(), MnesiaThunk, KhepriThunk).
 
 -spec list_user_permissions
@@ -1399,7 +1399,7 @@ list_user_permissions(Username, Ref, AggregatorPid) ->
     KhepriThunk = with_user_in_khepri(
                     Username,
                     match_path_in_khepri(
-                      khepri_user_permission_path(Username, ?STAR))),
+                      khepri_user_permission_path(Username, ?KHEPRI_WILDCARD_STAR))),
     list_permissions(
       user_perms_info_keys(), MnesiaThunk, KhepriThunk, Ref, AggregatorPid).
 
@@ -1412,14 +1412,14 @@ list_vhost_permissions(VHostPath) ->
     KhepriThunk = rabbit_vhost:with_in_khepri_tx(
                     VHostPath,
                     match_path_in_khepri(
-                      khepri_user_permission_path(?STAR, VHostPath))),
+                      khepri_user_permission_path(?KHEPRI_WILDCARD_STAR, VHostPath))),
     list_permissions(vhost_perms_info_keys(), MnesiaThunk, KhepriThunk).
 
 list_vhost_permissions_in_khepri_tx_fun(VHostPath) ->
     Fun = rabbit_vhost:with_in_khepri(
             VHostPath,
             match_path_in_khepri(
-              khepri_user_permission_path(?STAR, VHostPath))),
+              khepri_user_permission_path(?KHEPRI_WILDCARD_STAR, VHostPath))),
     case Fun() of
         {ok, UserPermissions} ->
             [extract_user_permission_params(vhost_perms_info_keys(), U)
@@ -1437,7 +1437,7 @@ list_vhost_permissions(VHostPath, Ref, AggregatorPid) ->
     KhepriThunk = rabbit_vhost:with_in_khepri_tx(
                     VHostPath,
                     match_path_in_khepri(
-                      khepri_user_permission_path(?STAR, VHostPath))),
+                      khepri_user_permission_path(?KHEPRI_WILDCARD_STAR, VHostPath))),
     list_permissions(
       vhost_perms_info_keys(), MnesiaThunk, KhepriThunk, Ref, AggregatorPid).
 
@@ -1483,11 +1483,11 @@ match_user_vhost(Username, VHostPath) ->
     end.
 
 match_path_in_khepri(Path) ->
-    fun() -> rabbit_khepri:tx_match_and_get_data(Path) end.
+    fun() -> khepri_tx:get_many(Path) end.
 
 list_topic_permissions() ->
     QueryThunk = match_user_vhost_topic_permission('_', '_'),
-    Path = match_path_in_khepri(khepri_topic_permission_path(?STAR, ?STAR, ?STAR)),
+    Path = match_path_in_khepri(khepri_topic_permission_path(?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR)),
     list_topic_permissions(topic_perms_info_keys(), QueryThunk, Path).
 
 list_user_topic_permissions(Username) ->
@@ -1497,7 +1497,7 @@ list_user_topic_permissions(Username) ->
     KhepriThunk = with_user_in_khepri(
                     Username,
                     match_path_in_khepri(
-                      khepri_topic_permission_path(Username, ?STAR, ?STAR))),
+                      khepri_topic_permission_path(Username, ?KHEPRI_WILDCARD_STAR, ?KHEPRI_WILDCARD_STAR))),
     list_topic_permissions(
       user_topic_perms_info_keys(), MnesiaThunk, KhepriThunk).
 
@@ -1507,7 +1507,7 @@ list_vhost_topic_permissions(VHost) ->
     KhepriThunk = rabbit_vhost:with_in_khepri_tx(
                     VHost,
                     match_path_in_khepri(
-                      khepri_topic_permission_path(?STAR, VHost, ?STAR))),
+                      khepri_topic_permission_path(?KHEPRI_WILDCARD_STAR, VHost, ?KHEPRI_WILDCARD_STAR))),
     list_topic_permissions(
       vhost_topic_perms_info_keys(), MnesiaThunk, KhepriThunk).
 
@@ -1515,7 +1515,7 @@ list_vhost_topic_permissions_in_khepri_tx_fun(VHost) ->
     Fun = rabbit_vhost:with_in_khepri(
             VHost,
             match_path_in_khepri(
-              khepri_topic_permission_path(?STAR, VHost, ?STAR))),
+              khepri_topic_permission_path(?KHEPRI_WILDCARD_STAR, VHost, ?KHEPRI_WILDCARD_STAR))),
     case Fun() of
         {ok, TopicPermissions} ->
             [extract_topic_permission_params(vhost_topic_perms_info_keys(), U)
@@ -1531,7 +1531,7 @@ list_user_vhost_topic_permissions(Username, VHost) ->
     KhepriThunk = rabbit_vhost:with_user_and_vhost_in_khepri(
                     Username, VHost,
                     match_path_in_khepri(
-                      khepri_topic_permission_path(Username, VHost, ?STAR))),
+                      khepri_topic_permission_path(Username, VHost, ?KHEPRI_WILDCARD_STAR))),
     list_topic_permissions(
       user_vhost_topic_perms_info_keys(), MnesiaThunk, KhepriThunk).
 
@@ -1660,7 +1660,7 @@ notify_limit_clear(Username, ActingUser) ->
 clear_data_in_khepri(rabbit_user) ->
     Path = khepri_users_path(),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok    -> ok;
         Error -> throw(Error)
     end;
 clear_data_in_khepri(_) ->
@@ -1673,7 +1673,7 @@ mnesia_write_to_khepri(rabbit_user, Users) ->
                    Username = internal_user:get_username(User),
                    Path = khepri_user_path(Username),
                    case khepri_tx:put(Path, User) of
-                       {ok, _} -> ok;
+                       ok    -> ok;
                        Error -> throw(Error)
                    end
                end || User <- Users, ?is_internal_user(User)]
@@ -1691,7 +1691,7 @@ mnesia_write_to_khepri(rabbit_user_permission, UserPermissions) ->
                                  #{rabbit_vhost:khepri_vhost_path(VHost) =>
                                        #if_node_exists{exists = true}}},
                    case khepri_tx:put(Path, UserPermission, Extra) of
-                       {ok, _} -> ok;
+                       ok      -> ok;
                        Error   -> throw(Error)
                    end
                end || #user_permission{
@@ -1713,7 +1713,7 @@ mnesia_write_to_khepri(rabbit_topic_permission, TopicPermissions) ->
                                  #{rabbit_vhost:khepri_vhost_path(VHost) =>
                                        #if_node_exists{exists = true}}},
                    case khepri_tx:put(Path, TopicPermission, Extra) of
-                       {ok, _} -> ok;
+                       ok      -> ok;
                        Error   -> throw(Error)
                    end
                end || #topic_permission{
@@ -1732,7 +1732,7 @@ mnesia_delete_to_khepri(rabbit_user, Record) ->
     Username = internal_user:get_username(User),
     Path = khepri_user_path(Username),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok    -> ok;
         Error -> throw(Error)
     end;
 mnesia_delete_to_khepri(rabbit_user_permission,
@@ -1742,7 +1742,7 @@ mnesia_delete_to_khepri(rabbit_user_permission,
                                            virtual_host = VHost}}) ->
     Path = khepri_user_permission_path(Username, VHost),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok    -> ok;
         Error -> throw(Error)
     end;
 mnesia_delete_to_khepri(rabbit_topic_permission,
@@ -1755,7 +1755,7 @@ mnesia_delete_to_khepri(rabbit_topic_permission,
                                   exchange = Exchange}}) ->
     Path = khepri_topic_permission_path(Username, VHost, Exchange),
     case rabbit_khepri:delete(Path) of
-        {ok, _} -> ok;
+        ok    -> ok;
         Error -> throw(Error)
     end.
 

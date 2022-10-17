@@ -147,7 +147,7 @@ mds_migration_post_enable(#{feature_name := FeatureName}) ->
 
 clear_data_in_khepri(?RH_TABLE) ->
     case rabbit_khepri:delete(khepri_recent_history_path()) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
@@ -155,21 +155,21 @@ clear_data_in_khepri(?RH_TABLE) ->
 
 mnesia_write_to_khepri(?RH_TABLE, #cached{key = Key, content = Content}) ->
     case rabbit_khepri:create(khepri_recent_history_path(Key), Content) of
-        {ok, _} -> ok;
-        {error, {mismatching_node, _}} -> ok;
+        ok -> ok;
+        {error, {khepri, mismatching_node, _}} -> ok;
         Error -> throw(Error)
     end.
 
 mnesia_delete_to_khepri(?RH_TABLE, #cached{key = Key}) ->
     case rabbit_khepri:delete(khepri_recent_history_path(Key)) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
     end;
 mnesia_delete_to_khepri(?RH_TABLE, Key) ->
     case rabbit_khepri:delete(khepri_recent_history_path(Key)) of
-        {ok, _} ->
+        ok ->
             ok;
         Error ->
             throw(Error)
@@ -263,7 +263,7 @@ get_msgs_from_cache_in_mnesia(XName) ->
 get_msgs_from_cache_in_khepri_tx(XName) ->
     Path = khepri_recent_history_path(XName),
     case khepri_tx:get(Path) of
-        {ok, #{Path := #{data := Cached}}} ->
+        {ok, Cached} ->
             Cached;
         _ ->
             []

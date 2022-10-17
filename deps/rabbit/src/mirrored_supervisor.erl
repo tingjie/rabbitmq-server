@@ -235,7 +235,7 @@ find_mirror(Group, {SimpleId, _} = Id) ->
       end,
       fun() ->
               case rabbit_khepri:get(khepri_mirrored_supervisor_path(Group, SimpleId)) of
-                  {ok, #{data := #mirrored_sup_childspec{mirroring_pid = Pid}}} ->
+                  {ok, #mirrored_sup_childspec{mirroring_pid = Pid}} ->
                       {ok, Pid};
                   _ ->
                       {error, not_found}
@@ -462,7 +462,7 @@ check_start_in_khepri(Group, Overall, Delegate, ChildSpec) ->
     rabbit_log:debug("Mirrored supervisor: check_start for group ~tp, id: ~tp, overall: ~tp",
                      [Group, Id, Overall]),
     case rabbit_khepri:get(khepri_mirrored_supervisor_path(Group, SimpleId)) of
-        {ok, #{data := #mirrored_sup_childspec{mirroring_pid = Pid}}} ->
+        {ok, #mirrored_sup_childspec{mirroring_pid = Pid}} ->
             case Overall of
                 Pid ->
                     child(Delegate, Id);
@@ -496,22 +496,19 @@ write_in_khepri(Group, {SimpleId, _} = Id, Overall, ChildSpec) ->
     S = #mirrored_sup_childspec{key           = {Group, Id},
                                 mirroring_pid = Overall,
                                 childspec     = ChildSpec},
-    {ok, _} = rabbit_khepri:put(khepri_mirrored_supervisor_path(Group, SimpleId), S),
-    ok.
+    ok = rabbit_khepri:put(khepri_mirrored_supervisor_path(Group, SimpleId), S).
 
 write_in_khepri_tx(Group, {SimpleId, _} = Id, Overall, ChildSpec) ->
     S = #mirrored_sup_childspec{key           = {Group, Id},
                                 mirroring_pid = Overall,
                                 childspec     = ChildSpec},
-    {ok, _} = khepri_tx:put(khepri_mirrored_supervisor_path(Group, SimpleId), S),
-    ok.
+    ok = khepri_tx:put(khepri_mirrored_supervisor_path(Group, SimpleId), S).
 
 delete_in_mnesia(Group, Id) ->
     ok = mnesia:delete({?TABLE, {Group, Id}}).
 
 delete_in_khepri(Group, {SimpleId, _}) ->
-    {ok, _} = khepri_tx:delete(khepri_mirrored_supervisor_path(Group, SimpleId)),
-    ok.
+    ok = khepri_tx:delete(khepri_mirrored_supervisor_path(Group, SimpleId)).
 
 start(Delegate, ChildSpec) ->
     apply(?SUPERVISOR, start_child, [Delegate, ChildSpec]).
@@ -546,7 +543,7 @@ check_stop_in_mnesia(Group, Delegate, Id) ->
 check_stop_in_khepri(Group, Delegate, {SimpleId, _} = Id) ->
     case child(Delegate, Id) of
         undefined ->
-            {ok, _} = rabbit_khepri:delete(khepri_mirrored_supervisor_path(Group, SimpleId)),
+            ok = rabbit_khepri:delete(khepri_mirrored_supervisor_path(Group, SimpleId)),
             deleted;
         _         -> running
     end.
@@ -578,9 +575,9 @@ update_all_in_khepri(Overall, OldOverall) ->
                                       _             = '_'},
     rabbit_khepri:transaction(
       fun() ->
-              Conditions = [?STAR_STAR, #if_data_matches{pattern = Pattern}],
-              case rabbit_khepri:tx_match_and_get_data(khepri_mirrored_supervisor_path() ++ 
-                                                           [#if_all{conditions = Conditions}] ) of
+              Conditions = [?KHEPRI_WILDCARD_STAR_STAR, #if_data_matches{pattern = Pattern}],
+              case khepri_tx:get_many(khepri_mirrored_supervisor_path() ++
+                                          [#if_all{conditions = Conditions}] ) of
                   {ok, Map} ->
                       [write_in_khepri_tx(Group, Id, Overall, C) ||
                           #mirrored_sup_childspec{key = {Group, Id},
@@ -612,9 +609,9 @@ delete_all_in_khepri(Group) ->
                                       _   = '_'},
     rabbit_khepri:transaction(
       fun() ->
-              Conditions = [?STAR_STAR, #if_data_matches{pattern = Pattern}],
-              case rabbit_khepri:tx_match_and_get_data(khepri_mirrored_supervisor_path() ++ 
-                                                           [#if_all{conditions = Conditions}] ) of
+              Conditions = [?KHEPRI_WILDCARD_STAR_STAR, #if_data_matches{pattern = Pattern}],
+              case khepri_tx:get_many(khepri_mirrored_supervisor_path() ++
+                                          [#if_all{conditions = Conditions}] ) of
                   {ok, Map} ->
                       [delete_in_khepri(Group, id(C)) ||
                           #mirrored_sup_childspec{childspec = C} <- maps:values(Map)]
