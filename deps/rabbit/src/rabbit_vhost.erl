@@ -580,8 +580,7 @@ exists_in_mnesia(VHost) ->
     mnesia:dirty_read({rabbit_vhost, VHost}) /= [].
 
 exists_in_khepri(VHost) ->
-    Path = khepri_vhost_path(VHost),
-    rabbit_khepri:exists(Path).
+    ets:member(rabbit_khepri_vhost, VHost).
 
 -spec list_names() -> [vhost:name()].
 list_names() ->
@@ -593,11 +592,7 @@ list_names_in_mnesia() ->
     mnesia:dirty_all_keys(rabbit_vhost).
 
 list_names_in_khepri() ->
-    Path = khepri_vhosts_path(),
-    case rabbit_khepri:list_child_nodes(Path) of
-        {ok, Result} -> Result;
-        _            -> []
-    end.
+    ets:select(rabbit_khepri_vhost, [{vhost:pattern_match_names(), [], ['$1']}]).
 
 %% Exists for backwards compatibility, prefer list_names/0.
 -spec list() -> [vhost:name()].
@@ -613,11 +608,7 @@ all_in_mnesia() ->
     mnesia:dirty_match_object(rabbit_vhost, vhost:pattern_match_all()).
 
 all_in_khepri() ->
-    Path = khepri_vhosts_path(),
-    case rabbit_khepri:list(Path) of
-        {ok, VHosts} -> maps:values(VHosts);
-        _            -> []
-    end.
+    ets:tab2list(rabbit_khepri_vhost).
 
 -spec all_tagged_with(atom()) -> [vhost:vhost()].
 all_tagged_with(TagName) ->
@@ -655,10 +646,9 @@ lookup_in_mnesia(VHostName) ->
     end.
 
 lookup_in_khepri(VHostName) ->
-    Path = khepri_vhost_path(VHostName),
-    case rabbit_khepri:get(Path) of
-        {ok, Record} -> Record;
-        _            -> {error, {no_such_vhost, VHostName}}
+    case ets:lookup(rabbit_khepri_vhost, VHostName) of
+        [Record] -> Record;
+        _        -> {error, {no_such_vhost, VHostName}}
     end.
 
 with_in_mnesia(VHostName, Thunk) ->
@@ -869,10 +859,9 @@ info_in_mnesia(Key) ->
     end.
 
 info_in_khepri(Key) ->
-    Path = khepri_vhost_path(Key),
-    case rabbit_khepri:get(Path) of
-        {ok, VHost} -> infos(?INFO_KEYS, VHost);
-        _           -> []
+    case ets:lookup(rabbit_khepri_vhost, Key) of
+        [VHost] -> infos(?INFO_KEYS, VHost);
+        _       -> []
     end.
 
 -spec info(vhost:vhost(), rabbit_types:info_keys()) -> rabbit_types:infos().

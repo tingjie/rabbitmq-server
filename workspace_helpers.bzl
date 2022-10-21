@@ -125,8 +125,8 @@ def rabbitmq_external_deps(rabbitmq_workspace = "@rabbitmq-server"):
     github_erlang_app(
         name = "khepri",
         org = "rabbitmq",
-        ref = "main",
-        version = "main",
+        ref = "b7f9bac94857078a0b0584aa72a920f7596a1e49",
+        version = "b7f9bac94857078a0b0584aa72a920f7596a1e49",
         build_file = rabbitmq_workspace + "//:BUILD.khepri",
     )
 
@@ -180,11 +180,16 @@ sed -i"_orig" -E '/VERSION/ s/[0-9]+\\.[0-9]+\\.[0-9]+/'${VERSION}'/' BUILD.baze
         sha256 = "282a8a323ca2a845c9e6f787d166348f776c1d4a41ede63046d72d422e3da946",
     )
 
-    git_repository(
+    hex_pm_erlang_app(
         name = "ra",
-        branch = "main",
-        remote = "https://github.com/rabbitmq/ra.git",
-        patch_cmds = [RA_INJECT_GIT_VERSION],
+        version = "2.4.0",
+        sha256 = "f716146ee1755823fbff741669053efc76e241caa95465782fc4c0a4389eb40c",
+        deps = [
+            "@gen_batch_server//:erlang_app",
+        ],
+        runtime_deps = [
+            "@aten//:erlang_app",
+        ]
     )
 
     hex_archive(

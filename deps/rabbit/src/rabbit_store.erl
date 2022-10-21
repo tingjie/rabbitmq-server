@@ -241,12 +241,12 @@ match_exchanges(Pattern0) ->
 lookup_exchange(Name) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> lookup({rabbit_exchange, Name}, mnesia) end,
-      fun() -> lookup(khepri_exchange_path(Name), khepri) end).
+      fun() -> lookup_resource_in_khepri_projection(rabbit_khepri_exchange, Name) end).
 
 lookup_many_exchanges(Names) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> lookup_many(rabbit_exchange, Names, mnesia) end,
-      fun() -> lookup_many(fun khepri_exchange_path/1, Names, khepri) end).
+      fun() -> lookup_resources_in_khepri_projection(rabbit_khepri_exchange, Names) end).
 
 peek_exchange_serial(XName, LockType) ->
     rabbit_khepri:try_mnesia_or_khepri(
@@ -489,39 +489,34 @@ list_bindings(VHost) ->
               [B || #route{binding = B} <- list_in_mnesia(rabbit_route, Match)]
       end,
       fun() ->
-              Path = khepri_routes_path() ++ [VHost, if_has_data_wildcard()],
-              lists:foldl(fun(SetOfBindings, Acc) ->
-                                  sets:to_list(SetOfBindings) ++ Acc
-                          end, [], list_in_khepri(Path))
+              VHostResource = rabbit_misc:r(VHost, '_'),
+              Match = #binding{source      = VHostResource,
+                               destination = VHostResource,
+                               _           = '_'},
+              ets:match(rabbit_khepri_bindings, Match)
       end).
 
-list_bindings_for_source(#resource{virtual_host = VHost, name = Name} = Resource) ->
+list_bindings_for_source(Source) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              Route = #route{binding = #binding{source = Resource, _ = '_'}},
+              Route = #route{binding = #binding{source = Source, _ = '_'}},
               [B || #route{binding = B} <- list_in_mnesia(rabbit_route, Route)]
       end,
-      fun() ->
-              Path = khepri_routes_path() ++ [VHost, Name, if_has_data_wildcard()],
-              lists:foldl(fun(SetOfBindings, Acc) ->
-                                  sets:to_list(SetOfBindings) ++ Acc
-                          end, [], list_in_khepri(Path))
-      end).
+      fun() -> ets:lookup(rabbit_khepri_bindings, Source) end).
 
-list_bindings_for_destination(#resource{virtual_host = VHost, name = Name,
-                                        kind = Kind} = Resource) ->
+list_bindings_for_destination(Destination) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() ->
-              Route = rabbit_binding:reverse_route(#route{binding = #binding{destination = Resource,
+              Route = rabbit_binding:reverse_route(#route{binding = #binding{destination = Destination,
                                                                              _ = '_'}}),
               [rabbit_binding:reverse_binding(B) ||
                   #reverse_route{reverse_binding = B} <- list_in_mnesia(rabbit_reverse_route, Route)]
       end,
       fun() ->
-              Path = khepri_routes_path() ++ [VHost, ?KHEPRI_WILDCARD_STAR, Kind, Name, if_has_data_wildcard()],
-              lists:foldl(fun(SetOfBindings, Acc) ->
-                                  sets:to_list(SetOfBindings) ++ Acc
-                          end, [], list_in_khepri(Path))
+              %% TODO: projection for bindings indexed by destination?
+              Match = #binding{destination = Destination,
+                               _           = '_'},
+              ets:match(rabbit_khepri_bindings, Match)
       end).
 
 list_bindings_for_source_and_destination(SrcName, DstName) ->
@@ -533,10 +528,10 @@ list_bindings_for_source_and_destination(SrcName, DstName) ->
               [B || #route{binding = B} <- list_in_mnesia(rabbit_route, Route)]
       end,
       fun() ->
-              Values = match_source_and_destination_in_khepri(SrcName, DstName),
-              lists:foldl(fun(SetOfBindings, Acc) ->
-                                  sets:to_list(SetOfBindings) ++ Acc
-                          end, [], Values)
+              Match = #binding{source      = SrcName,
+                               destination = DstName,
+                               _           = '_'},
+              ets:match(rabbit_khepri_bindings, Match)
       end).
 
 list_explicit_bindings() ->
@@ -728,12 +723,12 @@ store_durable_queue(Q) ->
 lookup_queue(Name) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> lookup({rabbit_queue, Name}, mnesia) end,
-      fun() -> lookup(khepri_queue_path(Name), khepri) end).
+      fun() -> lookup_resource_in_khepri_projection(rabbit_khepri_queue, Name) end).
 
 lookup_durable_queue(Name) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> lookup({rabbit_durable_queue, Name}, mnesia) end,
-      fun() -> lookup(khepri_queue_path(Name), khepri) end).
+      fun() -> lookup_resource_in_khepri_projection(rabbit_khepri_queue, Name) end).
 
 %% TODO this should be internal, it's here because of mirrored queues
 lookup_queue_in_khepri_tx(Name) ->
@@ -742,14 +737,14 @@ lookup_queue_in_khepri_tx(Name) ->
 lookup_queues(Names) when is_list(Names) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> lookup_many(rabbit_queue, Names, mnesia) end,
-      fun() -> lookup_many(fun khepri_queue_path/1, Names, khepri) end);
+      fun() -> lookup_resources_in_khepri_projection(rabbit_khepri_queue, Names) end);
 lookup_queues(Name) ->
     lookup_queue(Name).
 
 lookup_durable_queues(Names) when is_list(Names) ->
     rabbit_khepri:try_mnesia_or_khepri(
       fun() -> lookup_many(rabbit_durable_queue, Names, mnesia) end,
-      fun() -> lookup_many(fun khepri_queue_path/1, Names, khepri) end);
+      fun() -> lookup_resources_in_khepri_projection(rabbit_khepri_queue, Names) end);
 lookup_durable_queues(Name) ->
     lookup_durable_queue(Name).
 
@@ -759,7 +754,7 @@ exists_queue(Name) ->
               ets:member(rabbit_queue, Name)
       end,
       fun() ->
-              rabbit_khepri:exists(khepri_queue_path(Name))
+              ets:member(rabbit_khepri_queue, Name)
       end).
 
 update_queue(#resource{virtual_host = VHost, name = Name} = QName, Fun) ->
@@ -894,11 +889,9 @@ match_bindings(SrcName, Match) ->
                            Routes, Match(Binding)]
       end,
       fun() ->
-              Data = match_source_in_khepri(SrcName),
-              Bindings = lists:foldl(fun(SetOfBindings, Acc) ->
-                                             sets:to_list(SetOfBindings) ++ Acc
-                                     end, [], maps:values(Data)),
-              [Dest || Binding = #binding{destination = Dest} <- Bindings, Match(Binding)]
+              Routes = ets:lookup(rabbit_khepri_bindings, SrcName),
+              [Dest || Binding = #binding{destination = Dest} <-
+                           Routes, Match(Binding)]
       end).
 
 match_routing_key(SrcName, RoutingKeys, UseIndex) ->
@@ -906,13 +899,18 @@ match_routing_key(SrcName, RoutingKeys, UseIndex) ->
       fun() ->
               case UseIndex of
                   true ->
-                      route_in_mnesia_v2(SrcName, RoutingKeys);
+                      route_v2(rabbit_index_route, SrcName, RoutingKeys);
                   _ ->
                       route_in_mnesia_v1(SrcName, RoutingKeys)
               end
       end,
       fun() ->
-              match_source_and_key_in_khepri(SrcName, RoutingKeys)
+              case UseIndex of
+                  true ->
+                      route_v2(rabbit_khepri_index_route, SrcName, RoutingKeys);
+                  _ ->
+                      match_source_and_key_in_khepri(SrcName, RoutingKeys)
+              end
       end).
 
 route_in_mnesia_v1(SrcName, [RoutingKey]) ->
@@ -945,27 +943,27 @@ route_in_mnesia_v1(SrcName, [_|_] = RoutingKeys) ->
 %% ets:select/2 is expensive because it needs to compile the match spec every
 %% time and lookup does not happen by a hash key.
 %%
-%% In contrast, route_v2/2 increases end-to-end message sending throughput
+%% In contrast, route_v2/3 increases end-to-end message sending throughput
 %% (i.e. from RabbitMQ client to the queue process) by up to 35% by using ets:lookup_element/3.
 %% Only the direct exchange type uses the rabbit_index_route table to store its
 %% bindings by table key tuple {SourceExchange, RoutingKey}.
--spec route_in_mnesia_v2(rabbit_types:binding_source(), [rabbit_router:routing_key(), ...]) ->
+-spec route_v2(ets:table(), rabbit_types:binding_source(), [rabbit_router:routing_key(), ...]) ->
     rabbit_router:match_result().
-route_in_mnesia_v2(SrcName, [RoutingKey]) ->
+route_v2(Table, SrcName, [RoutingKey]) ->
     %% optimization
-    destinations(SrcName, RoutingKey);
-route_in_mnesia_v2(SrcName, [_|_] = RoutingKeys) ->
+    destinations(Table, SrcName, RoutingKey);
+route_v2(Table, SrcName, [_|_] = RoutingKeys) ->
     lists:flatmap(fun(Key) ->
-                          destinations(SrcName, Key)
+                          destinations(Table, SrcName, Key)
                   end, RoutingKeys).
 
-destinations(SrcName, RoutingKey) ->
+destinations(Table, SrcName, RoutingKey) ->
     %% Prefer try-catch block over checking Key existence with ets:member/2.
     %% The latter reduces throughput by a few thousand messages per second because
     %% of function db_member_hash in file erl_db_hash.c.
     %% We optimise for the happy path, that is the binding / table key is present.
     try
-        ets:lookup_element(rabbit_index_route,
+        ets:lookup_element(Table,
                            {SrcName, RoutingKey},
                            #index_route.destination)
     catch
@@ -1003,26 +1001,8 @@ add_topic_trie_binding_tx(XName, RoutingKey, Destination, Args) ->
     ok = khepri_tx:put(Path, Set).
 
 route_delivery_for_exchange_type_topic(XName, RoutingKey) ->
-    Words = lists:map(fun(W) -> #if_any{conditions = [W, <<"*">>]} end,
-                      split_topic_trie_key(RoutingKey)),
-    Root = khepri_exchange_type_topic_path(XName),
-    Path0 = Root ++ Words,
-    {Hd, [Tl]} = lists:split(length(Path0) - 1, Path0),
-    Path = Hd ++ [if_has_data([Tl])],
-    Fanout = Root ++ [<<"#">>],
-    Map = case rabbit_khepri:get(Fanout) of
-              {ok, Data} when Data =/= undefined ->
-                  #{Fanout => Data};
-              _ ->
-                  case rabbit_khepri:match(Path) of
-                      {ok, Map0} -> Map0;
-                      _ -> #{}
-                  end
-          end,
-    maps:fold(fun(_, Data, Acc) ->
-                      Bindings = sets:to_list(Data),
-                      [maps:get(destination, B) || B <- Bindings] ++ Acc
-              end, [], Map).
+    Words = split_topic_trie_key(RoutingKey),
+    trie_match(XName, Words).
 
 delete_topic_trie_bindings_for_exchange(XName) ->
     ok = rabbit_khepri:delete(khepri_exchange_type_topic_path(XName)).
@@ -1932,22 +1912,15 @@ binding_has_for_source_in_khepri(#resource{virtual_host = VHost, name = Name}) -
             Error
     end.
 
-match_source_in_khepri(#resource{virtual_host = VHost, name = Name}) ->
-    Path = khepri_routes_path() ++ [VHost, Name, if_has_data_wildcard()],
-    {ok, Map} = rabbit_khepri:match(Path),
-    Map.
-
 match_source_and_key_in_khepri(Src, ['_']) ->
-    Path = khepri_routing_path(Src, if_has_data_wildcard()),
-    case rabbit_khepri:match(Path) of
-        {ok, Map} ->
-            maps:fold(fun(_, Dsts, Acc) ->
-                              sets:to_list(Dsts) ++ Acc
-                      end, [], Map);
-        {error, {khepri, node_not_found, _}} ->
+    try
+        ets:lookup_element(rabbit_khepri_bindings, Src, #binding.destination)
+    catch
+        error:badarg ->
             []
     end;
 match_source_and_key_in_khepri(Src, RoutingKeys) ->
+    %% TODO: use {@link ets:select/2}
     lists:foldl(
       fun(RK, Acc) ->
               Path = khepri_routing_path(Src, RK),
@@ -2302,3 +2275,63 @@ recover_mnesia_tables() ->
         ++ [Table || {Table, _} <- rabbit_table:definitions()],
     [mnesia:change_table_access_mode(Table, read_write) || Table <- Tables],
     ok.
+
+lookup_resource_in_khepri_projection(Projection, Key) ->
+    case ets:lookup(Projection, Key) of
+        [Resource] -> {ok, Resource};
+        []         -> {error, not_found}
+    end.
+
+lookup_resources_in_khepri_projection(Projection, Keys) ->
+    lists:append([ets:lookup(Projection, Name) || Name <- Keys]).
+
+%%--->8--- Khepri Topic Exchange Routing --->8---
+%% This is slightly different than the mnesia version. We use only one
+%% table. Bindings are the leaf nodes of the trie.
+
+%% Also, lists are rewritten as binaries. Why does this work before?
+
+trie_match(X, Words) ->
+    trie_match(X, root, Words, []).
+
+trie_match(X, Node, [], ResAcc) ->
+    trie_match_part(X, Node, <<"#">>, fun trie_match_skip_any/4, [],
+                    trie_bindings(X, Node) ++ ResAcc);
+trie_match(X, Node, [W | RestW] = Words, ResAcc) ->
+    lists:foldl(fun ({WArg, MatchFun, RestWArg}, Acc) ->
+                        trie_match_part(X, Node, WArg, MatchFun, RestWArg, Acc)
+                end, ResAcc, [{W, fun trie_match/4, RestW},
+                              {<<"*">>, fun trie_match/4, RestW},
+                              {<<"#">>, fun trie_match_skip_any/4, Words}]).
+
+trie_match_part(X, Node, Search, MatchFun, RestW, ResAcc) ->
+    case trie_child(X, Node, Search) of
+        {ok, NextNode} -> MatchFun(X, NextNode, RestW, ResAcc);
+        error          -> ResAcc
+    end.
+
+trie_match_skip_any(X, Node, [], ResAcc) ->
+    trie_match(X, Node, [], ResAcc);
+trie_match_skip_any(X, Node, [_ | RestW] = Words, ResAcc) ->
+    trie_match_skip_any(X, Node, RestW,
+                        trie_match(X, Node, Words, ResAcc)).
+
+trie_child(X, Node, Word) ->
+    case ets:lookup(rabbit_khepri_topic_trie,
+                    #trie_edge{exchange_name = X,
+                               node_id       = Node,
+                               word          = Word}) of
+        [#topic_trie_edge{node_id = NextNode}] -> {ok, NextNode};
+        []                                     -> error
+    end.
+
+trie_bindings(X, Node) ->
+    case ets:lookup(rabbit_khepri_topic_trie,
+                    #trie_edge{exchange_name = X,
+                               node_id       = Node,
+                               word          = bindings}) of
+        [#topic_trie_edge{node_id = {bindings, Bindings}}] ->
+            [Dest || #{destination := Dest} <- sets:to_list(Bindings)];
+        [] ->
+            []
+    end.

@@ -251,12 +251,16 @@ check_resource_access_in_mnesia(Username, VHostPath, Name, Permission) ->
     end.
 
 check_resource_access_in_khepri(Username, VHostPath, Name, Permission) ->
-    Path = khepri_user_permission_path(Username, VHostPath),
-    case rabbit_khepri:get(Path) of
-        {ok, #user_permission{permission = P}} ->
-            do_check_resource_access(Name, Permission, P);
-        _ ->
-            false
+    UserVHost = #user_vhost{username     = Username,
+                            virtual_host = VHostPath},
+    try
+        P = ets:lookup_element(
+              rabbit_khepri_user_permissions,
+              UserVHost,
+              #user_permission.permission),
+        do_check_resource_access(Name, Permission, P)
+    catch
+        _:_:_ -> false
     end.
 
 do_check_resource_access(Name, Permission, P) ->
@@ -521,10 +525,9 @@ lookup_user_in_mnesia(Username) ->
     rabbit_misc:dirty_read({rabbit_user, Username}).
 
 lookup_user_in_khepri(Username) ->
-    Path = khepri_user_path(Username),
-    case rabbit_khepri:get(Path) of
-        {ok, User} -> {ok, User};
-        _          -> {error, not_found}
+    case ets:lookup(rabbit_khepri_users, Username) of
+        [User] -> {ok, User};
+        _      -> {error, not_found}
     end.
 
 -spec exists(rabbit_types:username()) -> boolean().

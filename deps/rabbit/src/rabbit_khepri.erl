@@ -12,6 +12,7 @@
 
 -include_lib("khepri/include/khepri.hrl").
 -include_lib("rabbit_common/include/logging.hrl").
+-include_lib("rabbit_common/include/rabbit.hrl").
 
 -export([setup/0,
          setup/1,
@@ -99,6 +100,7 @@ setup(_) ->
                        friendly_name => ?RA_FRIENDLY_NAME},
     case khepri:start(?RA_SYSTEM, RaServerConfig) of
         {ok, ?STORE_ID} ->
+            register_projections(),
             ?LOG_DEBUG(
                "Khepri-based " ?RA_FRIENDLY_NAME " ready",
                #{domain => ?RMQLOG_DOMAIN_GLOBAL}),
@@ -583,3 +585,212 @@ is_mnesia_table_covered_by_feature_flag(rabbit_user)             -> true;
 is_mnesia_table_covered_by_feature_flag(rabbit_user_permission)  -> true;
 is_mnesia_table_covered_by_feature_flag(rabbit_topic_permission) -> true;
 is_mnesia_table_covered_by_feature_flag(_)                       -> false.
+
+register_projections() ->
+    RegisterFuns = [fun register_rabbit_exchange_projection/0,
+                    fun register_rabbit_queue_projection/0,
+                    fun register_rabbit_vhost_projection/0,
+                    fun register_rabbit_users_projection/0,
+                    fun register_rabbit_user_permissions_projection/0,
+                    fun register_rabbit_bindings_projection/0,
+                    fun register_rabbit_index_route_projection/0,
+                    fun register_rabbit_topic_graph_projection/0],
+    [case RegisterFun() of
+         ok              -> ok;
+         {error, exists} -> ok;
+         {error, Error}  -> throw(Error)
+     end || RegisterFun <- RegisterFuns],
+    ok.
+
+register_rabbit_exchange_projection() ->
+    Name = rabbit_khepri_exchange,
+    PathPattern = [rabbit_store,
+                   exchanges,
+                   _VHost = ?KHEPRI_WILDCARD_STAR,
+                   _Name = ?KHEPRI_WILDCARD_STAR],
+    KeyPos = #exchange.name,
+    register_simple_projection(Name, PathPattern, KeyPos).
+
+register_rabbit_queue_projection() ->
+    Name = rabbit_khepri_queue,
+    PathPattern = [rabbit_store,
+                   queues,
+                   _VHost = ?KHEPRI_WILDCARD_STAR,
+                   _Name = ?KHEPRI_WILDCARD_STAR],
+    KeyPos = 2, %% #amqqueue.name
+    register_simple_projection(Name, PathPattern, KeyPos).
+
+register_rabbit_vhost_projection() ->
+    Name = rabbit_khepri_vhost,
+    PathPattern = [rabbit_vhost, _VHost = ?KHEPRI_WILDCARD_STAR],
+    KeyPos = 2, %% #vhost.virtual_host
+    register_simple_projection(Name, PathPattern, KeyPos).
+
+register_rabbit_users_projection() ->
+    Name = rabbit_khepri_users,
+    PathPattern = [rabbit_auth_backend_internal,
+                   users,
+                   _UserName = ?KHEPRI_WILDCARD_STAR],
+    KeyPos = 2, %% #internal_user.username
+    register_simple_projection(Name, PathPattern, KeyPos).
+
+register_rabbit_user_permissions_projection() ->
+    Name = rabbit_khepri_user_permissions,
+    PathPattern = [rabbit_auth_backend_internal,
+                   users,
+                   _UserName = ?KHEPRI_WILDCARD_STAR,
+                   user_permissions,
+                   _VHost = ?KHEPRI_WILDCARD_STAR],
+    KeyPos = #user_permission.user_vhost,
+    register_simple_projection(Name, PathPattern, KeyPos).
+
+register_simple_projection(Name, PathPattern, KeyPos) ->
+    Options = #{keypos => KeyPos},
+    Fun = fun(_Path, Resource) -> Resource end,
+    Projection = khepri_projection:new(Name, Fun, Options),
+    khepri:register_projection(?RA_CLUSTER_NAME, PathPattern, Projection).
+
+register_rabbit_bindings_projection() ->
+    MapFun = fun(Path, Destination) ->
+                     [rabbit_store, routing, VHost, ExchangeName, RoutingKey] =
+                       Path,
+                     Exchange = rabbit_misc:r(VHost, exchange, ExchangeName),
+                     #binding{source = Exchange,
+                              key = RoutingKey,
+                              destination = Destination}
+             end,
+    ProjectionFun = projection_fun_for_sets(MapFun),
+    Options = #{type => bag, keypos => #binding.source},
+    Projection = khepri_projection:new(
+                   rabbit_khepri_bindings, ProjectionFun, Options),
+    PathPattern = [rabbit_store,
+                   routing,
+                   _VHost = ?KHEPRI_WILDCARD_STAR,
+                   _ExchangeName = ?KHEPRI_WILDCARD_STAR,
+                   _RoutingKey = ?KHEPRI_WILDCARD_STAR],
+    khepri:register_projection(?RA_CLUSTER_NAME, PathPattern, Projection).
+
+register_rabbit_index_route_projection() ->
+    MapFun = fun(Path, Destination) ->
+                     [rabbit_store, routing, VHost, ExchangeName, RoutingKey] =
+                       Path,
+                     Exchange = rabbit_misc:r(VHost, exchange, ExchangeName),
+                     SourceKey = {Exchange, RoutingKey},
+                     #index_route{source_key = SourceKey,
+                                  destination = Destination}
+             end,
+    ProjectionFun = projection_fun_for_sets(MapFun),
+    Options = #{type => bag, keypos => #index_route.source_key},
+    Projection = khepri_projection:new(
+                   rabbit_khepri_index_route, ProjectionFun, Options),
+    PathPattern = [rabbit_store,
+                   routing,
+                   ?KHEPRI_WILDCARD_STAR,
+                   ?KHEPRI_WILDCARD_STAR,
+                   ?KHEPRI_WILDCARD_STAR],
+    khepri:register_projection(?RA_CLUSTER_NAME, PathPattern, Projection).
+
+%% Routing information is stored in the Khepri store as a `set'.
+%% In order to turn these bindings into records in an ETS `bag', we use a
+%% `khepri_projection:extended_projection_fun()' to determine the changes
+%% `khepri_projection' should apply to the ETS table using set algebra.
+projection_fun_for_sets(MapFun) ->
+    fun (_Table, _Path, undefined, undefined) ->
+            ok;
+        (Table, Path, undefined, NewPayload) ->
+            ets:insert(Table, [MapFun(Path, Element) ||
+                               Element <- sets:to_list(NewPayload)]);
+
+        (Table, Path, OldPayload, undefined) ->
+            sets:fold(
+              fun(Element, _Acc) ->
+                      ets:delete_object(Table, MapFun(Path, Element))
+              end, [], OldPayload);
+        (Table, Path, OldPayload, NewPayload) ->
+            Deletions = sets:subtract(OldPayload, NewPayload),
+            Creations = sets:subtract(NewPayload, OldPayload),
+            sets:fold(
+              fun(Element, _Acc) ->
+                      ets:delete_object(Table, MapFun(Path, Element))
+              end, [], Deletions),
+            ets:insert(Table, [MapFun(Path, Element) ||
+                               Element <- sets:to_list(Creations)])
+    end.
+
+register_rabbit_topic_graph_projection() ->
+    Name = rabbit_khepri_topic_trie,
+    Options = #{keypos => #topic_trie_edge.trie_edge},
+    Fun = fun project_topic_trie_binding/4,
+    Projection = khepri_projection:new(Name, Fun, Options),
+    PathPattern = [rabbit_store,
+                   topic_trie_binding,
+                   _VHost = ?KHEPRI_WILDCARD_STAR,
+                   _ExchangeName = ?KHEPRI_WILDCARD_STAR,
+                   _Routes = ?KHEPRI_WILDCARD_STAR_STAR],
+    khepri:register_projection(?RA_CLUSTER_NAME, PathPattern, Projection),
+    ok.
+
+project_topic_trie_binding(_Table, _Path, undefined, undefined) ->
+    ok;
+project_topic_trie_binding(Table, Path, undefined, NewBindings) ->
+    Edges = edges_for_path(Path, NewBindings),
+    ets:insert(Table, Edges);
+project_topic_trie_binding(Table, Path, OldBindings, undefined) ->
+    %% Delete the edge to the bindings and all edges for which the `ToNode'
+    %% has no outgoing edges.
+    [BindingEdge | RestEdges] = edges_for_path(Path, OldBindings),
+    ets:delete_object(Table, BindingEdge),
+    trim_while_out_degree_is_zero(RestEdges);
+project_topic_trie_binding(Table, Path, _OldBindings, NewBindings) ->
+    [BindingEdge | _RestEdges] = edges_for_path(Path, NewBindings),
+    ets:insert(Table, BindingEdge).
+
+edges_for_path(
+  [rabbit_store, topic_trie_binding, VHost, ExchangeName | Components],
+  Bindings) ->
+    Exchange = rabbit_misc:r(VHost, exchange, ExchangeName),
+    edges_for_path([root | Components], Bindings, Exchange, []).
+
+edges_for_path([FromNodeId, To | Rest], Bindings, Exchange, Edges) ->
+    ToNodeId = [To | FromNodeId],
+    Edge = #topic_trie_edge{trie_edge = #trie_edge{exchange_name = Exchange,
+                                                   node_id =       FromNodeId,
+                                                   word =          To},
+                            node_id = ToNodeId},
+    edges_for_path([ToNodeId | Rest], Bindings, Exchange, [Edge | Edges]);
+edges_for_path([LeafId], Bindings, Exchange, Edges) ->
+    ToNodeId = {bindings, Bindings},
+    Edge = #topic_trie_edge{trie_edge = #trie_edge{exchange_name = Exchange,
+                                                   node_id =       LeafId,
+                                                   word =          bindings},
+                            node_id = ToNodeId},
+    [Edge | Edges].
+
+-spec trim_while_out_degree_is_zero(Edges) -> ok
+    when
+      Edges :: [Edge],
+      Edge :: #topic_trie_edge{}.
+
+trim_while_out_degree_is_zero([]) ->
+    ok;
+trim_while_out_degree_is_zero([Edge | Rest]) ->
+    #topic_trie_edge{trie_edge = #trie_edge{exchange_name = Exchange,
+                                            node_id       = _FromNodeId},
+                     node_id = ToNodeId} = Edge,
+    OutEdgePattern = #topic_trie_edge{trie_edge =
+                                      #trie_edge{exchange_name = Exchange,
+                                                 node_id       = ToNodeId,
+                                                 word          = '_'},
+                                      node_id = '_'},
+    case ets:match(rabbit_khepri_topic_trie, OutEdgePattern, 1) of
+        '$end_of_table' ->
+            %% If the ToNode has an out degree of zero, trim the edge to
+            %% the node, effectively erasing ToNode.
+            ets:delete_object(rabbit_khepri_topic_trie, Edge),
+            trim_while_out_degree_is_zero(Rest);
+        {_Match, _Continuation} ->
+            %% Return after finding the first node with a non-zero out-degree.
+            %% If a node has a non-zero out-degree then all of its ancestors
+            %% must as well.
+            ok
+    end.
