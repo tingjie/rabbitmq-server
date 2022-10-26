@@ -518,9 +518,7 @@ read(MsgId,
     case ets:lookup(CurFileCacheEts, MsgId) of
         [] ->
             Defer = fun() -> {server_call(CState, {read, MsgId}), CState} end,
-            %% @todo What is this about? Can this be triggered normally?
-            %%       Should we just check for a positive ref_count in the
-            %%       index_lookup case clause to make sure it can't happen?
+            %% @todo It's probably a bug if we don't get a positive ref count.
             case index_lookup_positive_ref_count(MsgId, CState) of
                 not_found   -> Defer();
                 MsgLocation -> client_read1(MsgLocation, Defer, CState)
