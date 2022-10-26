@@ -1021,7 +1021,6 @@ delete_topic_trie_bindings(Bs) ->
                 Path = khepri_exchange_type_topic_path(X) ++ split_topic_trie_key(K),
                 {Path, #{destination => D, arguments => Args}}
             end || #binding{source = X, key = K, destination = D, args = Args} <- Bs],
-    %% TODO can we use a retry instead of a transaction? I think so!
     rabbit_khepri:transaction(
       fun() ->
               [begin
@@ -1031,11 +1030,7 @@ delete_topic_trie_bindings(Bs) ->
                            Set = sets:del_element(Binding, Set0),
                            case {Children, sets:size(Set)} of
                                {0, 0} ->
-                                   khepri_tx:delete(Path),
-                                   %% TODO can we use a keep_while condition?
-                                   %% TODO remove this when Khepri automatically removes
-                                   %% paths withtout nodes and data
-                                   remove_path_if_empty(lists:droplast(Path));
+                                   khepri_tx:delete(Path);
                                _ ->
                                    khepri_tx:put(Path, Set)
                            end;
@@ -2254,24 +2249,6 @@ split_topic_trie_key(<<$., Rest/binary>>, RevWordAcc, RevResAcc) ->
     split_topic_trie_key(Rest, [], [lists:reverse(RevWordAcc) | RevResAcc]);
 split_topic_trie_key(<<C:8, Rest/binary>>, RevWordAcc, RevResAcc) ->
     split_topic_trie_key(Rest, [C | RevWordAcc], RevResAcc).
-
-%% TODO use keepwhile instead?
-remove_path_if_empty([?MODULE, _]) ->
-    ok;
-remove_path_if_empty(Path) ->
-    case khepri_tx_adv:get(Path) of
-        {ok, #{Path := #{data := Set,
-                         child_list_length := Children}}} ->
-            case {Children, sets:size(Set)} of
-                {0, 0} ->
-                    khepri_tx:delete(Path),
-                    remove_path_if_empty(lists:droplast(Path));
-                _ ->
-                    ok
-            end;
-        _ ->
-            ok
-    end.
 
 retry(Fun) ->
     Until = erlang:system_time(millisecond) + (?WAIT_SECONDS * 1000),

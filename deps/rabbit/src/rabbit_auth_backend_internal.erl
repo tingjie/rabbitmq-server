@@ -750,9 +750,6 @@ set_permissions_in_khepri(Username, VirtualHost, UserPermission) ->
                                  [Username,
                                   #if_node_exists{exists = true}]},
                          VirtualHost),
-                %% TODO: Add a keep_while for the intermediate
-                %% 'user_permissions' node so it is removed when its last
-                %% children is removed.
                 Extra = #{keep_while =>
                           #{rabbit_vhost:khepri_vhost_path(VirtualHost) =>
                             #if_node_exists{exists = true}}},
@@ -949,8 +946,6 @@ set_topic_permissions_in_mnesia(
 
 set_topic_permissions_in_khepri(
   Username, VirtualHost, Exchange, TopicPermission) ->
-    %% TODO: Add a keep_while for the intermediate 'topic_permissions' node so
-    %% it is removed when its last children is removed.
     rabbit_khepri:transaction(
       rabbit_vhost:with_user_and_vhost_in_khepri(
         Username, VirtualHost,
