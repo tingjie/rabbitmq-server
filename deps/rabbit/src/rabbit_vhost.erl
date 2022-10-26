@@ -36,8 +36,8 @@
 
 -ifdef(TEST).
 -export([with_in_khepri/2,
-         do_add_to_mnesia/3,
-         do_add_to_khepri/3,
+         do_add_to_mnesia/2,
+         do_add_to_khepri/2,
          lookup_in_mnesia/1,
          lookup_in_khepri/1,
          exists_in_mnesia/1,
@@ -241,8 +241,8 @@ do_add(Name, Metadata, ActingUser) ->
                             [Name, Description, Tags])
     end,
     VHost = rabbit_khepri:try_mnesia_or_khepri(
-              fun() -> do_add_to_mnesia(Name, Description, Tags) end,
-              fun() -> do_add_to_khepri(Name, Description, Tags) end),
+              fun() -> do_add_to_mnesia(Name, Metadata) end,
+              fun() -> do_add_to_khepri(Name, Metadata) end),
     DefaultLimits = default_limits(Name),
     rabbit_log:info("Applying default limits to vhost '~tp': ~tp", [Name, DefaultLimits]),
     ok = case DefaultLimits of
@@ -263,12 +263,12 @@ do_add(Name, Metadata, ActingUser) ->
             {error, Msg}
     end.
 
-do_add_to_mnesia(Name, Description, Tags) ->
+do_add_to_mnesia(Name, Metadata) ->
     rabbit_misc:execute_mnesia_transaction(
       fun () ->
               case mnesia:wread({rabbit_vhost, Name}) of
                   [] ->
-                      Row = vhost:new(Name, [], #{description => Description, tags => Tags}),
+                      Row = vhost:new(Name, [], Metadata),
                       rabbit_log:debug("Inserting a virtual host record ~tp", [Row]),
                       ok = mnesia:write(rabbit_vhost, Row, write),
                       Row;
@@ -278,10 +278,10 @@ do_add_to_mnesia(Name, Description, Tags) ->
               end
       end).
 
-do_add_to_khepri(Name, Description, Tags) ->
+do_add_to_khepri(Name, Metadata) ->
     Path = khepri_vhost_path(Name),
     NewVHost = vhost:new(
-                 Name, [], #{description => Description, tags => Tags}),
+                 Name, [], Metadata),
     rabbit_log:debug("Inserting a virtual host record ~tp", [NewVHost]),
     case rabbit_khepri:create(Path, NewVHost) of
         ok ->
