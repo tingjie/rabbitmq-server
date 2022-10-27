@@ -927,31 +927,39 @@ share_dist_and_proxy_ports_map(Config) ->
     Config.
 
 configure_metadata_store(Config) ->
+    ct:pal("Configuring metadata store ..."),
     case ?config(metadata_store, Config) of
         khepri ->
-            case enable_feature_flag(Config, raft_based_metadata_store_phase1) of
-                ok ->
-                    Config;
-                Skip ->
-                    ct:pal("Enabling metadata store failed: ~p", [Skip]),
-                    Skip
-            end;
+            enable_khepri_metadata_store(Config, []);
         {khepri, FFs0} ->
-            FFs = [raft_based_metadata_store_phase1 | FFs0],
-            lists:foldl(fun(FF, ok) ->
-                                case enable_feature_flag(Config, FF) of
-                                    ok ->
-                                        ok;
-                                    Skip ->
-                                        ct:pal("Enabling metadata store failed: ~p", [Skip]),
-                                        Skip
-                                end;
-                           (_FF, Skip) ->
-                                Skip
-                        end, ok, FFs);
+            enable_khepri_metadata_store(Config, FFs0);
         _ ->
-            Config
+            case os:getenv("RABBITMQ_METADATA_STORE") of
+                false ->
+                    ct:pal("Enabling default (mnesia) metadata store"),
+                    Config;
+                "khepri" ->
+                    enable_khepri_metadata_store(Config, []);
+                _ ->
+                    ct:pal("Enabling default (mnesia) metadata store"),
+                    Config
+            end
     end.
+
+enable_khepri_metadata_store(Config, FFs0) ->
+    ct:pal("Enabling Khepri metadata store"),
+    FFs = [raft_based_metadata_store_phase1 | FFs0],
+    lists:foldl(fun(_FF, {skip, _Reason} = Skip) ->
+                        Skip;
+                   (FF, C) ->
+                        case enable_feature_flag(C, FF) of
+                            ok ->
+                                C;
+                            Skip ->
+                                ct:pal("Enabling metadata store failed: ~p", [Skip]),
+                                Skip
+                        end
+                end, Config, FFs).
 
 rewrite_node_config_file(Config, Node) ->
     NodeConfig = get_node_config(Config, Node),
@@ -1719,7 +1727,8 @@ async_start_node(Config, Node) ->
     spawn(fun() ->
                   Reply = (catch start_node(Config, Node)),
                   Self ! {async_start_node, Node, Reply}
-          end).
+          end),
+    ok.
 
 wait_for_async_start_node(Node) ->
     receive
