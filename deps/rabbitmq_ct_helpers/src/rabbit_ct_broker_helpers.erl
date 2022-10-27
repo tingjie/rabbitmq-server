@@ -40,6 +40,8 @@
     rpc_all/4, rpc_all/5,
 
     start_node/2,
+    async_start_node/2,
+    wait_for_async_start_node/1,
     start_broker/2,
     restart_broker/2,
     stop_broker/2,
@@ -1708,6 +1710,21 @@ start_node(Config, Node) ->
     case do_start_rabbitmq_node(Config, NodeConfig, I) of
         {skip, _} = Error -> {error, Error};
         _                 -> ok
+    end.
+
+async_start_node(Config, Node) ->
+    Self = self(),
+    spawn(fun() ->
+                  Reply = (catch start_node(Config, Node)),
+                  Self ! {async_start_node, Node, Reply}
+          end).
+
+wait_for_async_start_node(Node) ->
+    receive
+        {async_start_node, N, Reply} when N == Node ->
+            Reply
+    after 600000 ->
+            timeout
     end.
 
 start_broker(Config, Node) ->

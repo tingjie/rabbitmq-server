@@ -813,7 +813,9 @@ recover(Config) ->
 
     ct:pal("recover: running stop start for permutation ~w", [Servers]),
     [rabbit_ct_broker_helpers:stop_node(Config, S) || S <- Servers],
-    [rabbit_ct_broker_helpers:start_node(Config, S) || S <- lists:reverse(Servers)],
+    [rabbit_ct_broker_helpers:async_start_node(Config, S) || S <- lists:reverse(Servers)],
+    [ok = rabbit_ct_broker_helpers:wait_for_async_start_node(S) || S <- lists:reverse(Servers)],
+
     ct:pal("recover: running stop waiting for messages ~w", [Servers]),
     check_leader_and_replicas(Config, Servers0),
     quorum_queue_utils:wait_for_messages(Config, [[Q, <<"1">>, <<"1">>, <<"0">>]], 60),
@@ -824,7 +826,10 @@ recover(Config) ->
 
     ct:pal("recover: running app stop start for permuation ~w", [Servers1]),
     [rabbit_control_helper:command(stop_app, S) || S <- Servers1],
-    [rabbit_control_helper:command(start_app, S) || S <- lists:reverse(Servers1)],
+    [rabbit_control_helper:async_command(start_app, S, [], [])
+     || S <- lists:reverse(Servers1)],
+    [rabbit_control_helper:wait_for_async_command(S) || S <- lists:reverse(Servers1)],
+
     ct:pal("recover: running app stop waiting for messages ~w", [Servers1]),
     check_leader_and_replicas(Config, Servers0),
     quorum_queue_utils:wait_for_messages(Config, [[Q, <<"1">>, <<"1">>, <<"0">>]], 60),
