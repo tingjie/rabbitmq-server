@@ -521,7 +521,7 @@ read(MsgId,
             %% @todo It's probably a bug if we don't get a positive ref count.
             case index_lookup_positive_ref_count(MsgId, CState) of
                 not_found   -> Defer();
-                MsgLocation -> client_read1(MsgLocation, Defer, CState)
+                MsgLocation -> client_read2(MsgLocation, Defer, CState)
             end;
         [{MsgId, Msg, _CacheRefCount}] ->
             {{ok, Msg}, CState}
@@ -561,46 +561,46 @@ client_write(MsgId, Msg, Flow,
     ok = update_msg_cache(CurFileCacheEts, MsgId, Msg),
     ok = server_cast(CState, {write, CRef, MsgId, Flow}).
 
-client_read1(#msg_location { msg_id = MsgId, file = File } = MsgLocation, Defer,
-             CState = #client_msstate { file_summary_ets = FileSummaryEts }) ->
-    %% @todo So we can probably avoid this lookup entirely? The message
-    %%       may not be written to disk yet though? We can sync-up cache
-    %%       wipes with disk writes instead perhaps: write then wipe.
-    %%       Then we can just read from disk. Note: this is already the case?
-    %%       So why do we have this first clause in client_read2?
-    case ets:lookup(FileSummaryEts, File) of
-        %% @todo This should no longer happen.
-        [] -> %% File has been GC'd and no longer exists. Go around again.
-            read(MsgId, CState);
-        [#file_summary { locked = Locked, right = Right }] ->
-            client_read2(Locked, Right, MsgLocation, Defer, CState)
-    end.
+%client_read1(#msg_location { msg_id = MsgId, file = File } = MsgLocation, Defer,
+%             CState = #client_msstate { file_summary_ets = FileSummaryEts }) ->
+%    %% @todo So we can probably avoid this lookup entirely? The message
+%    %%       may not be written to disk yet though? We can sync-up cache
+%    %%       wipes with disk writes instead perhaps: write then wipe.
+%    %%       Then we can just read from disk. Note: this is already the case?
+%    %%       So why do we have this first clause in client_read2?
+%    case ets:lookup(FileSummaryEts, File) of
+%        %% @todo This should no longer happen.
+%        [] -> %% File has been GC'd and no longer exists. Go around again.
+%            read(MsgId, CState);
+%        [#file_summary { locked = Locked, right = Right }] ->
+%            client_read2(Locked, Right, MsgLocation, Defer, CState)
+%    end.
 
-client_read2(false, undefined, _MsgLocation, Defer, _CState) ->
-    %% Although we've already checked both caches and not found the
-    %% message there, the message is apparently in the
-    %% current_file. We can only arrive here if we are trying to read
-    %% a message which we have not written, which is very odd, so just
-    %% defer.
-    %%
-    %% OR, on startup, the cur_file_cache is not populated with the
-    %% contents of the current file, thus reads from the current file
-    %% will end up here and will need to be deferred.
-    Defer();
-%% @todo We should always read regardless of what the lock status is.
-%%       But the GC process needs to know when it can truncate. So
-%%       perhaps the lock should only be set just before truncating
-%%       and released. Can we avoid the lock entirely? Yes: the first
-%%       time we end up with no readers after a soft-lock is set is
-%%       when we can truncate. If there are readers for a while, no
-%%       problem because that means the file is being read and might
-%%       end up deleted instead of truncated.
-client_read2(true, _Right, _MsgLocation, Defer, _CState) ->
-    %% Of course, in the mean time, the GC could have run and our msg
-    %% is actually in a different file, unlocked. However, deferring is
-    %% the safest and simplest thing to do.
-    Defer();
-client_read2(false, _Right,
+%client_read2(false, undefined, _MsgLocation, Defer, _CState) ->
+%    %% Although we've already checked both caches and not found the
+%    %% message there, the message is apparently in the
+%    %% current_file. We can only arrive here if we are trying to read
+%    %% a message which we have not written, which is very odd, so just
+%    %% defer.
+%    %%
+%    %% OR, on startup, the cur_file_cache is not populated with the
+%    %% contents of the current file, thus reads from the current file
+%    %% will end up here and will need to be deferred.
+%    Defer();
+%%% @todo We should always read regardless of what the lock status is.
+%%%       But the GC process needs to know when it can truncate. So
+%%%       perhaps the lock should only be set just before truncating
+%%%       and released. Can we avoid the lock entirely? Yes: the first
+%%%       time we end up with no readers after a soft-lock is set is
+%%%       when we can truncate. If there are readers for a while, no
+%%%       problem because that means the file is being read and might
+%%%       end up deleted instead of truncated.
+%client_read2(true, _Right, _MsgLocation, Defer, _CState) ->
+%    %% Of course, in the mean time, the GC could have run and our msg
+%    %% is actually in a different file, unlocked. However, deferring is
+%    %% the safest and simplest thing to do.
+%    Defer();
+client_read2(%false, _Right,
              MsgLocation = #msg_location { msg_id = MsgId, file = File },
              Defer,
              CState = #client_msstate { file_summary_ets = FileSummaryEts }) ->
@@ -618,6 +618,13 @@ client_read3(#msg_location { msg_id = MsgId, file = File }, Defer,
                                         file_summary_ets = FileSummaryEts,
                                         gc_pid           = GCPid,
                                         client_ref       = Ref }) ->
+
+    %% We immediately mark the handle open so that we don't get the
+    %% file deleted while we are reading from it. The file may
+    %% still be deleted past that point but that's OK because we
+    %% will do a second index lookup to ensure that it isn't.
+    mark_handle_open(FileHandlesEts, File, Ref),
+
     %% @todo No change here.
     Release =
         fun() -> ok = case ets:update_counter(FileSummaryEts, File,
@@ -639,23 +646,23 @@ client_read3(#msg_location { msg_id = MsgId, file = File }, Defer,
     %% too).
     %% @todo We should do the read regardless of locked status.
     %%       We don't need to do this ets:lookup.
-    case ets:lookup(FileSummaryEts, File) of
-        %% @todo This will not fail anymore and we can read regardless of the 'locked' value.
-        [] -> %% GC has deleted our file, just go round again.
-            read(MsgId, CState);
-        [#file_summary { locked = true }] ->
-            %% If we get a badarg here, then the GC has finished and
-            %% deleted our file. Try going around again. Otherwise,
-            %% just defer.
-            %%
-            %% badarg scenario: we lookup, msg_store locks, GC starts,
-            %% GC ends, we +1 readers, msg_store ets:deletes (and
-            %% unlocks the dest)
-            try Release(),
-                 Defer()
-            catch error:badarg -> read(MsgId, CState)
-            end;
-        [#file_summary { locked = false }] ->
+%    case ets:lookup(FileSummaryEts, File) of
+%        %% @todo This will not fail anymore and we can read regardless of the 'locked' value.
+%        [] -> %% GC has deleted our file, just go round again.
+%            read(MsgId, CState);
+%        [#file_summary { locked = true }] ->
+%            %% If we get a badarg here, then the GC has finished and
+%            %% deleted our file. Try going around again. Otherwise,
+%            %% just defer.
+%            %%
+%            %% badarg scenario: we lookup, msg_store locks, GC starts,
+%            %% GC ends, we +1 readers, msg_store ets:deletes (and
+%            %% unlocks the dest)
+%            try Release(),
+%                 Defer()
+%            catch error:badarg -> read(MsgId, CState)
+%            end;
+%        [#file_summary { locked = false }] ->
             %% Ok, we're definitely safe to continue - a GC involving
             %% the file cannot start up now, and isn't running, so
             %% nothing will tell us from now on to close the handle if
@@ -675,7 +682,7 @@ client_read3(#msg_location { msg_id = MsgId, file = File }, Defer,
                     %% We are now guaranteed that the mark_handle_open
                     %% call will either insert_new correctly, or will
                     %% fail, but find the value is open, not close.
-                    mark_handle_open(FileHandlesEts, File, Ref),
+%                    mark_handle_open(FileHandlesEts, File, Ref),
                     %% Could the msg_store now mark the file to be
                     %% closed? No: marks for closing are issued only
                     %% when the msg_store has locked the file.
@@ -685,16 +692,26 @@ client_read3(#msg_location { msg_id = MsgId, file = File }, Defer,
                     {{ok, Msg}, CState2};
                 %% @todo Shouldn't happen anymore.
                 #msg_location {} = MsgLocation -> %% different file!
+                    %% @todo Close open handle immediately since we are preventing deletion!!!
                     Release(), %% this MUST NOT fail with badarg
-                    client_read1(MsgLocation, Defer, CState);
+                    client_read2(MsgLocation, Defer, CState);
                 %% @todo Shouldn't happen? Maybe don't Defer() at all just error out.
                 not_found -> %% it seems not to exist. Defer, just to be sure.
                     try Release() %% this can badarg, same as locked case, above
                     catch error:badarg -> ok
                     end,
                     Defer()
-            end
+%            end
     end.
+
+%% @todo
+%% OK so we can:
+%% Fetch msg_location
+%% Mark handle open here (!!)
+%% Lookup index
+%% If same file continue
+%% If not abort same as current
+%% Don't worry about file_summary
 
 client_update_flying(Diff, MsgId, #client_msstate { flying_ets = FlyingEts,
                                                     client_ref = CRef }) ->
@@ -1924,38 +1941,38 @@ maybe_roll_to_new_file(
 maybe_roll_to_new_file(_, State) ->
     State.
 
-%maybe_compact(State = #msstate { sum_valid_data        = SumValid,
-%                                 sum_file_size         = SumFileSize,
-%                                 gc_pid                = GCPid,
-%                                 pending_gc_completion = Pending,
-%                                 file_summary_ets      = FileSummaryEts,
-%                                 file_size_limit       = FileSizeLimit })
-%  when SumFileSize > 2 * FileSizeLimit andalso
-%       (SumFileSize - SumValid) / SumFileSize > ?GARBAGE_FRACTION ->
-%    %% TODO: the algorithm here is sub-optimal - it may result in a
-%    %% complete traversal of FileSummaryEts.
-%    First = ets:first(FileSummaryEts),
-%    case First =:= '$end_of_table' orelse
-%        maps:size(Pending) >= ?MAXIMUM_SIMULTANEOUS_GC_FILES of
-%        true ->
-%            State;
-%        false ->
-%            case find_files_to_combine(FileSummaryEts, FileSizeLimit,
-%                                       ets:lookup(FileSummaryEts, First)) of
-%                not_found ->
-%                    State;
-%                {Src, Dst} ->
-%                    Pending1 = maps_store(Dst, [],
-%                                             maps_store(Src, [], Pending)),
-%                    State1 = close_handle(Src, close_handle(Dst, State)),
-%                    true = ets:update_element(FileSummaryEts, Src,
-%                                              {#file_summary.locked, true}),
-%                    true = ets:update_element(FileSummaryEts, Dst,
-%                                              {#file_summary.locked, true}),
-%                    ok = rabbit_msg_store_gc:combine(GCPid, Src, Dst),
-%                    State1 #msstate { pending_gc_completion = Pending1 }
-%            end
-%    end;
+maybe_compact(State = #msstate { sum_valid_data        = SumValid,
+                                 sum_file_size         = SumFileSize,
+                                 gc_pid                = GCPid,
+                                 pending_gc_completion = Pending,
+                                 file_summary_ets      = FileSummaryEts,
+                                 file_size_limit       = FileSizeLimit })
+  when SumFileSize > 2 * FileSizeLimit andalso
+       (SumFileSize - SumValid) / SumFileSize > ?GARBAGE_FRACTION ->
+    %% TODO: the algorithm here is sub-optimal - it may result in a
+    %% complete traversal of FileSummaryEts.
+    First = ets:first(FileSummaryEts),
+    case First =:= '$end_of_table' orelse
+        maps:size(Pending) >= ?MAXIMUM_SIMULTANEOUS_GC_FILES of
+        true ->
+            State;
+        false ->
+            case find_files_to_combine(FileSummaryEts, FileSizeLimit,
+                                       ets:lookup(FileSummaryEts, First)) of
+                not_found ->
+                    State;
+                {Src, Dst} ->
+                    Pending1 = maps_store(Dst, [],
+                                             maps_store(Src, [], Pending)),
+                    State1 = close_handle(Src, close_handle(Dst, State)),
+                    true = ets:update_element(FileSummaryEts, Src,
+                                              {#file_summary.locked, true}),
+                    true = ets:update_element(FileSummaryEts, Dst,
+                                              {#file_summary.locked, true}),
+                    ok = rabbit_msg_store_gc:combine(GCPid, Src, Dst),
+                    State1 #msstate { pending_gc_completion = Pending1 }
+            end
+    end;
 maybe_compact(State) ->
     State.
 
