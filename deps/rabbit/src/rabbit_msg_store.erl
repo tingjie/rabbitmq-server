@@ -64,6 +64,10 @@
           file_handle_cache,
           %% TRef for our interval timer
           sync_timer_ref,
+          %% @todo sum_valid_data and sum_file_size only exist to decide
+          %%       whether compaction should occur. If we instead decide
+          %%       to compact based on what the individual file size is
+          %%       when messages get removed, we don't need these two values.
           %% sum of valid data in all files
           sum_valid_data,
           %% sum of file sizes
@@ -997,6 +1001,7 @@ handle_cast({delete_file, File, Reclaimed},
             State = #msstate { sum_file_size = SumFileSize }) ->
     ok = cleanup_after_file_deletion(File, State),
     State1 = State #msstate { sum_file_size = SumFileSize - Reclaimed },
+    %% @todo Not going to be necessary if we only maybe_compact when removing files or after a combine concluded.
     noreply(maybe_compact(run_pending([File], State1)));
 
 handle_cast({set_maximum_since_use, Age}, State) ->
@@ -1206,6 +1211,13 @@ write_message(MsgId, Msg, CRef,
               end, CRef, State1)
     end.
 
+%% @todo We should essentially maybe_compact only following this function
+%%       or immediately after init. In the case of init when starting we
+%%       would look at all files and compared valid/total to know whether
+%%       it is worth compacting. In the case of remove_message we would
+%%       mark the file as being compactable in the state and only call
+%%       maybe_compact if the newly compactable file is a neighbor to
+%%       another compactable file.
 remove_message(MsgId, CRef,
                State = #msstate { file_summary_ets = FileSummaryEts }) ->
     case should_mask_action(CRef, MsgId, State) of
@@ -1384,6 +1396,9 @@ adjust_valid_total_size(File, Delta, State = #msstate {
                                        file_summary_ets = FileSummaryEts }) ->
     [_] = ets:update_counter(FileSummaryEts, File,
                              [{#file_summary.valid_total_size, Delta}]),
+    %% @todo We know here that the file has valid < total / 2 so we
+    %%       could keep track of it for possible compaction. But only
+    %%       if coming from remove_message.
     State #msstate { sum_valid_data = SumValid + Delta }.
 
 maps_store(Key, Val, Dict) ->
@@ -1936,8 +1951,9 @@ maybe_roll_to_new_file(
     true = ets:update_element(FileSummaryEts, CurFile,
                               {#file_summary.right, NextFile}),
     true = ets:match_delete(CurFileCacheEts, {'_', '_', 0}),
-    maybe_compact(State1 #msstate { current_file_handle = NextHdl,
-                                    current_file        = NextFile });
+    %% @todo Removed maybe_compact call, doesn't make sense when writing.
+    State1 #msstate { current_file_handle = NextHdl,
+                      current_file        = NextFile };
 maybe_roll_to_new_file(_, State) ->
     State.
 
@@ -1947,8 +1963,18 @@ maybe_compact(State = #msstate { sum_valid_data        = SumValid,
                                  pending_gc_completion = Pending,
                                  file_summary_ets      = FileSummaryEts,
                                  file_size_limit       = FileSizeLimit })
-  when SumFileSize > 2 * FileSizeLimit andalso
-       (SumFileSize - SumValid) / SumFileSize > ?GARBAGE_FRACTION ->
+  when SumFileSize > 2 * FileSizeLimit -> %andalso
+
+    %% @todo We should probably check for compaction only the files that received acked, not all?
+
+    %% @todo We could keep track of the lowest file that was acked, and only check files
+    %%       after that (+ the one immediately before if any). So files that are not
+    %%       consumed will not receive a compaction attempt, while the other ones will.
+    %%       Also we should stop checking for files soon after we don't find one?
+
+%% @todo Instead of this we should only attempt to compact files
+%%       until we find a file that can't be compacted maybe?
+%       (SumFileSize - SumValid) / SumFileSize > ?GARBAGE_FRACTION ->
     %% TODO: the algorithm here is sub-optimal - it may result in a
     %% complete traversal of FileSummaryEts.
     First = ets:first(FileSummaryEts),
