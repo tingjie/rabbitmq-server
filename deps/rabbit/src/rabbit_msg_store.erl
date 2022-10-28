@@ -1957,7 +1957,7 @@ maybe_roll_to_new_file(
 maybe_roll_to_new_file(_, State) ->
     State.
 
-maybe_compact(State = #msstate { sum_valid_data        = SumValid,
+maybe_compact(State = #msstate { sum_valid_data        = _SumValid,
                                  sum_file_size         = SumFileSize,
                                  gc_pid                = GCPid,
                                  pending_gc_completion = Pending,
