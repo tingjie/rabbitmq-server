@@ -1828,11 +1828,18 @@ enable_feature_flag(Config, FeatureName) ->
     Nodes = rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
     enable_feature_flag(Config, Nodes, FeatureName).
 
-enable_feature_flag(Config, [Node1 | _] = Nodes, FeatureName) ->
+enable_feature_flag(Config, Nodes, FeatureName) ->
     case is_feature_flag_supported(Config, Nodes, FeatureName) of
         true ->
-            rabbit_ct_broker_helpers:rpc(
-              Config, Node1, rabbit_feature_flags, enable, [FeatureName]);
+            %% Nodes might not be clustered for some test suites, so enabling
+            %% feature flags on the first one of the list is not enough
+            lists:foldl(
+              fun(N, ok) ->
+                      rabbit_ct_broker_helpers:rpc(
+                        Config, N, rabbit_feature_flags, enable, [FeatureName]);
+                 (_, Other) ->
+                      Other
+              end, ok, Nodes);
         false ->
             {skip,
              lists:flatten(
