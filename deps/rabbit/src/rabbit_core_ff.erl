@@ -449,7 +449,9 @@ list_all_khepri_clusters(FeatureName) ->
 
 sort_khepri_clusters_by_size(KhepriCluster) ->
     lists:sort(
-      fun(A, B) -> length(A) >= length(B) end,
+      fun([A], B) when A == node() ->
+              1 > length(B);
+         (A, B) -> length(A) >= length(B) end,
       KhepriCluster).
 
 khepri_cluster_on_node(Node) ->
