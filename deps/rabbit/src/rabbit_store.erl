@@ -1051,6 +1051,7 @@ mnesia_write_to_khepri(rabbit_queue, Qs) ->
                    Path = khepri_queue_path(amqqueue:get_name(Q)),
                    case khepri_tx:create(Path, Q) of
                        ok -> ok;
+                       {error, {khepri, mismatching_node, _}} -> ok;
                        Error -> throw(Error)
                    end
                end || Q <- Qs]
