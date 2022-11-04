@@ -184,7 +184,6 @@ do_join(RemoteNode) when RemoteNode =/= node() ->
 
             %% Joining a cluster includes a reset of the local Khepri store.
             Ret = khepri_cluster:join(?RA_CLUSTER_NAME, RemoteNode),
-
             %% Revive the remote node if it was running and not under
             %% maintenance before we changed the cluster membership.
             maybe_revive_node(NeedToRevive),
@@ -494,10 +493,11 @@ is_enabled(Blocking) ->
       raft_based_metadata_store_phase1, Blocking) =:= true.
 
 nodes_if_khepri_enabled() ->
-    rabbit_log:warning("TRACE is_enabled ~p", [is_enabled(non_blocking)]),
-    case is_enabled(non_blocking) of
-        true  -> nodes();
-        false -> []
+    case rabbit_feature_flags:is_enabled(
+           raft_based_metadata_store_phase1, non_blocking) of
+        true  -> [Node || {_, Node} <- members()];
+        false -> [];
+        state_changing -> [Node || {_, Node} <- members()]
     end.
 
 is_ready() ->
