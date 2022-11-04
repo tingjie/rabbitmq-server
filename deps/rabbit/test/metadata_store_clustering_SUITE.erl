@@ -34,18 +34,26 @@ cluster_size_2_tests() ->
     [
      join_khepri_khepri_cluster,
      join_mnesia_khepri_cluster,
-     join_khepri_mnesia_cluster
+     join_mnesia_khepri_cluster_reverse,
+     join_khepri_mnesia_cluster,
+     join_khepri_mnesia_cluster_reverse
     ].
 
 cluster_size_3_tests() ->
     [
      join_khepri_khepri_khepri_cluster,
      join_mnesia_khepri_khepri_cluster,
+     join_mnesia_khepri_khepri_cluster_reverse,
      join_khepri_mnesia_khepri_cluster,
+     join_khepri_mnesia_khepri_cluster_reverse,
      join_khepri_khepri_mnesia_cluster,
+     join_khepri_khepri_mnesia_cluster_reverse,
      join_mnesia_mnesia_khepri_cluster,
+     join_mnesia_mnesia_khepri_cluster_reverse,
      join_mnesia_khepri_mnesia_cluster,
-     join_khepri_mnesia_mnesia_cluster
+     join_mnesia_khepri_mnesia_cluster_reverse,
+     join_khepri_mnesia_mnesia_cluster,
+     join_khepri_mnesia_mnesia_cluster_reverse
     ].
 
 %% -------------------------------------------------------------------
@@ -97,82 +105,144 @@ join_khepri_khepri_cluster(Config) ->
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, Servers, raft_based_metadata_store_phase1),
     
-    join_size_2_cluster(Config).
+    join_size_2_cluster(Config, Servers).
 
 join_khepri_mnesia_cluster(Config) ->
-    [Server0, _] =
+    [Server0, _] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0], raft_based_metadata_store_phase1),
 
-    join_size_2_cluster(Config).
+    join_size_2_cluster(Config, Servers).
+
+join_khepri_mnesia_cluster_reverse(Config) ->
+    [Server0, _] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0], raft_based_metadata_store_phase1),
+
+    join_size_2_cluster(Config, lists:reverse(Servers)).
 
 join_mnesia_khepri_cluster(Config) ->
-    [_, Server1] =
+    [_, Server1] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server1], raft_based_metadata_store_phase1),
 
-    join_size_2_cluster(Config).
+    join_size_2_cluster(Config, Servers).
+
+join_mnesia_khepri_cluster_reverse(Config) ->
+    [_, Server1] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server1], raft_based_metadata_store_phase1),
+
+    join_size_2_cluster(Config, lists:reverse(Servers)).
 
 join_khepri_khepri_khepri_cluster(Config) ->
     Servers = rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
     
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, Servers, raft_based_metadata_store_phase1),
     
-    join_size_3_cluster(Config).
+    join_size_3_cluster(Config, Servers).
     
 join_mnesia_khepri_khepri_cluster(Config) ->
-    [_, Server1, Server2] =
+    [_, Server1, Server2] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server1, Server2], raft_based_metadata_store_phase1),
 
-    join_size_3_cluster(Config).
+    join_size_3_cluster(Config, Servers).
+
+join_mnesia_khepri_khepri_cluster_reverse(Config) ->
+    [_, Server1, Server2] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server1, Server2], raft_based_metadata_store_phase1),
+
+    join_size_3_cluster(Config, lists:reverse(Servers)).
 
 join_khepri_mnesia_khepri_cluster(Config) ->
-    [Server0, _, Server2] =
+    [Server0, _, Server2] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0, Server2], raft_based_metadata_store_phase1),
-    
-    join_size_3_cluster(Config).
+
+    join_size_3_cluster(Config, Servers).
+
+join_khepri_mnesia_khepri_cluster_reverse(Config) ->
+    [Server0, _, Server2] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0, Server2], raft_based_metadata_store_phase1),
+
+    join_size_3_cluster(Config, lists:reverse(Servers)).
 
 join_khepri_khepri_mnesia_cluster(Config) ->
-    [Server0, Server1, _] =
+    [Server0, Server1, _] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0, Server1], raft_based_metadata_store_phase1),
-    
-    join_size_3_cluster(Config).
+
+    join_size_3_cluster(Config, Servers).
+
+join_khepri_khepri_mnesia_cluster_reverse(Config) ->
+    [Server0, Server1, _] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0, Server1], raft_based_metadata_store_phase1),
+
+    join_size_3_cluster(Config, lists:reverse(Servers)).
 
 join_mnesia_mnesia_khepri_cluster(Config) ->
-    [_, _, Server2] =
+    [_, _, Server2] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server2], raft_based_metadata_store_phase1),
 
-    join_size_3_cluster(Config).
+    join_size_3_cluster(Config, Servers).
+
+join_mnesia_mnesia_khepri_cluster_reverse(Config) ->
+    [_, _, Server2] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server2], raft_based_metadata_store_phase1),
+
+    join_size_3_cluster(Config, lists:reverse(Servers)).
 
 join_mnesia_khepri_mnesia_cluster(Config) ->
-    [_, Server1, _] =
+    [_, Server1, _] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
     
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server1], raft_based_metadata_store_phase1),
 
-    join_size_3_cluster(Config).
+    join_size_3_cluster(Config, Servers).
+
+join_mnesia_khepri_mnesia_cluster_reverse(Config) ->
+    [_, Server1, _] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server1], raft_based_metadata_store_phase1),
+
+    join_size_3_cluster(Config, lists:reverse(Servers)).
 
 join_khepri_mnesia_mnesia_cluster(Config) ->
-    [Server0, _, _] =
+    [Server0, _, _] = Servers =
         rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
     ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0], raft_based_metadata_store_phase1),
 
-    join_size_3_cluster(Config).
+    join_size_3_cluster(Config, Servers).
 
-join_size_2_cluster(Config) ->
-    [Server0, Server1] = rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
+join_khepri_mnesia_mnesia_cluster_reverse(Config) ->
+    [Server0, _, _] = Servers =
+        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
 
+    ok = rabbit_ct_broker_helpers:enable_feature_flag(Config, [Server0], raft_based_metadata_store_phase1),
+
+    join_size_3_cluster(Config, lists:reverse(Servers)).
+
+join_size_2_cluster(Config, [Server0, Server1]) ->
     Ch = rabbit_ct_client_helpers:open_channel(Config, Server0),
     Q = ?config(queue_name, Config),
 
@@ -188,10 +258,7 @@ join_size_2_cluster(Config) ->
     rabbit_control_helper:command(start_app, Server1),
     ?assertMatch([_], rpc:call(Server0, rabbit_amqqueue, list, [])).
 
-join_size_3_cluster(Config) ->
-    [Server0, Server1, Server2] =
-        rabbit_ct_broker_helpers:get_node_configs(Config, nodename),
-
+join_size_3_cluster(Config, [Server0, Server1, Server2]) ->
     Ch = rabbit_ct_client_helpers:open_channel(Config, Server0),
     Q = ?config(queue_name, Config),
 
