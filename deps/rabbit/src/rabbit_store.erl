@@ -63,6 +63,7 @@
          clear_data_in_khepri/1]).
 
 -export([init/0, sync/0]).
+-export([set_migration_flag/1, is_migration_done/1]).
 
 -define(WAIT_SECONDS, 30).
 
@@ -95,6 +96,17 @@ sync() ->
       fun() ->
               ok
       end).
+
+set_migration_flag(FeatureName) ->
+    rabbit_khepri:put([?MODULE, migration_done, FeatureName], true).
+
+is_migration_done(FeatureName) ->
+    case rabbit_khepri:get([?MODULE, migration_done, FeatureName]) of
+        {ok, Flag} ->
+            Flag;
+        _ ->
+            false
+    end.
 
 %% Paths
 %% --------------------------------------------------------------

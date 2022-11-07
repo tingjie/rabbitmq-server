@@ -309,7 +309,12 @@ mds_phase1_migration_post_enable(#{feature_name := FeatureName}) ->
     %% Channel and connection tracking are core features with difference:
     %% tables cannot be predeclared as they include the node name
     Tables = ?MDS_PHASE1_TABLES,
-    mds_migration_post_enable(FeatureName, Tables).
+    mds_migration_post_enable(FeatureName, Tables),
+    %% Mark the migration as done. This flag is necessary to skip clearing
+    %% data from previous migrations when a node joins an existing cluster.
+    %% If the migration has never been completed, then it's fair to remove
+    %% the existing data in Khepri.
+    rabbit_store:set_migration_flag(FeatureName).
 
 mds_migration_enable(FeatureName, TablesAndOwners) ->
     case ensure_khepri_cluster_matches_mnesia(FeatureName) of
@@ -495,7 +500,16 @@ migrate_tables_to_khepri_run(FeatureName, TablesAndOwners) ->
        "Feature flag `~s`:   clear data from any aborted migration attempts "
        "(if any)",
        [FeatureName]),
-    ok = clear_data_from_previous_attempt(FeatureName, lists:reverse(TablesAndOwners)),
+    case rabbit_store:is_migration_done(FeatureName) of
+        %% This flag is necessary to skip clearing
+        %% data from previous migrations when a node joins an existing cluster.
+        %% If the migration has never been completed, then it's fair to remove
+        %% the existing data in Khepri.
+        true ->
+            ok;
+        false ->
+            ok = clear_data_from_previous_attempt(FeatureName, lists:reverse(TablesAndOwners))
+    end,
 
     {Tables, _} = lists:unzip(TablesAndOwners),
     %% Subscribe to Mnesia events: we want to know about all writes and
