@@ -528,6 +528,17 @@ suites = [
     ),
     rabbitmq_integration_suite(
         PACKAGE,
+        name = "metadata_store_clustering_SUITE",
+        size = "small",
+        runtime_deps = [
+            "@ra//:erlang_app",
+        ],
+        deps = [
+            "@khepri//:erlang_app",
+        ],
+    ),
+    rabbitmq_integration_suite(
+        PACKAGE,
         name = "message_size_limit_SUITE",
         size = "medium",
     ),
