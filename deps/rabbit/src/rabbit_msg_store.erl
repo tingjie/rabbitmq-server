@@ -2242,37 +2242,48 @@ copy_messages(WorkList, InitOffset, FinalOffset, SourceHdl, DestinationHdl,
         lists:foldl(
           fun (#msg_location { msg_id = MsgId, offset = Offset,
                                total_size = TotalSize },
-               {CurOffset, Block = {BlockStart, BlockEnd}}) ->
+               {CurOffset, Block = {BlockStart, BlockEnd}, Acc0}) ->
                   %% CurOffset is in the DestinationFile.
                   %% Offset, BlockStart and BlockEnd are in the SourceFile
                   %% update MsgLocation to reflect change of file and offset
-                  ok = index_update_fields(MsgId,
-                                           [{#msg_location.file, Destination},
-                                            {#msg_location.offset, CurOffset}],
-                                           State),
-                  {CurOffset + TotalSize,
-                   case BlockEnd of
-                       undefined ->
-                           %% base case, called only for the first list elem
-                           {Offset, Offset + TotalSize};
-                       Offset ->
-                           %% extend the current block because the
-                           %% next msg follows straight on
-                           {BlockStart, BlockEnd + TotalSize};
-                       _ ->
-                           %% found a gap, so actually do the work for
-                           %% the previous block
-                           Copy(Block),
-                           {Offset, Offset + TotalSize}
-                   end}
-          end, {InitOffset, {undefined, undefined}}, WorkList) of
-        {FinalOffset, Block} ->
+                  %% @todo We should update the index afetr the copy has completed.
+                  %%       Even if FHC is used the data is flushed to disk so no problem.
+                  %% @todo OK it copies blocks rather than messages, so we should accumulate the messages so we can update the index AFTER the copy has actually happened.
+                  Acc = [{MsgId, CurOffset}|Acc0],
+                  NewOffset = CurOffset + TotalSize,
+                  case BlockEnd of
+                      undefined ->
+                          %% base case, called only for the first list elem
+                          {NewOffset, {Offset, Offset + TotalSize}, Acc};
+                      Offset ->
+                          %% extend the current block because the
+                          %% next msg follows straight on
+                          {NewOffset, {BlockStart, BlockEnd + TotalSize}, Acc};
+                      _ ->
+                          %% found a gap, so actually do the work for
+                          %% the previous block
+                          Copy(Block),
+                          %% Update the index for all the messages we just copied.
+                          [ok = index_update_fields(UpdateMsgId,
+                                                    [{#msg_location.file, Destination},
+                                                     {#msg_location.offset, UpdateOffset}],
+                                                    State)
+                          || {UpdateMsgId, UpdateOffset} <- Acc],
+                          {NewOffset, {Offset, Offset + TotalSize}, []}
+                  end
+          end, {InitOffset, {undefined, undefined}, []}, WorkList) of
+        {FinalOffset, Block, Acc} ->
             case WorkList of
                 [] -> ok;
                 _  -> Copy(Block), %% do the last remaining block
+                      [ok = index_update_fields(UpdateMsgId,
+                                                [{#msg_location.file, Destination},
+                                                 {#msg_location.offset, UpdateOffset}],
+                                                State)
+                      || {UpdateMsgId, UpdateOffset} <- Acc],
                       ok = file_handle_cache:sync(DestinationHdl)
             end;
-        {FinalOffsetZ, _Block} ->
+        {FinalOffsetZ, _Block, _Acc} ->
             {gc_error, [{expected, FinalOffset},
                         {got, FinalOffsetZ},
                         {destination, Destination}]}
