@@ -170,8 +170,8 @@ elixir_config(
         ),
         internal_elixir_from_github_release(
             name = "1_14",
-            sha256 = "8ad537eb84471c24c3e6984c37884f06a7834ff2efd72c436c222baee8df9a11",
-            version = "1.14.1",
+            sha256 = "3f79e384706495725119f60982fa16ea82d510c3fbeacfc6ee1a77c792bf152a",
+            version = "1.14.2",
         ),
     ],
     rabbitmq_server_workspace = "@",
