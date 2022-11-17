@@ -7,7 +7,7 @@
 
 -module(rabbit_msg_file).
 
--export([append/3, read/2, scan/4]).
+-export([append/3, read/2, pread/3, scan/4]).
 
 %%----------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ append(FileHdl, MsgId, MsgBody)
     MsgBodyBin  = term_to_binary(MsgBody),
     MsgBodyBinSize = size(MsgBodyBin),
     Size = MsgBodyBinSize + ?MSG_ID_SIZE_BYTES,
-    case file_handle_cache:append(FileHdl,
+    case file:write(FileHdl, %file_handle_cache:append(FileHdl,
                                   <<Size:?INTEGER_SIZE_BITS,
                                     MsgId:?MSG_ID_SIZE_BYTES/binary,
                                     MsgBodyBin:MsgBodyBinSize/binary,
@@ -66,6 +66,20 @@ read(FileHdl, TotalSize) ->
             {ok, {MsgId, binary_to_term(MsgBodyBin)}};
         KO -> KO
     end.
+
+pread(FileHdl, Offset, TotalSize) ->
+    Size = TotalSize - ?FILE_PACKING_ADJUSTMENT,
+    BodyBinSize = Size - ?MSG_ID_SIZE_BYTES,
+    case file:pread(FileHdl, Offset, TotalSize) of %file_handle_cache:read(FileHdl, TotalSize) of
+        {ok, <<Size:?INTEGER_SIZE_BITS,
+               MsgId:?MSG_ID_SIZE_BYTES/binary,
+               MsgBodyBin:BodyBinSize/binary,
+               ?WRITE_OK_MARKER:?WRITE_OK_SIZE_BITS>>} ->
+            {ok, {MsgId, binary_to_term(MsgBodyBin)}};
+        KO -> KO
+    end.
+
+%% @todo read_many
 
 -spec scan(io_device(), file_size(), message_accumulator(A), A) ->
           {'ok', A, position()}.

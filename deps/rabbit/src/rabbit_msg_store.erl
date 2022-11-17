@@ -61,7 +61,8 @@
           %% current file handle since the last fsync?
           current_file_handle,
           %% file handle cache
-          file_handle_cache,
+          current_file_offset,
+          file_handle_cache, %% @todo Make that unused.
           %% TRef for our interval timer
           sync_timer_ref,
           %% @todo sum_valid_data and sum_file_size only exist to decide
@@ -757,8 +758,9 @@ init([VHost, Type, BaseDir, ClientRefs, StartupFunState]) ->
     process_flag(trap_exit, true),
     pg:join({?MODULE, VHost, Type}, self()),
 
-    ok = file_handle_cache:register_callback(?MODULE, set_maximum_since_use,
-                                             [self()]),
+    %% @todo Remove. DONENOW
+%    ok = file_handle_cache:register_callback(?MODULE, set_maximum_since_use,
+%                                             [self()]),
 
     Dir = filename:join(BaseDir, atom_to_list(Type)),
     Name = filename:join(filename:basename(BaseDir), atom_to_list(Type)),
@@ -822,7 +824,8 @@ init([VHost, Type, BaseDir, ClientRefs, StartupFunState]) ->
                        index_state            = IndexState,
                        current_file           = 0,
                        current_file_handle    = undefined,
-                       file_handle_cache      = #{},
+                       file_handle_cache      = #{}, %% @todo Unused.
+                       current_file_offset    = 0,
                        sync_timer_ref         = undefined,
                        sum_valid_data         = 0,
                        sum_file_size          = 0,
@@ -847,16 +850,22 @@ init([VHost, Type, BaseDir, ClientRefs, StartupFunState]) ->
                   end,
     rabbit_log:debug("Rebuilding message location index after ~ts shutdown...",
                      [Cleanliness]),
-    {Offset, State1 = #msstate { current_file = CurFile }} =
+    {CurOffset, State1 = #msstate { current_file = CurFile }} =
         build_index(CleanShutdown, StartupFunState, State),
     rabbit_log:debug("Finished rebuilding index", []),
     %% read is only needed so that we can seek
-    {ok, CurHdl} = open_file(Dir, filenum_to_name(CurFile),
-                             [read | ?WRITE_MODE]),
-    {ok, Offset} = file_handle_cache:position(CurHdl, Offset),
-    ok = file_handle_cache:truncate(CurHdl),
+    %% @todo file:open DONENOW
+    {ok, CurHdl} = file:open(form_filename(Dir, filenum_to_name(CurFile)),
+                             [binary, append]),
+    {ok, CurOffset} = file:position(CurHdl, cur),
+%    {ok, CurHdl} = open_file(Dir, filenum_to_name(CurFile),
+%                             [read | ?WRITE_MODE]),
+    %% @todo Not sure why this is done? DONENOW
+%    {ok, Offset} = file_handle_cache:position(CurHdl, Offset),
+%    ok = file_handle_cache:truncate(CurHdl),
 
-    {ok, maybe_compact(State1 #msstate { current_file_handle = CurHdl }),
+    {ok, maybe_compact(State1 #msstate { current_file_handle = CurHdl,
+                                         current_file_offset = CurOffset }),
      hibernate,
      {backoff, ?HIBERNATE_AFTER_MIN, ?HIBERNATE_AFTER_MIN, ?DESIRED_HIBERNATE}}.
 
@@ -905,9 +914,10 @@ handle_call({new_client_state, CRef, CPid, MsgOnDiskFun, CloseFDsFun}, _From,
 handle_call({client_terminate, CRef}, _From, State) ->
     reply(ok, clear_client(CRef, State));
 
-handle_call({read, MsgId}, From, State) ->
-    State1 = read_message(MsgId, From, State),
-    noreply(State1);
+%% @todo DONENOW
+%handle_call({read, MsgId}, From, State) ->
+%    State1 = read_message(MsgId, From, State),
+%    noreply(State1);
 
 handle_call({contains, MsgId}, From, State) ->
     State1 = contains_message(MsgId, From, State),
@@ -915,9 +925,11 @@ handle_call({contains, MsgId}, From, State) ->
 
 handle_cast({client_dying, CRef},
             State = #msstate { dying_clients       = DyingClients,
-                               current_file_handle = CurHdl,
-                               current_file        = CurFile }) ->
-    {ok, CurOffset} = file_handle_cache:current_virtual_offset(CurHdl),
+%                               current_file_handle = CurHdl,
+                               current_file        = CurFile,
+                               current_file_offset = CurOffset }) ->
+    %% @todo DONENOW
+%    {ok, CurOffset} = file:position(CurHdl, cur), % file_handle_cache:current_virtual_offset(CurHdl),
     DyingClients1 = maps:put(CRef,
                              #dying_client{client_ref = CRef,
                                            file = CurFile,
@@ -1002,11 +1014,12 @@ handle_cast({delete_file, File, Reclaimed},
     ok = cleanup_after_file_deletion(File, State),
     State1 = State #msstate { sum_file_size = SumFileSize - Reclaimed },
     %% @todo Not going to be necessary if we only maybe_compact when removing files or after a combine concluded.
-    noreply(maybe_compact(run_pending([File], State1)));
+    noreply(maybe_compact(run_pending([File], State1))).
 
-handle_cast({set_maximum_since_use, Age}, State) ->
-    ok = file_handle_cache:set_maximum_since_use(Age),
-    noreply(State).
+%% @todo Can be dropped. DONENOW
+%handle_cast({set_maximum_since_use, Age}, State) ->
+%    ok = file_handle_cache:set_maximum_since_use(Age),
+%    noreply(State).
 
 handle_info(sync, State) ->
     noreply(internal_sync(State));
@@ -1051,7 +1064,9 @@ terminate(_Reason, State = #msstate { index_state         = IndexState,
                               ok = file_handle_cache:close(CurHdl),
                               State2
              end,
-    State3 = close_all_handles(State1),
+    %% @todo DONENOW Do a file:close of current handle
+%    State3 = close_all_handles(State1),
+    ok = file:close(CurHdl),
     case store_file_summary(FileSummaryEts, Dir) of
         ok           -> ok;
         {error, FSErr} ->
@@ -1073,8 +1088,9 @@ terminate(_Reason, State = #msstate { index_state         = IndexState,
                              " for directory ~tp~nError: ~tp",
                              [Dir, RTErr])
     end,
-    State3 #msstate { index_state         = undefined,
-                      current_file_handle = undefined }.
+    State1 #msstate { index_state         = undefined,
+                      current_file_handle = undefined,
+                      current_file_offset = 0 }.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -1123,7 +1139,7 @@ internal_sync(State = #msstate { current_file_handle = CurHdl,
                     end, [], CTM),
     ok = case CGs of
              [] -> ok;
-             _  -> file_handle_cache:sync(CurHdl)
+             _  -> file:sync(CurHdl) %% @todo DONENOW file_handle_cache:sync(CurHdl)
          end,
     lists:foldl(fun ({CRef, MsgIds}, StateN) ->
                         client_confirm(CRef, MsgIds, written, StateN)
@@ -1262,10 +1278,12 @@ remove_message(MsgId, CRef,
 write_message(MsgId, Msg,
               State = #msstate { current_file_handle = CurHdl,
                                  current_file        = CurFile,
+                                 current_file_offset = CurOffset,
                                  sum_valid_data      = SumValid,
                                  sum_file_size       = SumFileSize,
                                  file_summary_ets    = FileSummaryEts }) ->
-    {ok, CurOffset} = file_handle_cache:current_virtual_offset(CurHdl),
+    %% @todo Replace next two with simple file call. DONENOW Need to keep track of offset instead of querying it. ; We only append to this FD so no need to position/pwrite (append-only file).
+%    {ok, CurOffset} = file_handle_cache:current_virtual_offset(CurHdl),
     {ok, TotalSize} = rabbit_msg_file:append(CurHdl, MsgId, Msg),
     ok = index_insert(
            #msg_location { msg_id = MsgId, ref_count = 1, file = CurFile,
@@ -1277,56 +1295,64 @@ write_message(MsgId, Msg,
                                 {#file_summary.file_size,        TotalSize}]),
     maybe_roll_to_new_file(CurOffset + TotalSize,
                            State #msstate {
+                             current_file_offset = CurOffset + TotalSize,
                              sum_valid_data = SumValid    + TotalSize,
                              sum_file_size  = SumFileSize + TotalSize }).
 
-read_message(MsgId, From, State) ->
-    case index_lookup_positive_ref_count(MsgId, State) of
-        not_found   -> gen_server2:reply(From, not_found),
-                       State;
-        MsgLocation -> read_message1(From, MsgLocation, State)
-    end.
-
-read_message1(From, #msg_location { msg_id = MsgId, file = File,
-                                    offset = Offset } = MsgLoc,
-              State = #msstate { current_file        = CurFile,
-                                 current_file_handle = CurHdl,
-                                 file_summary_ets    = FileSummaryEts,
-                                 cur_file_cache_ets  = CurFileCacheEts }) ->
-    case File =:= CurFile of
-        true  -> {Msg, State1} =
-                     %% can return [] if msg in file existed on startup
-                     case ets:lookup(CurFileCacheEts, MsgId) of
-                         [] ->
-                             {ok, RawOffSet} =
-                                 file_handle_cache:current_raw_offset(CurHdl),
-                             ok = case Offset >= RawOffSet of
-                                      true  -> file_handle_cache:flush(CurHdl);
-                                      false -> ok
-                                  end,
-                             read_from_disk(MsgLoc, State);
-                         [{MsgId, Msg1, _CacheRefCount}] ->
-                             {Msg1, State}
-                     end,
-                 gen_server2:reply(From, {ok, Msg}),
-                 State1;
-        false -> [#file_summary { locked = Locked }] =
-                     ets:lookup(FileSummaryEts, File),
-                 case Locked of
-                     true  -> add_to_pending_gc_completion({read, MsgId, From},
-                                                           File, State);
-                     false -> {Msg, State1} = read_from_disk(MsgLoc, State),
-                              gen_server2:reply(From, {ok, Msg}),
-                              State1
-                 end
-    end.
+%% @todo This shouldn't be possible anymore if reads are guaranteed to succeed on the client side. DONENOW
+%read_message(MsgId, From, State) ->
+%    case index_lookup_positive_ref_count(MsgId, State) of
+%        not_found   -> gen_server2:reply(From, not_found),
+%                       State;
+%        MsgLocation -> read_message1(From, MsgLocation, State)
+%    end.
+%
+%read_message1(From, #msg_location { msg_id = MsgId, file = File,
+%                                    offset = Offset } = MsgLoc,
+%              State = #msstate { current_file        = CurFile,
+%                                 current_file_handle = CurHdl,
+%                                 file_summary_ets    = FileSummaryEts,
+%                                 cur_file_cache_ets  = CurFileCacheEts }) ->
+%    case File =:= CurFile of
+%        true  -> {Msg, State1} =
+%                     %% can return [] if msg in file existed on startup
+%                     case ets:lookup(CurFileCacheEts, MsgId) of
+%                         [] ->
+%                             %% @todo This is no longer necessary if using the same handle as writing.
+%                             {ok, RawOffSet} =
+%                                 file_handle_cache:current_raw_offset(CurHdl),
+%                             ok = case Offset >= RawOffSet of
+%                                      true  -> file_handle_cache:flush(CurHdl);
+%                                      false -> ok
+%                                  end,
+%                             read_from_disk(MsgLoc, State);
+%                         [{MsgId, Msg1, _CacheRefCount}] ->
+%                             {Msg1, State}
+%                     end,
+%                 gen_server2:reply(From, {ok, Msg}),
+%                 State1;
+%        false -> [#file_summary { locked = Locked }] =
+%                     ets:lookup(FileSummaryEts, File),
+%                 case Locked of
+%                     true  -> add_to_pending_gc_completion({read, MsgId, From},
+%                                                           File, State);
+%                     false -> {Msg, State1} = read_from_disk(MsgLoc, State),
+%                              gen_server2:reply(From, {ok, Msg}),
+%                              State1
+%                 end
+%    end.
 
 read_from_disk(#msg_location { msg_id = MsgId, file = File, offset = Offset,
-                               total_size = TotalSize }, State) ->
-    {Hdl, State1} = get_read_handle(File, State),
-    {ok, Offset} = file_handle_cache:position(Hdl, Offset),
+                               total_size = TotalSize }, State = #client_msstate{ dir = Dir }) ->
+    %% @todo This shouldn't be called by the message store process anymore so we can just do open, pread, close. DONENOW
+%    {Hdl, State1} = get_read_handle(File, State),
+%    {ok, Offset} = file_handle_cache:position(Hdl, Offset),
+
+    {ok, Hdl} = file:open(form_filename(Dir, filenum_to_name(File)),
+                          [binary, read]),
+
     {ok, {MsgId, Msg}} =
-        case rabbit_msg_file:read(Hdl, TotalSize) of
+        case rabbit_msg_file:pread(Hdl, Offset, TotalSize) of
             {ok, {MsgId, _}} = Obj ->
                 Obj;
             Rest ->
@@ -1338,7 +1364,10 @@ read_from_disk(#msg_location { msg_id = MsgId, file = File, offset = Offset,
                                    {proc_dict, get()}
                                   ]}}
         end,
-    {Msg, State1}.
+
+    ok = file:close(Hdl),
+
+    {Msg, State}.
 
 contains_message(MsgId, From,
                  State = #msstate { pending_gc_completion = Pending }) ->
@@ -1370,8 +1399,9 @@ run_pending(Files, State) ->
                 lists:reverse(maps:get(File, Pending)))
       end, State, Files).
 
-run_pending_action({read, MsgId, From}, State) ->
-    read_message(MsgId, From, State);
+%% @todo DONENOW
+%run_pending_action({read, MsgId, From}, State) ->
+%    read_message(MsgId, From, State);
 run_pending_action({contains, MsgId, From}, State) ->
     contains_message(MsgId, From, State);
 run_pending_action({remove, MsgId, CRef}, State) ->
@@ -1472,6 +1502,7 @@ should_mask_action(CRef, MsgId,
 %% file helper functions
 %%----------------------------------------------------------------------------
 
+%% @todo This shouldn't use FHC anymore. Just file: DONENOW can't fix this function if it's used with FHC in some parts of the code.
 open_file(File, Mode) ->
     file_handle_cache:open_with_absolute_path(
       File, ?BINARY_MODE ++ Mode,
@@ -1481,6 +1512,7 @@ open_file(File, Mode) ->
 open_file(Dir, FileName, Mode) ->
     open_file(form_filename(Dir, FileName), Mode).
 
+%% @todo Ssame, just file:close. Especially on client since we don't keep handles around anymore. DONENOW see above
 close_handle(Key, CState = #client_msstate { file_handle_cache = FHC }) ->
     CState #client_msstate { file_handle_cache = close_handle(Key, FHC) };
 
@@ -1542,6 +1574,7 @@ close_all_indicated(#client_msstate { file_handles_ets = FileHandlesEts,
                              close_handle(File, CStateM)
                      end, CState, Objs)}.
 
+%% @todo No longer needed on the client; on the server probably not needed if we only have the current file handle open. DONENOW
 close_all_handles(CState = #client_msstate { file_handles_ets  = FileHandlesEts,
                                              file_handle_cache = FHC,
                                              client_ref        = Ref }) ->
@@ -1556,24 +1589,26 @@ close_all_handles(State = #msstate { file_handle_cache = FHC }) ->
                    ok, FHC),
     State #msstate { file_handle_cache = #{} }.
 
-get_read_handle(FileNum, CState = #client_msstate { file_handle_cache = FHC,
-                                                    dir = Dir }) ->
-    {Hdl, FHC2} = get_read_handle(FileNum, FHC, Dir),
-    {Hdl, CState #client_msstate { file_handle_cache = FHC2 }};
+%% @todo On the client we open just before read, on the server we don't read except when compacting and can open directly there. DONENOW
+%get_read_handle(FileNum, CState = #client_msstate { file_handle_cache = FHC,
+%                                                    dir = Dir }) ->
+%    {Hdl, FHC2} = get_read_handle(FileNum, FHC, Dir),
+%    {Hdl, CState #client_msstate { file_handle_cache = FHC2 }};
+%
+%get_read_handle(FileNum, State = #msstate { file_handle_cache = FHC,
+%                                            dir = Dir }) ->
+%    {Hdl, FHC2} = get_read_handle(FileNum, FHC, Dir),
+%    {Hdl, State #msstate { file_handle_cache = FHC2 }}.
+%
+%get_read_handle(FileNum, FHC, Dir) ->
+%    case maps:find(FileNum, FHC) of
+%        {ok, Hdl} -> {Hdl, FHC};
+%        error     -> {ok, Hdl} = open_file(Dir, filenum_to_name(FileNum),
+%                                           ?READ_MODE),
+%                     {Hdl, maps:put(FileNum, Hdl, FHC)}
+%    end.
 
-get_read_handle(FileNum, State = #msstate { file_handle_cache = FHC,
-                                            dir = Dir }) ->
-    {Hdl, FHC2} = get_read_handle(FileNum, FHC, Dir),
-    {Hdl, State #msstate { file_handle_cache = FHC2 }}.
-
-get_read_handle(FileNum, FHC, Dir) ->
-    case maps:find(FileNum, FHC) of
-        {ok, Hdl} -> {Hdl, FHC};
-        error     -> {ok, Hdl} = open_file(Dir, filenum_to_name(FileNum),
-                                           ?READ_MODE),
-                     {Hdl, maps:put(FileNum, Hdl, FHC)}
-    end.
-
+%% @todo These two functions are only used when compacting so fine for now.
 preallocate(Hdl, FileSizeLimit, FinalPos) ->
     {ok, FileSizeLimit} = file_handle_cache:position(Hdl, FileSizeLimit),
     ok = file_handle_cache:truncate(Hdl),
@@ -1760,6 +1795,7 @@ recover_crashed_compaction(Dir, TmpFileName, NonTmpRelatedFileName) ->
     %% with duplicates appearing. Thus the simplest and safest thing
     %% to do is to append the contents of the tmp file to its main
     %% file.
+    %% @todo Just do it without file_handle_cache.
     {ok, TmpHdl}  = open_file(Dir, TmpFileName, ?READ_MODE),
     {ok, MainHdl} = open_file(Dir, NonTmpRelatedFileName,
                               ?READ_MODE ++ ?WRITE_MODE),
@@ -1770,6 +1806,7 @@ recover_crashed_compaction(Dir, TmpFileName, NonTmpRelatedFileName) ->
     ok = file_handle_cache:delete(TmpHdl),
     ok.
 
+%% @todo Same, replace without file_handle_cache.
 scan_file_for_valid_messages(File) ->
     case open_file(File, ?READ_MODE) of
         {ok, Hdl}       -> Valid = rabbit_msg_file:scan(
@@ -1937,9 +1974,13 @@ maybe_roll_to_new_file(
                      file_size_limit     = FileSizeLimit })
   when Offset >= FileSizeLimit ->
     State1 = internal_sync(State),
-    ok = file_handle_cache:close(CurHdl),
+    %% @todo Same, just replace. DONENOW
+    ok = file:close(CurHdl), % file_handle_cache:close(CurHdl),
     NextFile = CurFile + 1,
-    {ok, NextHdl} = open_file(Dir, filenum_to_name(NextFile), ?WRITE_MODE),
+    %% @todo Do a file:open DONENOW.
+%    {ok, NextHdl} = open_file(Dir, filenum_to_name(NextFile), ?WRITE_MODE),
+    {ok, NextHdl} = file:open(form_filename(Dir, filenum_to_name(NextFile)),
+                             [binary, append]),
     true = ets:insert_new(FileSummaryEts, #file_summary {
                             file             = NextFile,
                             valid_total_size = 0,
@@ -1953,7 +1994,8 @@ maybe_roll_to_new_file(
     true = ets:match_delete(CurFileCacheEts, {'_', '_', 0}),
     %% @todo Removed maybe_compact call, doesn't make sense when writing.
     State1 #msstate { current_file_handle = NextHdl,
-                      current_file        = NextFile };
+                      current_file        = NextFile,
+                      current_file_offset = 0 };
 maybe_roll_to_new_file(_, State) ->
     State.
 
@@ -2110,6 +2152,8 @@ combine_files(Source, Destination,
             {defer, DeferredFiles}
     end.
 
+%% @todo Do it without file_handle_cache, but can be left for later. It's OK if file_handle_cache is used here
+%%       because the files are opened and closed by the function directly.
 do_combine_files(SourceSummary, DestinationSummary,
                  Source, Destination,
                  State = #gc_state { file_summary_ets = FileSummaryEts,
@@ -2229,6 +2273,7 @@ load_and_vacuum_message_file(File, State = #gc_state { dir = Dir }) ->
               end
       end, {[], 0}, Messages).
 
+%% @todo This is part of compaction so fine for now.
 copy_messages(WorkList, InitOffset, FinalOffset, SourceHdl, DestinationHdl,
               Destination, State) ->
     Copy = fun ({BlockStart, BlockEnd}) ->
