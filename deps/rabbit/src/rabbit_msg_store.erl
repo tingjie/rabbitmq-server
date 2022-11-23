@@ -532,6 +532,38 @@ read(MsgId,
             {{ok, Msg}, CState}
     end.
 
+%% @todo read_many
+%% @todo We can only read_many when the backend index is rabbit_msg_store_ets_index
+%%       since we rely on ets:select to get the index entries.
+
+%% @todo OK first we need to do the ets:lookups to get the cached values.
+%%       There's probably a way to optimize this to avoid lookups for
+%%       messages that are older: since the cache will be generational
+%%       we can simply stop looking in the cache at the first MsgId
+%%       that doesn't find anything, AS LONG AS the MsgIds are ordered
+%%       from younger to older.
+%%
+%%       Then with what remains, we do an index_lookup_positive_ref_count/2
+%%       of the first MsgId to read. If it is not found (bug?), ignore and
+%%       try the next.
+%% @todo This means we may not return as many messages as asked and
+%%       therefore the rabbit_variable_queue implementation needs
+%%       to be updated.
+%%
+%%       Once we have a location, we first mark ourselves as a reader.
+%%       We then mark the file handle open and get the index again,
+%%       only this time we do an ets:select to get all relevant
+%%       messages for this file. Since we get the messages for the
+%%       file we either find locations for the file or nothing
+%%       (when compacting we first update the index then we do
+%%       the file changes if possible). If we find nothing, we go
+%%       back at the start of the loop and retry for the same MsgId
+%%       as before. Otherwise we can continue.
+%%
+%%       We then do the pread and continue with the remaining MsgIds
+%%       that were not found in the MsgLocations we got. We eventually
+%%       return whatever we managed to read.
+
 -spec contains(rabbit_types:msg_id(), client_msstate()) -> boolean().
 
 contains(MsgId, CState) -> server_call(CState, {contains, MsgId}).

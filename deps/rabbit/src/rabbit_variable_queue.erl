@@ -2582,12 +2582,12 @@ maybe_deltas_to_betas(DelsAndAcksFun,
                         index_mod            = IndexMod,
                         index_state          = IndexState,
                         store_state          = StoreState,
+                        msg_store_clients    = {MCStateP, MCStateT},
                         ram_msg_count        = RamMsgCount,
                         ram_bytes            = RamBytes,
                         disk_read_count      = DiskReadCount,
                         delta_transient_bytes = DeltaTransientBytes,
-                        transient_threshold  = TransientThreshold,
-                        version              = Version },
+                        transient_threshold  = TransientThreshold },
                       MemoryLimit) ->
     #delta { start_seq_id = DeltaSeqId,
              count        = DeltaCount,
@@ -2602,16 +2602,94 @@ maybe_deltas_to_betas(DelsAndAcksFun,
                    DeltaSeqId + MemoryLimit,
                    DeltaSeqIdEnd]),
     {List0, IndexState1} = IndexMod:read(DeltaSeqId, DeltaSeqId1, IndexState),
-    {List, StoreState2} = case Version of
-        1 -> {List0, StoreState};
-        %% When using v2 we try to read all messages from disk at once
-        %% instead of 1 by 1 at fetch time.
-        2 ->
-            Reads = [{SeqId, MsgLocation}
-                || {_, SeqId, MsgLocation, _, _} <- List0, is_tuple(MsgLocation)],
-            {Msgs, StoreState1} = rabbit_classic_queue_store_v2:read_many(Reads, StoreState),
-            {merge_read_msgs(List0, Reads, Msgs), StoreState1}
+    %% We try to read messages from disk all at once instead of
+    %% 1 by 1 at fetch time. When v1 is used and messages are
+    %% embedded, then the message content is already read from
+    %% disk at this point. For v2 embedded we must do a separate
+    %% call to obtain the contents and then merge the contents
+    %% back into the #msg_status records. For shared message store
+    %% messages we do the same but only for smaller messages
+    %% (to avoid overloading the memory) and only if there are
+    %% multiple messages to fetch (otherwise we do the fetch
+    %% 1 by 1 right before sending the messages). Since we have
+    %% two different shared stores for persistent/transient
+    %% they are treated separately when deciding whether to
+    %% read_many from either of them.
+    %%
+    %% Because v2 and shared stores function differently we
+    %% must keep different information for performing the reads.
+    {V2Reads, ShPersistReads, ShTransientReads} = lists:foldl(fun
+        ({_, SeqId, MsgLocation, _, _}, {V2ReadsAcc, ShPReadsAcc, ShTReadsAcc}) when is_tuple(MsgLocation) ->
+            {[{SeqId, MsgLocation}|V2ReadsAcc], ShPReadsAcc, ShTReadsAcc};
+        ({MsgId, _, rabbit_msg_store, #message_properties{size = Size}, true}, {V2ReadsAcc, ShPReadsAcc, ShTReadsAcc}) when Size =< 65536 ->
+            {V2ReadsAcc, [MsgId|ShPReadsAcc], ShTReadsAcc};
+        ({MsgId, _, rabbit_msg_store, #message_properties{size = Size}, false}, {V2ReadsAcc, ShPReadsAcc, ShTReadsAcc}) when Size =< 65536 ->
+            {V2ReadsAcc, ShPReadsAcc, [MsgId|ShTReadsAcc]};
+        (_, Acc) ->
+            Acc
+    end, {[], [], []}, List0),
+    %% We do read_many for v2 store unconditionally.
+    {V2Msgs, StoreState2} = rabbit_classic_queue_store_v2:read_many(V2Reads, StoreState),
+    List1 = merge_read_msgs(List0, V2Reads, V2Msgs),
+    %% We read from the shared message store only if there are multiple messages
+    %% otherwise we wait and read later.
+    %% @todo msg_store_read updates the CState because when file_handle_cache was used
+    %%       it needed to track some information in there. We no longer require this.
+    %%       Therefore the read_many function does not return this state anymore.
+    %% @todo We may want to update the messages in one go but that may prove difficult.
+    List2 = case length(ShPersistReads) < 2 of
+        true ->
+            List1;
+        false ->
+            {ok, ShPersistMsgs} = rabbit_msg_store:read_many(ShPersistReads, MCStateP),
+            merge_sh_read_msgs(List1, ShPersistReads, ShPersistMsgs)
     end,
+    List = case length(ShTransientReads) < 2 of
+        true ->
+            List2;
+        false ->
+            {ok, ShTransientMsgs} = rabbit_msg_store:read_many(ShTransientReads, MCStateT),
+            merge_sh_read_msgs(List1, ShTransientReads, ShTransientMsgs)
+    end,
+
+
+
+
+%    {List1, StoreState2} = case Version of
+%        1 -> {List0, StoreState};
+%        %% When using v2 we try to read all messages from disk at once
+%        %% instead of 1 by 1 at fetch time.
+%        2 ->
+%            Reads = [{SeqId, MsgLocation}
+%                || {_, SeqId, MsgLocation, _, _} <- List0, is_tuple(MsgLocation)],
+%            {Msgs, StoreState1} = rabbit_classic_queue_store_v2:read_many(Reads, StoreState),
+%            {merge_read_msgs(List0, Reads, Msgs), StoreState1}
+%    end,
+
+    %% @todo Read many from the old message store too! We have to consider the size.
+
+    %% @todo We need to do both persistent and transient.
+    %% @todo We must optimize the cases where the list is empty.
+
+    %% @todo We must split the messages based on IsPersistent to know which message store to use.
+    %% @todo We probably shouldn't try to read many if the number of messages to read_many is too low:
+    %%       - we don't need to attempt to read_many if MemoryLimit is small ??? see below
+    %%       - we don't need to if MemoryLimit - length(Msgs) is small ??? or do we? since we are going to be reading anyway...
+    %%       - we need to limit how many messages we read_many to avoid overloading the memory !!! YES but perhaps the limit is already enforced by the consume rate?
+    %%           -> perhaps not since we send to consumers which then go to socket so there are many chances to f up before things get slowed down
+    %%       - we shouldn't attempt to read_many if an individual store has too few messages to read
+    %%       - perhaps also only attempt to read_many if the number of messages to read is almost MemoryLimit?
+
+    %% @todo Should we read_many when Version=1? Yes
+
+    %% @todo Since we don't flush to disk to reduce memory usage this can create problems if we fetch
+    %%       and then never put the messages back to disk after consumers are gone... It's fine for
+    %%       small sizes but not after some point.
+
+    %% @todo Just read_many but only messages that are <512KB in size.
+    %%       Also only read_many if there's "many" messages to read otherwise it's best to defer loading them into memory.
+    %% @todo Do the Reads split in one go rather than only v2 and then only msg_store. Also split by IsPersistent (found in #msg_status).
+
     {Q3a, RamCountsInc, RamBytesInc, State1, TransientCount, TransientBytes} =
         betas_from_index_entries(List, TransientThreshold,
                                  DelsAndAcksFun,
@@ -2653,7 +2731,17 @@ merge_read_msgs([M = {_, SeqId, _, _, _}|MTail], [{SeqId, _}|RTail], [Msg|MsgTai
     [setelement(1, M, Msg)|merge_read_msgs(MTail, RTail, MsgTail)];
 merge_read_msgs([M|MTail], RTail, MsgTail) ->
     [M|merge_read_msgs(MTail, RTail, MsgTail)];
+%% @todo We probably don't need to unwrap until the end.
 merge_read_msgs([], [], []) ->
+    [].
+
+%% @todo This is wrong we may not get as many messages as we've tried reading.
+merge_sh_read_msgs([M = {MsgId, _, _, _, _}|MTail], [MsgId|RTail], [Msg|MsgTail]) ->
+    [setelement(1, M, Msg)|merge_sh_read_msgs(MTail, RTail, MsgTail)];
+merge_sh_read_msgs([M|MTail], RTail, MsgTail) ->
+    [M|merge_sh_read_msgs(MTail, RTail, MsgTail)];
+%% @todo We probably don't need to unwrap until the end.
+merge_sh_read_msgs([], [], []) ->
     [].
 
 %% Flushes queue index batch caches and updates queue index state.
