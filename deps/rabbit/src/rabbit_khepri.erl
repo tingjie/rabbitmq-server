@@ -29,6 +29,7 @@
          adv_create/2,
          update/2,
          cas/3,
+         fold/3,
 
          get/1,
          adv_get/1,
@@ -397,6 +398,8 @@ adv_create(Path, Data) -> khepri_adv:create(?STORE_ID, Path, Data).
 update(Path, Data) -> khepri:update(?STORE_ID, Path, Data).
 cas(Path, Pattern, Data) ->
     khepri:compare_and_swap(?STORE_ID, Path, Pattern, Data).
+
+fold(Path, Pred, Acc) -> khepri:fold(?STORE_ID, Path, Pred, Acc).
 
 get(Path) ->
     khepri:get(?STORE_ID, Path, #{favor => low_latency}).

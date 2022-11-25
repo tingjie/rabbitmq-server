@@ -67,6 +67,13 @@
 
 -define(WAIT_SECONDS, 30).
 
+-define(HASH, <<"#">>).
+-define(STAR, <<"*">>).
+-define(DOT, <<"\\.">>).
+-define(ONE_WORD, <<"[^.]+">>).
+-define(ANYTHING, <<".*">>).
+-define(ZERO_OR_MORE, <<"(\\..+)?">>).
+
 %% Clustering used on the boot steps
 
 init() ->
@@ -1013,6 +1020,7 @@ add_topic_trie_binding_tx(XName, RoutingKey, Destination, Args) ->
     Path = khepri_exchange_type_topic_path(XName) ++ split_topic_trie_key(RoutingKey),
     Binding = #{destination => Destination, arguments => Args},
     Set0 = case khepri_tx:get(Path) of
+               {ok, undefined} -> sets:new();
                {ok, S} -> S;
                _ -> sets:new()
            end,
@@ -1020,26 +1028,68 @@ add_topic_trie_binding_tx(XName, RoutingKey, Destination, Args) ->
     ok = khepri_tx:put(Path, Set).
 
 route_delivery_for_exchange_type_topic(XName, RoutingKey) ->
-    Words = lists:map(fun(W) -> #if_any{conditions = [W, <<"*">>]} end,
-                      split_topic_trie_key(RoutingKey)),
-    Root = khepri_exchange_type_topic_path(XName),
-    Path0 = Root ++ Words,
-    {Hd, [Tl]} = lists:split(length(Path0) - 1, Path0),
-    Path = Hd ++ [if_has_data([Tl])],
-    Fanout = Root ++ [<<"#">>],
-    Map = case rabbit_khepri:get(Fanout) of
-              {ok, Data} when Data =/= undefined ->
-                  #{Fanout => Data};
-              _ ->
-                  case rabbit_khepri:match(Path) of
-                      {ok, Map0} -> Map0;
-                      _ -> #{}
-                  end
-          end,
-    maps:fold(fun(_, Data, Acc) ->
-                      Bindings = sets:to_list(Data),
-                      [maps:get(destination, B) || B <- Bindings] ++ Acc
-              end, [], Map).
+    Root = khepri_exchange_type_topic_path(XName) ++ [if_has_data_wildcard()],
+    case rabbit_khepri:fold(
+           Root,
+           fun(Path0, #{data := Set}, Acc) ->
+                   Path = lists:nthtail(4, Path0),
+                   case is_re_topic_match(Path, RoutingKey) of
+                       true ->
+                           Bindings = sets:to_list(Set),
+                           [maps:get(destination, B) || B <- Bindings] ++ Acc;
+                       false ->
+                           Acc
+                   end
+           end,
+           []) of
+        {ok, List} -> List;
+        _ -> []
+    end.
+
+is_re_topic_match([?HASH], _) ->
+    true;
+is_re_topic_match(A, A) ->
+    true;
+is_re_topic_match([], <<>>) ->
+    true;
+is_re_topic_match([], _) ->
+    false;
+is_re_topic_match(Path00, RoutingKey) ->
+    Path0 = path_to_re(Path00),
+    Path = << <<B/binary >> || B <- Path0 >>,
+    case Path of
+        ?ANYTHING -> true;
+        _ ->
+            RE = <<$^,Path/binary,$$>>,
+            case re:run(RoutingKey, RE, [{capture, none}]) of
+                nomatch -> false;
+                _ -> true
+            end
+    end.
+
+path_to_re([?STAR | Rest]) ->
+    path_to_re(Rest, [?ONE_WORD]);
+path_to_re([?HASH | Rest]) ->
+    path_to_re(Rest, [?ANYTHING]);
+path_to_re([Bin | Rest]) ->
+    path_to_re(Rest, [Bin]).
+
+path_to_re([], Acc) ->
+    lists:reverse(Acc);
+path_to_re([?STAR | Rest], [?ANYTHING | _] = Acc) ->
+    path_to_re(Rest, [?ONE_WORD | Acc]);
+path_to_re([?STAR | Rest], Acc) ->
+    path_to_re(Rest, [?ONE_WORD, ?DOT | Acc]);
+path_to_re([?HASH | Rest], [?HASH | _] = Acc) ->
+    path_to_re(Rest, Acc);
+path_to_re([?HASH | Rest], [?ANYTHING | _] = Acc) ->
+    path_to_re(Rest, Acc);
+path_to_re([?HASH | Rest], Acc) ->
+    path_to_re(Rest, [?ZERO_OR_MORE | Acc]);
+path_to_re([Bin | Rest], [?ANYTHING | _] = Acc) ->
+    path_to_re(Rest, [Bin | Acc]);
+path_to_re([Bin | Rest], Acc) ->
+    path_to_re(Rest, [Bin, ?DOT | Acc]).
 
 delete_topic_trie_bindings_for_exchange(XName) ->
     ok = rabbit_khepri:delete(khepri_exchange_type_topic_path(XName)).
@@ -1053,15 +1103,14 @@ delete_topic_trie_bindings(Bs) ->
     rabbit_khepri:transaction(
       fun() ->
               [begin
-                   case khepri_tx_adv:get(Path) of
-                       {ok, #{Path := #{data := Set0,
-                                        child_list_length := Children}}} ->
+                   case khepri_tx:get(Path) of
+                       {ok, undefined} ->
+                           ok;
+                       {ok, Set0} ->
                            Set = sets:del_element(Binding, Set0),
-                           case {Children, sets:size(Set)} of
-                               {0, 0} ->
-                                   khepri_tx:delete(Path);
-                               _ ->
-                                   khepri_tx:put(Path, Set)
+                           case sets:size(Set) of
+                               0 -> khepri_tx:clear_payload(Path);
+                               _ -> khepri_tx:put(Path, Set)
                            end;
                        _ ->
                            ok
@@ -2276,6 +2325,8 @@ store_in_khepri(Path, Value) ->
         Error   -> khepri_tx:abort(Error)
     end.
 
+split_topic_trie_key(<<>>) ->
+    [<<>>];
 split_topic_trie_key(Key) ->
     Words = split_topic_trie_key(Key, [], []),
     [list_to_binary(W) || W <- Words].
