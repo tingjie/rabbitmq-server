@@ -12,7 +12,7 @@
 -export([start_link/5, successfully_recovered_state/1,
          client_init/4, client_terminate/1, client_delete_and_terminate/1,
          client_ref/1, close_all_indicated/1,
-         write/3, write_flow/3, read/2, contains/2, remove/2]).
+         write/3, write_flow/3, read/2, read_many/2, contains/2, remove/2]).
 
 -export([set_maximum_since_use/2, combine_files/3,
          delete_file/2]). %% internal
@@ -542,6 +542,10 @@ read(MsgId,
 %%       we can simply stop looking in the cache at the first MsgId
 %%       that doesn't find anything, AS LONG AS the MsgIds are ordered
 %%       from younger to older.
+%% @todo OK but for fan-out it's theoretically possible that a message
+%%       gets flushed from the cache but sits in a different position
+%%       in the queue. That means we may end up with some extra cache misses
+%%       but nothing that should be too noticeable.
 %%
 %%       Then with what remains, we do an index_lookup_positive_ref_count/2
 %%       of the first MsgId to read. If it is not found (bug?), ignore and
@@ -563,6 +567,184 @@ read(MsgId,
 %%       We then do the pread and continue with the remaining MsgIds
 %%       that were not found in the MsgLocations we got. We eventually
 %%       return whatever we managed to read.
+
+%% @todo First I will get an implementation that simply calls
+%%       read many times in order to ensure the rest of the changes
+%%       don't break anything.
+
+-spec read_many([rabbit_types:msg_id()], client_msstate()) -> [msg()]. %% @todo Spec of return
+
+%% We disable read_many when the index module is not ETS.
+read_many(_, #client_msstate{ index_module = IndexMod })
+        when IndexMod =/= rabbit_msg_store_ets_index ->
+    [];
+read_many(MsgIds0, CState) ->
+% @todo    file_handle_cache_stats:update(msg_store_read),
+    %% We receive MsgIds in roughly older->younger order. We reverse
+    %% the order so that we can get as many messages we can from the
+    %% cache before we have to look at messages on disk.
+    MsgIds = lists:reverse(MsgIds0),
+    read_many_cache(MsgIds, CState, []).
+
+%% We read from the cache until we can't. Then we read from disk.
+read_many_cache([], CState, Acc) ->
+    Acc;
+read_many_cache([MsgId|Tail], CState, Acc) ->
+    case ets:lookup(CurFileCacheEts, MsgId) of
+        [] ->
+            read_many_disk([MsgId|Tail], CState, Acc);
+        [{MsgId, Msg, _CacheRefCount}] ->
+            read_many_cache(Tail, CState, Acc#{MsgId => Msg})
+    end.
+
+%% We will read from disk one file at a time in no particular order.
+%% @todo OK I'm not confident we can return messages in the right order.
+%%       We may want to instead return a map of #{MsgId => Msg} so we can
+%%       then replace the Msg quickly in the list. Because the MsgId is
+%%       not necessarily in the same order as the SeqId due to fan-out.
+read_many_disk([MsgId|Tail], CState, Acc) ->
+    case index_lookup_positive_ref_count(MsgId, CState) of
+        %% We ignore this message if it's not found and will try
+        %% to read it individually later instead. We can't call
+        %% the message store and expect good performance here.
+        %% @todo Can this even happen? Isn't this a bug?
+        not_found   -> read_many_disk(Tail, CState, Acc);
+        MsgLocation -> read_many_file1([MsgId|Tail], CState, Acc, MsgLocation#msg_location.file)
+    end.
+
+%% First we mark ourselves as a reader.
+read_many_file1(MsgIds, CState, Acc, File) ->
+    safe_ets_update_counter(
+      FileSummaryEts, File, {#file_summary.readers, +1},
+      fun (_) -> read_many_file2(MsgIds, CState, Acc, File) end,
+      %% If this fails we just retry since it means the file got compacted.
+      fun () -> read_many_disk(MsgIds, CState, Acc) end).
+
+%% Then we mark the file handle as being open.
+%% @todo If this fails we must -1 readers of the file.
+read_many_file2(
+    %% Mark file handle open.
+    mark_handle_open(FileHandlesEts, File, Ref),
+    %% Get index for all Msgids in File.
+    %% It's possible that we get no results here if compaction
+    %% was in progress. That's OK: we will try again with those
+    %% MsgIds to get them from the new file.
+    MsgLocations0 = index_select_from_file(MsgIds, CState, File),
+    %% At this point either the file is guaranteed to remain
+    %% for us to read from it or we will get zero locations.
+    %% We don't need to handle [] specially because all operations
+    %% will be a no-op.
+    %%
+    %% @todo Probably move this into rabbit_msg_file.
+    %% First we must order the locations so that we can consolidate
+    %% the preads and improve read performance.
+    MsgLocations = lists:keysort(#msg_location.offset, MsgLocations0),
+    %% Then we can do the consolidation to get the pread LocNums.
+    %% @todo
+
+
+
+%consolidate_reads(Reads = [{SeqId, _}|_], SegmentThreshold,
+%        Segment, SegmentEntryCount, Acc, Segs)
+%        when SeqId >= SegmentThreshold ->
+%    %% We Segment + 1 because we expect reads to be contiguous.
+%    consolidate_reads(Reads, SegmentThreshold + SegmentEntryCount,
+%        Segment + 1, SegmentEntryCount, [], Segs#{Segment => lists:reverse(Acc)});
+%%% NextSize does not include the entry header size.
+%consolidate_reads([{_, {?MODULE, NextOffset, NextSize}}|Tail], SegmentThreshold,
+%        Segment, SegmentEntryCount, [{Offset, Size}|Acc], Segs)
+%        when Offset + Size =:= NextOffset ->
+%    consolidate_reads(Tail, SegmentThreshold, Segment, SegmentEntryCount,
+%        [{Offset, Size + NextSize + ?ENTRY_HEADER_SIZE}|Acc], Segs);
+%consolidate_reads([{_, {?MODULE, Offset, Size}}|Tail], SegmentThreshold,
+%        Segment, SegmentEntryCount, Acc, Segs) ->
+%    consolidate_reads(Tail, SegmentThreshold, Segment, SegmentEntryCount,
+%        [{Offset, Size + ?ENTRY_HEADER_SIZE}|Acc], Segs);
+%consolidate_reads([], _, _, _, [], Segs) ->
+%    Segs;
+%consolidate_reads([], _, Segment, _, Acc, Segs) ->
+%    %% We lists:reverse/1 because we need to preserve order.
+%    Segs#{Segment => lists:reverse(Acc)}.
+
+
+
+
+    %% Finally we can do the pread and parsing.
+    %% @todo
+    %% Before we continue the read_many calls we must remove the
+    %% MsgIds we have read from the list.
+    %% @todo
+    %% We must also mark the file handle closed and unmark
+    %% ourselves as a reader.
+    %% @todo
+
+
+
+%fun() -> ok = case ets:update_counter(FileSummaryEts, File,
+%                                              {#file_summary.readers, -1}) of
+%                          0 -> case ets:lookup(FileSummaryEts, File) of
+%                                   [#file_summary { locked = true }] ->
+%                                       %% @todo We can do the truncate here and release the lock.
+%                                       rabbit_msg_store_gc:no_readers(
+%                                         GCPid, File);
+%                                   _ -> ok
+%                               end;
+%                          _ -> ok
+%                      end
+%        end,
+
+    %% Unlike the old code we mark the file as open and close in the same function.
+    %% We don't leave it hanging...
+
+
+
+
+    read_many_disk(..., CState, Acc).
+
+
+%    case MsgLocations of
+%        []
+
+
+
+        %% @todo OK not sure about this need to think some more.
+
+
+        %% Still the same file. We can safely read_many from the file.
+        %% We don't need to check that the file hasn't changed for all
+        %% locations because at this point we know the old file will
+        %% not be deleted. We will just read_many everything we can
+        %% from the old file and ignore locations in the new file
+        %% for now.
+        [#msg_location{file=File}|_] ->
+        %% Otherwise the file must have been compacted.
+
+        [] ->
+            %% The file must have been compacted in-between. Retry.
+            ;
+
+%% @todo
+%%       Once we have a location, we first mark ourselves as a reader.
+%%       We then mark the file handle open and get the index again,
+%%       only this time we do an ets:select to get all relevant
+%%       messages for this file. Since we get the messages for the
+%%       file we either find locations for the file or nothing
+%%       (when compacting we first update the index then we do
+%%       the file changes if possible). If we find nothing, we go
+%%       back at the start of the loop and retry for the same MsgId
+%%       as before. Otherwise we can continue.
+%%
+%%       We then do the pread and continue with the remaining MsgIds
+%%       that were not found in the MsgLocations we got. We eventually
+%%       return whatever we managed to read.
+
+
+
+read_many([], _CState) ->
+    [];
+read_many([MsgId|Tail], CState) ->
+    {{ok, Msg}, _} = read(MsgId, CState),
+    [Msg|read_many(Tail, CState)].
 
 -spec contains(rabbit_types:msg_id(), client_msstate()) -> boolean().
 

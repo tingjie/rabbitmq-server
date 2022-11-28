@@ -2637,19 +2637,21 @@ maybe_deltas_to_betas(DelsAndAcksFun,
     %%       it needed to track some information in there. We no longer require this.
     %%       Therefore the read_many function does not return this state anymore.
     %% @todo We may want to update the messages in one go but that may prove difficult.
+    %% @todo It may not be that difficult because we have the MsgId in the Msg and so
+    %%       it is just a matter of checking the Msgs from v2 then store p and t.
     List2 = case length(ShPersistReads) < 2 of
         true ->
             List1;
         false ->
             {ok, ShPersistMsgs} = rabbit_msg_store:read_many(ShPersistReads, MCStateP),
-            merge_sh_read_msgs(List1, ShPersistReads, ShPersistMsgs)
+            merge_sh_read_msgs(List1, ShPersistMsgs)
     end,
     List = case length(ShTransientReads) < 2 of
         true ->
             List2;
         false ->
             {ok, ShTransientMsgs} = rabbit_msg_store:read_many(ShTransientReads, MCStateT),
-            merge_sh_read_msgs(List1, ShTransientReads, ShTransientMsgs)
+            merge_sh_read_msgs(List1, ShTransientMsgs)
     end,
 
 
@@ -2735,14 +2737,13 @@ merge_read_msgs([M|MTail], RTail, MsgTail) ->
 merge_read_msgs([], [], []) ->
     [].
 
-%% @todo This is wrong we may not get as many messages as we've tried reading.
-merge_sh_read_msgs([M = {MsgId, _, _, _, _}|MTail], [MsgId|RTail], [Msg|MsgTail]) ->
-    [setelement(1, M, Msg)|merge_sh_read_msgs(MTail, RTail, MsgTail)];
-merge_sh_read_msgs([M|MTail], RTail, MsgTail) ->
-    [M|merge_sh_read_msgs(MTail, RTail, MsgTail)];
-%% @todo We probably don't need to unwrap until the end.
-merge_sh_read_msgs([], [], []) ->
-    [].
+%% We may not get as many messages as we tried reading.
+merge_sh_read_msgs([M = {MsgId, _, _, _, _}|MTail], [Msg = #basic_message{ id = MsgId }|MsgTail]) ->
+    [setelement(1, M, Msg)|merge_sh_read_msgs(MTail, MsgTail)];
+merge_sh_read_msgs([M|MTail], MsgTail) ->
+    [M|merge_sh_read_msgs(MTail, MsgTail)];
+merge_sh_read_msgs(MTail, []) ->
+    MTail.
 
 %% Flushes queue index batch caches and updates queue index state.
 ui(#vqstate{index_mod        = IndexMod,

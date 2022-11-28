@@ -12,7 +12,7 @@
 -behaviour(rabbit_msg_store_index).
 
 -export([new/1, recover/1,
-         lookup/2, insert/2, update/2, update_fields/3, delete/2,
+         lookup/2, select_from_file/3, insert/2, update/2, update_fields/3, delete/2,
          delete_object/2, clean_up_temporary_reference_count_entries_without_file/1, terminate/1]).
 
 -define(MSG_LOC_NAME, rabbit_msg_store_ets_index).
@@ -38,6 +38,19 @@ lookup(Key, State) ->
         []      -> not_found;
         [Entry] -> Entry
     end.
+
+select_from_file(MsgIds, File, State) ->
+    ets:select(State #state.table, [{
+        #msg_location{
+            msg_id = MsgId,
+            ref_count = '_',
+            file = File,
+            offset = '_',
+            total_size = '_'
+        },
+        [],
+        ['$_']
+    } || MsgId <- MsgIds]).
 
 insert(Obj, State) ->
     true = ets:insert_new(State #state.table, Obj),

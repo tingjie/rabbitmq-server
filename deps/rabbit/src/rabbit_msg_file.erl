@@ -39,6 +39,9 @@
 
 append(FileHdl, MsgId, MsgBody)
   when is_binary(MsgId) andalso size(MsgId) =:= ?MSG_ID_SIZE_BYTES ->
+    %% @todo I think we are actually writing MsgId TWICE: once in
+    %%       the header, once in the body. Might be better to reduce
+    %%       the size of the body...
     MsgBodyBin  = term_to_binary(MsgBody),
     MsgBodyBinSize = size(MsgBodyBin),
     Size = MsgBodyBinSize + ?MSG_ID_SIZE_BYTES,
