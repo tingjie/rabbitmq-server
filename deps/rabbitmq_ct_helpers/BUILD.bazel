@@ -1,26 +1,40 @@
-load("@rules_erlang//:erlang_app.bzl", "erlang_app")
+load("@rules_erlang//:eunit2.bzl", "eunit")
+load("@rules_erlang//:xref2.bzl", "xref")
+load("@rules_erlang//:dialyze.bzl", "DEFAULT_PLT_APPS", "dialyze", "plt")
+load(
+    "//:rabbitmq.bzl",
+    "assert_suites",
+    "broker_for_integration_suites",
+    "rabbitmq_app",
+    "rabbitmq_integration_suite",
+)
 load(
     ":app.bzl",
     "all_beam_files",
     "all_srcs",
+    "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
 
-erlang_app(
-    all_srcs = [":all_srcs"],
+all_test_beam_files(name = "all_test_beam_files")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_name = "rabbitmq_ct_helpers",
-    app_version = "main",
     beam_files = [":beam_files"],
-    extra_priv = [
+    extra_priv = glob(
+        ["tools/terraform/**/*"],
+    ) + [
         "tools/tls-certs/Makefile",
         "tools/tls-certs/openssl.cnf.in",
-    ],
-    public_hdrs = [
-        "include/rabbit_assert.hrl",
-        "include/rabbit_mgmt_test.hrl",
     ],
 )
 
@@ -29,3 +43,65 @@ alias(
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
 )
+
+xref(
+    additional_libs = [
+        "//bazel/elixir:erlang_app",
+        "//deps/rabbitmq_cli:rabbitmqctl",
+        "//deps/rabbit_common:erlang_app",
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit/apps/rabbitmq_prelaunch:erlang_app",
+        "//deps/rabbitmq_management_agent:erlang_app",
+        "@proper//:erlang_app",
+    ],
+)
+
+plt(
+    name = "base_plt",
+    apps = DEFAULT_PLT_APPS + [
+        "inets",
+        "eunit",
+        "common_test",
+    ],
+    plt = "//:base_plt",
+    deps = [
+        # "//bazel/elixir:erlang_app",
+        # "//deps/rabbitmq_cli:rabbitmqctl",
+        "//deps/rabbit_common:erlang_app",
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit/apps/rabbitmq_prelaunch:erlang_app",
+        "//deps/rabbitmq_management_agent:erlang_app",
+        "@proper//:erlang_app",
+    ],
+)
+
+dialyze(
+    plt = ":base_plt",
+    warnings_as_errors = False,
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "cth_log_redirect_any_domains",
+        "rabbit_control_helper",
+        "rabbit_ct_broker_helpers",
+        "rabbit_ct_config_schema",
+        "rabbit_ct_helpers",
+        "rabbit_ct_proper_helpers",
+        "rabbit_ct_vm_helpers",
+        "rabbit_mgmt_test_util",
+    ],
+    deps = [":test_erlang_app"],
+)
+
+broker_for_integration_suites()
+
+rabbitmq_integration_suite(
+    name = "terraform_SUITE",
+    # requires SSH_KEY to create vms, skip running as part of CI
+    tags = ["manual"],
+)
+
+assert_suites()

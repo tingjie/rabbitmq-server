@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -14,6 +15,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_peer_discovery_aws"
@@ -34,17 +36,34 @@ RUNTIME_DEPS = [
     "//deps/rabbit:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app inets
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbitmq_peer_discovery_common
+# gazelle:erlang_app_dep rabbitmq_aws
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_name = APP_NAME,
-    extra_apps = EXTRA_APPS,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    extra_apps = ["inets"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+        "//deps/rabbitmq_aws:erlang_app",
+        "//deps/rabbitmq_peer_discovery_common:erlang_app",
+    ],
 )
 
 xref()
@@ -62,12 +81,20 @@ dialyze(
     warnings_as_errors = False,
 )
 
+eunit(
+    name = "eunit",
+    compiled_suites = [":test_aws_ecs_util_beam"],
+    eunit_mods = [
+        "aws_ecs_util",
+        "rabbit_peer_discovery_aws",
+        "rabbitmq_peer_discovery_aws",
+    ],
+    deps = [":test_erlang_app"],
+)
+
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_peer_discovery_aws"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
     size = "medium",
 )
@@ -80,8 +107,8 @@ rabbitmq_integration_suite(
 rabbitmq_suite(
     name = "integration_SUITE",
     size = "large",
-    additional_srcs = [
-        "test/aws_ecs_util.erl",
+    additional_beam = [
+        "test/aws_ecs_util.beam",
     ],
     tags = [
         "aws",
@@ -95,7 +122,7 @@ rabbitmq_suite(
 rabbitmq_suite(
     name = "unit_SUITE",
     size = "small",
-    runtime_deps = [
+    deps = [
         "@meck//:erlang_app",
     ],
 )

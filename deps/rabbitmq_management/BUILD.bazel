@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -10,13 +11,13 @@ load(
     "rabbitmq_app",
     "rabbitmq_integration_suite",
     "rabbitmq_suite",
-    "rabbitmq_test_helper",
 )
 load(
     ":app.bzl",
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_management"
@@ -68,21 +69,57 @@ sed 's/%%VSN%%/{}/' $< > $@
 """.format(APP_VERSION),
 )
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app mnesia
+# gazelle:erlang_app_extra_app ssl
+# gazelle:erlang_app_extra_app crypto
+# gazelle:erlang_app_extra_app public_key
+
+# gazelle:erlang_app_dep amqp_client
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
+# gazelle:erlang_app_dep rabbitmq_management_agent
+# gazelle:erlang_app_dep rabbitmq_web_dispatch
+# gazelle:erlang_app_dep cowboy
+# gazelle:erlang_app_dep cowlib
+# gazelle:erlang_app_dep ranch
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = APP_DESCRIPTION,
     app_env = APP_ENV,
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    extra_apps = EXTRA_APPS,
-    extra_priv = [":rabbitmqadmin"],
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    extra_apps = [
+        "crypto",
+        "mnesia",
+        "public_key",
+        "ssl",
+    ],
+    extra_priv = [
+        "priv/www/cli/rabbitmqadmin",
+    ],
+    deps = [
+        "//deps/amqp_client:erlang_app",
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+        "//deps/rabbitmq_management_agent:erlang_app",
+        "//deps/rabbitmq_web_dispatch:erlang_app",
+        "@cowboy//:erlang_app",
+        "@cowlib//:erlang_app",
+        "@ranch//:erlang_app",
+    ],
 )
 
 xref()
@@ -98,33 +135,116 @@ dialyze(
     warnings_as_errors = False,
 )
 
-broker_for_integration_suites()
-
-rabbitmq_test_helper(
-    name = "rabbit_mgmt_runtime_parameters_util",
-    srcs = [
-        "test/rabbit_mgmt_runtime_parameters_util.erl",
+eunit(
+    name = "eunit",
+    compiled_suites = [":test_rabbit_mgmt_runtime_parameters_util_beam"],
+    eunit_mods = [
+        "rabbit_mgmt_app",
+        "rabbit_mgmt_cors",
+        "rabbit_mgmt_csp",
+        "rabbit_mgmt_db",
+        "rabbit_mgmt_db_cache",
+        "rabbit_mgmt_db_cache_sup",
+        "rabbit_mgmt_dispatcher",
+        "rabbit_mgmt_extension",
+        "rabbit_mgmt_headers",
+        "rabbit_mgmt_hsts",
+        "rabbit_mgmt_load_definitions",
+        "rabbit_mgmt_reset_handler",
+        "rabbit_mgmt_runtime_parameters_util",
+        "rabbit_mgmt_stats",
+        "rabbit_mgmt_sup",
+        "rabbit_mgmt_sup_sup",
+        "rabbit_mgmt_util",
+        "rabbit_mgmt_wm_aliveness_test",
+        "rabbit_mgmt_wm_auth",
+        "rabbit_mgmt_wm_auth_attempts",
+        "rabbit_mgmt_wm_binding",
+        "rabbit_mgmt_wm_bindings",
+        "rabbit_mgmt_wm_channel",
+        "rabbit_mgmt_wm_channels",
+        "rabbit_mgmt_wm_channels_vhost",
+        "rabbit_mgmt_wm_cluster_name",
+        "rabbit_mgmt_wm_connection",
+        "rabbit_mgmt_wm_connection_channels",
+        "rabbit_mgmt_wm_connection_user_name",
+        "rabbit_mgmt_wm_connections",
+        "rabbit_mgmt_wm_connections_vhost",
+        "rabbit_mgmt_wm_consumers",
+        "rabbit_mgmt_wm_definitions",
+        "rabbit_mgmt_wm_exchange",
+        "rabbit_mgmt_wm_exchange_publish",
+        "rabbit_mgmt_wm_exchanges",
+        "rabbit_mgmt_wm_extensions",
+        "rabbit_mgmt_wm_feature_flag_enable",
+        "rabbit_mgmt_wm_feature_flags",
+        "rabbit_mgmt_wm_global_parameter",
+        "rabbit_mgmt_wm_global_parameters",
+        "rabbit_mgmt_wm_health_check_alarms",
+        "rabbit_mgmt_wm_health_check_certificate_expiration",
+        "rabbit_mgmt_wm_health_check_local_alarms",
+        "rabbit_mgmt_wm_health_check_node_is_mirror_sync_critical",
+        "rabbit_mgmt_wm_health_check_node_is_quorum_critical",
+        "rabbit_mgmt_wm_health_check_port_listener",
+        "rabbit_mgmt_wm_health_check_protocol_listener",
+        "rabbit_mgmt_wm_health_check_virtual_hosts",
+        "rabbit_mgmt_wm_healthchecks",
+        "rabbit_mgmt_wm_limit",
+        "rabbit_mgmt_wm_limits",
+        "rabbit_mgmt_wm_login",
+        "rabbit_mgmt_wm_node",
+        "rabbit_mgmt_wm_node_memory",
+        "rabbit_mgmt_wm_node_memory_ets",
+        "rabbit_mgmt_wm_nodes",
+        "rabbit_mgmt_wm_operator_policies",
+        "rabbit_mgmt_wm_operator_policy",
+        "rabbit_mgmt_wm_overview",
+        "rabbit_mgmt_wm_parameter",
+        "rabbit_mgmt_wm_parameters",
+        "rabbit_mgmt_wm_permission",
+        "rabbit_mgmt_wm_permissions",
+        "rabbit_mgmt_wm_permissions_user",
+        "rabbit_mgmt_wm_permissions_vhost",
+        "rabbit_mgmt_wm_policies",
+        "rabbit_mgmt_wm_policy",
+        "rabbit_mgmt_wm_queue",
+        "rabbit_mgmt_wm_queue_actions",
+        "rabbit_mgmt_wm_queue_get",
+        "rabbit_mgmt_wm_queue_purge",
+        "rabbit_mgmt_wm_queues",
+        "rabbit_mgmt_wm_rebalance_queues",
+        "rabbit_mgmt_wm_redirect",
+        "rabbit_mgmt_wm_reset",
+        "rabbit_mgmt_wm_static",
+        "rabbit_mgmt_wm_topic_permission",
+        "rabbit_mgmt_wm_topic_permissions",
+        "rabbit_mgmt_wm_topic_permissions_user",
+        "rabbit_mgmt_wm_topic_permissions_vhost",
+        "rabbit_mgmt_wm_user",
+        "rabbit_mgmt_wm_user_limit",
+        "rabbit_mgmt_wm_user_limits",
+        "rabbit_mgmt_wm_users",
+        "rabbit_mgmt_wm_users_bulk_delete",
+        "rabbit_mgmt_wm_vhost",
+        "rabbit_mgmt_wm_vhost_restart",
+        "rabbit_mgmt_wm_vhosts",
+        "rabbit_mgmt_wm_whoami",
     ],
-    deps = [
-        "//deps/rabbit_common:erlang_app",
-    ],
+    deps = [":test_erlang_app"],
 )
 
-PACKAGE = "deps/rabbitmq_management"
+broker_for_integration_suites()
 
 rabbitmq_suite(
     name = "cache_SUITE",
     size = "small",
-    runtime_deps = [
-        "//deps/rabbitmq_ct_helpers:erlang_app",
-    ],
     deps = [
+        "//deps/rabbitmq_ct_helpers:erlang_app",
         "@proper//:erlang_app",
     ],
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "clustering_prop_SUITE",
     size = "large",
     deps = [
@@ -134,7 +254,6 @@ rabbitmq_integration_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "clustering_SUITE",
     flaky = True,
     deps = [
@@ -143,7 +262,6 @@ rabbitmq_integration_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
     size = "medium",
 )
@@ -154,30 +272,26 @@ rabbitmq_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_mgmt_http_health_checks_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_mgmt_http_SUITE",
     size = "large",
     additional_beam = [
-        ":rabbit_mgmt_runtime_parameters_util",
+        "test/rabbit_mgmt_runtime_parameters_util.beam",
     ],
     shard_count = 2,
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_mgmt_only_http_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_mgmt_rabbitmqadmin_SUITE",
     additional_beam = [
-        ":rabbit_mgmt_runtime_parameters_util",
+        "test/rabbit_mgmt_runtime_parameters_util.beam",
     ],
     data = [
         ":bin/rabbitmqadmin",
@@ -187,17 +301,14 @@ rabbitmq_integration_suite(
 rabbitmq_suite(
     name = "rabbit_mgmt_stats_SUITE",
     size = "small",
-    runtime_deps = [
-        "//deps/rabbitmq_ct_helpers:erlang_app",
-    ],
     deps = [
+        "//deps/rabbitmq_ct_helpers:erlang_app",
         "//deps/rabbitmq_management_agent:erlang_app",
         "@proper//:erlang_app",
     ],
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_mgmt_test_db_SUITE",
     deps = [
         "//deps/rabbitmq_management_agent:erlang_app",

@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -13,6 +14,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_peer_discovery_common"
@@ -33,18 +35,32 @@ RUNTIME_DEPS = [
     "//deps/rabbit:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app inets
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = APP_DESCRIPTION,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    extra_apps = EXTRA_APPS,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    extra_apps = ["inets"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref()
@@ -61,12 +77,23 @@ dialyze(
     plt = ":base_plt",
 )
 
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "rabbit_peer_discovery_cleanup",
+        "rabbit_peer_discovery_common_app",
+        "rabbit_peer_discovery_common_sup",
+        "rabbit_peer_discovery_config",
+        "rabbit_peer_discovery_httpc",
+        "rabbit_peer_discovery_util",
+    ],
+    deps = [":test_erlang_app"],
+)
+
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_peer_discovery_common"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
 )
 

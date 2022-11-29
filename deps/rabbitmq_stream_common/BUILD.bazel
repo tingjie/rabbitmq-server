@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze")
 load(
@@ -12,21 +13,28 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_stream_common"
 
 APP_DESCRIPTION = "RabbitMQ Stream Common"
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = APP_DESCRIPTION,
     app_name = APP_NAME,
+    beam_files = [":beam_files"],
 )
 
 xref()
@@ -34,6 +42,13 @@ xref()
 dialyze(
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
     plt = "//:base_plt",
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = ["rabbit_stream_core"],
+    deps = [":test_erlang_app"],
 )
 
 rabbitmq_suite(

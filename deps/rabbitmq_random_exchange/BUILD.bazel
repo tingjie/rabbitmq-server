@@ -11,7 +11,10 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
+
+# gazelle:erlang_always_generate_test_beam_files
 
 APP_NAME = "rabbitmq_random_exchange"
 
@@ -25,16 +28,27 @@ RUNTIME_DEPS = [
     "//deps/rabbit:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref()

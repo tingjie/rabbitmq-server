@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -15,6 +16,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_ENV = """[
@@ -41,18 +43,34 @@ RUNTIME_DEPS = [
     "//deps/rabbit:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep amqp_client
+# gazelle:erlang_app_dep amqp10_common
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = APP_DESCRIPTION,
     app_env = APP_ENV,
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/amqp10_common:erlang_app",
+        "//deps/amqp_client:erlang_app",
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref(
@@ -75,10 +93,7 @@ dialyze(
 
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_amqp1_0"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "amqp10_client_SUITE",
     size = "medium",
     runtime_deps = [
@@ -87,7 +102,6 @@ rabbitmq_integration_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "command_SUITE",
     size = "medium",
     runtime_deps = [
@@ -99,13 +113,11 @@ rabbitmq_integration_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "proxy_protocol_SUITE",
     size = "medium",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "system_SUITE",
     flaky = True,
     tags = [
@@ -118,7 +130,6 @@ rabbitmq_integration_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
 )
 
@@ -136,4 +147,26 @@ alias(
     name = "rabbitmq_amqp1_0",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand",
+        "rabbit_amqp1_0",
+        "rabbit_amqp1_0_channel",
+        "rabbit_amqp1_0_incoming_link",
+        "rabbit_amqp1_0_link_util",
+        "rabbit_amqp1_0_message",
+        "rabbit_amqp1_0_outgoing_link",
+        "rabbit_amqp1_0_reader",
+        "rabbit_amqp1_0_session",
+        "rabbit_amqp1_0_session_process",
+        "rabbit_amqp1_0_session_sup",
+        "rabbit_amqp1_0_session_sup_sup",
+        "rabbit_amqp1_0_util",
+        "rabbit_amqp1_0_writer",
+    ],
+    deps = [":test_erlang_app"],
 )

@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -7,13 +8,13 @@ load(
     "broker_for_integration_suites",
     "rabbitmq_app",
     "rabbitmq_integration_suite",
-    "rabbitmq_test_helper",
 )
 load(
     ":app.bzl",
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 # gazelle:exclude test/src
@@ -48,18 +49,33 @@ RUNTIME_DEPS = [
     "//deps/rabbitmq_mqtt:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep cowboy
+# gazelle:erlang_app_dep rabbit
+# gazelle:erlang_app_dep rabbitmq_mqtt
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_env = APP_ENV,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+        "//deps/rabbitmq_mqtt:erlang_app",
+        "@cowboy//:erlang_app",
+    ],
 )
 
 xref()
@@ -75,37 +91,51 @@ dialyze(
     warnings_as_errors = False,
 )
 
-broker_for_integration_suites()
-
-PACKAGE = "deps/rabbitmq_web_mqtt"
-
-rabbitmq_test_helper(
-    name = "test_utils",
-    srcs = glob(["test/src/*.erl"]),
-    hdrs = glob(["test/src/*.hrl"]),
+eunit(
+    name = "eunit",
+    compiled_suites = [
+        ":test_src_emqttc_parser_beam",
+        ":test_src_emqttc_serialiser_beam",
+        ":test_src_rabbit_ws_test_util_beam",
+        ":test_src_rfc6455_client_beam",
+    ],
+    eunit_mods = [
+        "emqttc_parser",
+        "emqttc_serialiser",
+        "rabbit_web_mqtt_app",
+        "rabbit_web_mqtt_connection_info",
+        "rabbit_web_mqtt_connection_sup",
+        "rabbit_web_mqtt_handler",
+        "rabbit_web_mqtt_middleware",
+        "rabbit_web_mqtt_stream_handler",
+        "rabbit_ws_test_util",
+        "rfc6455_client",
+    ],
+    deps = [":test_erlang_app"],
 )
 
+broker_for_integration_suites()
+
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "proxy_protocol_SUITE",
-    additional_beam = [":test_utils"],
-    additional_hdrs = glob(["test/src/*.hrl"]),
-    erlc_opts = [
-        "-I",
-        "deps/rabbitmq_web_mqtt/test",
+    additional_beam = [
+        "test/src/rabbit_ws_test_util.beam",
+        "test/src/emqttc_serialiser.beam",
+        "test/src/rfc6455_client.beam",
     ],
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "system_SUITE",
-    additional_beam = [":test_utils"],
-    additional_hdrs = glob(["test/src/*.hrl"]),
+    additional_beam = [
+        "test/src/emqttc_parser.beam",
+        "test/src/emqttc_serialiser.beam",
+        "test/src/rfc6455_client.beam",
+    ],
 )
 
 assert_suites()

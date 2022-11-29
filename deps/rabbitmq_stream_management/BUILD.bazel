@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load("//:rabbitmq_home.bzl", "rabbitmq_home")
@@ -14,6 +15,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_stream_management"
@@ -34,17 +36,30 @@ DEPS = [
     "//deps/rabbit:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbitmq_management
+# gazelle:erlang_app_dep rabbitmq_stream
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    deps = DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbitmq_management:erlang_app",
+        "//deps/rabbitmq_stream:erlang_app",
+    ],
 )
 
 xref()
@@ -58,6 +73,23 @@ dialyze(
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
     plt = ":base_plt",
     warnings_as_errors = False,
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "rabbit_stream_connection_consumers_mgmt",
+        "rabbit_stream_connection_mgmt",
+        "rabbit_stream_connection_publishers_mgmt",
+        "rabbit_stream_connections_mgmt",
+        "rabbit_stream_connections_vhost_mgmt",
+        "rabbit_stream_consumers_mgmt",
+        "rabbit_stream_management_utils",
+        "rabbit_stream_mgmt_db",
+        "rabbit_stream_publishers_mgmt",
+    ],
+    deps = [":test_erlang_app"],
 )
 
 rabbitmq_home(
@@ -74,10 +106,7 @@ rabbitmq_run(
     home = ":broker-for-tests-home",
 )
 
-PACKAGE = "deps/rabbitmq_stream_management"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "http_SUITE",
 )
 

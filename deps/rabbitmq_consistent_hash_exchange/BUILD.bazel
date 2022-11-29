@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -14,6 +15,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_consistent_hash_exchange"
@@ -28,21 +30,29 @@ DEPS = [
     "//deps/rabbit_common:erlang_app",
 ]
 
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-]
+all_beam_files(name = "all_beam_files")
 
-all_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_test_beam_files()
+all_srcs(name = "all_srcs")
 
-all_srcs()
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = APP_DESCRIPTION,
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref(
@@ -61,10 +71,7 @@ dialyze(
 
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_consistent_hash_exchange"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_exchange_type_consistent_hash_SUITE",
     shard_count = 3,
 )
@@ -75,4 +82,14 @@ alias(
     name = "rabbitmq_consistent_hash_exchange",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "Elixir.RabbitMQ.CLI.Diagnostics.Commands.ConsistentHashExchangeRingStateCommand",
+        "rabbit_exchange_type_consistent_hash",
+    ],
+    deps = [":test_erlang_app"],
 )

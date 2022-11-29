@@ -1,13 +1,13 @@
 load("@rules_erlang//:erlang_bytecode2.bzl", "erlang_bytecode")
-load("@rules_erlang//:erlang_app.bzl", "erlang_app")
-load("//:rabbitmq.bzl", "BROKER_VERSION_REQUIREMENTS_ANY")
+load(
+    "//:rabbitmq.bzl",
+    "BROKER_VERSION_REQUIREMENTS_ANY",
+    "assert_suites",
+    "rabbitmq_app",
+)
 
 # gazelle:erlang_generate_beam_files_macro false
-
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-    "//deps/rabbit:erlang_app",
-]
+# gazelle:erlang_always_generate_test_beam_files
 
 erlang_bytecode(
     name = "ebin_my_plugin_beam",
@@ -16,25 +16,81 @@ erlang_bytecode(
     erlc_opts = "//:erlc_opts",
 )
 
+erlang_bytecode(
+    name = "test_my_plugin_beam",
+    testonly = True,
+    srcs = ["src/my_plugin.erl"],
+    outs = ["test/my_plugin.beam"],
+    erlc_opts = "//:test_erlc_opts",
+)
+
 filegroup(
     name = "beam_files",
     srcs = ["ebin/my_plugin.beam"],
 )
 
 filegroup(
+    name = "test_beam_files",
+    testonly = True,
+    srcs = ["test/my_plugin.beam"],
+)
+
+filegroup(
     name = "all_srcs",
+    srcs = [
+        ":public_and_private_hdrs",
+        ":srcs",
+    ],
+)
+
+filegroup(
+    name = "public_hdrs",
+    srcs = [],
+)
+
+filegroup(
+    name = "public_and_private_hdrs",
+    srcs = [
+        ":private_hdrs",
+        ":public_hdrs",
+    ],
+)
+
+filegroup(
+    name = "srcs",
     srcs = ["src/my_plugin.erl"],
 )
 
-erlang_app(
-    all_srcs = [":all_srcs"],
+filegroup(
+    name = "private_hdrs",
+    srcs = [],
+)
+
+filegroup(
+    name = "priv",
+    srcs = [],
+)
+
+filegroup(
+    name = "licenses",
+    srcs = [],
+)
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
+
+rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = "Plugin to test feature flags",
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_name = "my_plugin",
     app_version = "1.0.0",
     beam_files = [":beam_files"],
-    public_hdrs = [],
-    deps = DEPS,
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 alias(
@@ -42,3 +98,5 @@ alias(
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
 )
+
+assert_suites()

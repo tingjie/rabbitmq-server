@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze")
 load(
@@ -11,6 +12,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 py_binary(
@@ -67,23 +69,22 @@ APP_EXTRA_KEYS = """%% Hex.pm package informations.
     ]}
 """
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
 
 rabbitmq_app(
-    all_srcs = [":all_srcs"],
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = "Modules shared by rabbitmq-amqp1.0 and rabbitmq-amqp1.0-client",
     app_extra_keys = APP_EXTRA_KEYS,
     app_name = "amqp10_common",
-    public_hdrs = glob(
-        ["include/*.hrl"],
-        exclude = ["include/amqp10_framing.hrl"],
-    ) + [
-        "include/amqp10_framing.hrl",
-    ],
+    beam_files = [":beam_files"],
 )
 
 xref()
@@ -106,4 +107,16 @@ alias(
     name = "amqp10_common",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "amqp10_binary_generator",
+        "amqp10_binary_parser",
+        "amqp10_framing",
+        "amqp10_framing0",
+    ],
+    deps = [":test_erlang_app"],
 )

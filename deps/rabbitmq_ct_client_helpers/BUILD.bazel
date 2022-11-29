@@ -1,20 +1,31 @@
-load("@rules_erlang//:erlang_app.bzl", "erlang_app")
+load(
+    "//:rabbitmq.bzl",
+    "assert_suites",
+    "rabbitmq_app",
+)
 load(
     ":app.bzl",
     "all_beam_files",
     "all_srcs",
+    "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
-all_beam_files()
+# gazelle:erlang_always_generate_test_beam_files
 
-all_srcs()
+all_beam_files(name = "all_beam_files")
 
-erlang_app(
-    all_srcs = [":all_srcs"],
+all_test_beam_files(name = "all_test_beam_files")
+
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_name = "rabbitmq_ct_client_helpers",
-    app_version = "main",
     beam_files = [":beam_files"],
-    public_hdrs = [],
 )
 
 alias(
@@ -22,3 +33,5 @@ alias(
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
 )
+
+assert_suites()

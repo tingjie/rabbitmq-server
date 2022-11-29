@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -8,7 +9,6 @@ load(
     "rabbitmq_app",
     "rabbitmq_integration_suite",
     "rabbitmq_suite",
-    "rabbitmq_test_helper",
     "without",
 )
 load(
@@ -16,6 +16,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_auth_backend_oauth2"
@@ -31,22 +32,31 @@ DEPS = [
     "@jose//:erlang_app",
 ]
 
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-    "@base64url//:erlang_app",
-    "@cowlib//:erlang_app",
-]
+all_beam_files(name = "all_beam_files")
 
-all_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_test_beam_files()
+all_srcs(name = "all_srcs")
 
-all_srcs()
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep jose
+# gazelle:erlang_app_dep rabbit
+# gazelle:erlang_app_dep base64url
+# gazelle:erlang_app_dep cowlib
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "@base64url//:erlang_app",
+        "@cowlib//:erlang_app",
+        "@jose//:erlang_app",
+    ],
 )
 
 xref(
@@ -71,38 +81,24 @@ dialyze(
 
 broker_for_integration_suites()
 
-rabbitmq_test_helper(
-    name = "rabbit_auth_backend_oauth2_test_util",
-    srcs = [
-        "test/rabbit_auth_backend_oauth2_test_util.erl",
-    ],
-)
-
-PACKAGE = "deps/rabbitmq_auth_backend_oauth2"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "add_uaa_key_command_SUITE",
     size = "small",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "jwks_SUITE",
     additional_beam = [
-        ":rabbit_auth_backend_oauth2_test_util",
+        "test/rabbit_auth_backend_oauth2_test_util.beam",
+        "test/jwks_http_app.beam",
+        "test/jwks_http_handler.beam",
+        "test/jwks_http_sup.beam",
     ],
-    additional_srcs = [
-        "test/jwks_http_app.erl",
-        "test/jwks_http_handler.erl",
-        "test/jwks_http_sup.erl",
-    ],
-    runtime_deps = [
+    deps = [
         "@cowboy//:erlang_app",
     ],
 )
@@ -116,20 +112,18 @@ rabbitmq_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "system_SUITE",
     size = "medium",
     additional_beam = [
-        ":rabbit_auth_backend_oauth2_test_util",
+        "test/rabbit_auth_backend_oauth2_test_util.beam",
     ],
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "unit_SUITE",
     size = "medium",
     additional_beam = [
-        ":rabbit_auth_backend_oauth2_test_util",
+        "test/rabbit_auth_backend_oauth2_test_util.beam",
     ],
 )
 
@@ -144,4 +138,30 @@ alias(
     name = "rabbitmq_auth_backend_oauth2",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [
+        ":test_jwks_http_app_beam",
+        ":test_jwks_http_handler_beam",
+        ":test_jwks_http_sup_beam",
+        ":test_rabbit_auth_backend_oauth2_test_util_beam",
+    ],
+    eunit_mods = [
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.AddUaaKeyCommand",
+        "jwks_http_app",
+        "jwks_http_handler",
+        "jwks_http_sup",
+        "rabbit_auth_backend_oauth2",
+        "rabbit_auth_backend_oauth2_app",
+        "rabbit_auth_backend_oauth2_test_util",
+        "rabbit_oauth2_scope",
+        "uaa_jwks",
+        "uaa_jwt",
+        "uaa_jwt_jwk",
+        "uaa_jwt_jwt",
+        "wildcard",
+    ],
+    deps = [":test_erlang_app"],
 )

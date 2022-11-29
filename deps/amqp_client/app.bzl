@@ -1,7 +1,7 @@
 load("@rules_erlang//:erlang_bytecode2.bzl", "erlang_bytecode")
 load("@rules_erlang//:filegroup.bzl", "filegroup")
 
-def all_beam_files():
+def all_beam_files(name = "all_beam_files"):
     filegroup(
         name = "beam_files",
         srcs = ["ebin/amqp_auth_mechanisms.beam", "ebin/amqp_channel.beam", "ebin/amqp_channel_sup.beam", "ebin/amqp_channel_sup_sup.beam", "ebin/amqp_channels_manager.beam", "ebin/amqp_client.beam", "ebin/amqp_connection.beam", "ebin/amqp_connection_sup.beam", "ebin/amqp_connection_type_sup.beam", "ebin/amqp_direct_connection.beam", "ebin/amqp_direct_consumer.beam", "ebin/amqp_gen_connection.beam", "ebin/amqp_gen_consumer.beam", "ebin/amqp_main_reader.beam", "ebin/amqp_network_connection.beam", "ebin/amqp_rpc_client.beam", "ebin/amqp_rpc_server.beam", "ebin/amqp_selective_consumer.beam", "ebin/amqp_ssl.beam", "ebin/amqp_sup.beam", "ebin/amqp_uri.beam", "ebin/amqp_util.beam", "ebin/rabbit_routing_util.beam", "ebin/uri_parser.beam"],
@@ -199,7 +199,7 @@ def all_beam_files():
         erlc_opts = "//:erlc_opts",
     )
 
-def all_test_beam_files():
+def all_test_beam_files(name = "all_test_beam_files"):
     erlang_bytecode(
         name = "test_amqp_auth_mechanisms_beam",
         testonly = True,
@@ -422,8 +422,53 @@ def all_test_beam_files():
         erlc_opts = "//:test_erlc_opts",
     )
 
-def all_srcs():
+def all_srcs(name = "all_srcs"):
     filegroup(
         name = "all_srcs",
-        srcs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl", "include/amqp_gen_consumer_spec.hrl", "include/rabbit_routing_prefixes.hrl", "src/amqp_auth_mechanisms.erl", "src/amqp_channel.erl", "src/amqp_channel_sup.erl", "src/amqp_channel_sup_sup.erl", "src/amqp_channels_manager.erl", "src/amqp_client.erl", "src/amqp_connection.erl", "src/amqp_connection_sup.erl", "src/amqp_connection_type_sup.erl", "src/amqp_direct_connection.erl", "src/amqp_direct_consumer.erl", "src/amqp_gen_connection.erl", "src/amqp_gen_consumer.erl", "src/amqp_main_reader.erl", "src/amqp_network_connection.erl", "src/amqp_rpc_client.erl", "src/amqp_rpc_server.erl", "src/amqp_selective_consumer.erl", "src/amqp_ssl.erl", "src/amqp_sup.erl", "src/amqp_uri.erl", "src/amqp_util.erl", "src/rabbit_routing_util.erl", "src/uri_parser.erl"],
+        srcs = [":public_and_private_hdrs", ":srcs"],
+    )
+    filegroup(
+        name = "public_and_private_hdrs",
+        srcs = [":private_hdrs", ":public_hdrs"],
+    )
+    filegroup(
+        name = "licenses",
+        srcs = ["LICENSE", "LICENSE-MPL-RabbitMQ"],
+    )
+    filegroup(
+        name = "priv",
+        srcs = [],
+    )
+
+    filegroup(
+        name = "srcs",
+        srcs = ["src/amqp_auth_mechanisms.erl", "src/amqp_channel.erl", "src/amqp_channel_sup.erl", "src/amqp_channel_sup_sup.erl", "src/amqp_channels_manager.erl", "src/amqp_client.erl", "src/amqp_connection.erl", "src/amqp_connection_sup.erl", "src/amqp_connection_type_sup.erl", "src/amqp_direct_connection.erl", "src/amqp_direct_consumer.erl", "src/amqp_gen_connection.erl", "src/amqp_gen_consumer.erl", "src/amqp_main_reader.erl", "src/amqp_network_connection.erl", "src/amqp_rpc_client.erl", "src/amqp_rpc_server.erl", "src/amqp_selective_consumer.erl", "src/amqp_ssl.erl", "src/amqp_sup.erl", "src/amqp_uri.erl", "src/amqp_util.erl", "src/rabbit_routing_util.erl", "src/uri_parser.erl"],
+    )
+    filegroup(
+        name = "public_hdrs",
+        srcs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl", "include/amqp_gen_consumer_spec.hrl", "include/rabbit_routing_prefixes.hrl"],
+    )
+    filegroup(
+        name = "private_hdrs",
+        srcs = [],
+    )
+
+def test_suite_beam_files(name = "test_suite_beam_files"):
+    erlang_bytecode(
+        name = "system_SUITE_beam_files",
+        testonly = True,
+        srcs = ["test/system_SUITE.erl"],
+        outs = ["test/system_SUITE.beam"],
+        hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        erlc_opts = "//:test_erlc_opts",
+        deps = ["//deps/rabbit_common:erlang_app"],
+    )
+    erlang_bytecode(
+        name = "unit_SUITE_beam_files",
+        testonly = True,
+        srcs = ["test/unit_SUITE.erl"],
+        outs = ["test/unit_SUITE.beam"],
+        hdrs = ["include/amqp_client.hrl"],
+        erlc_opts = "//:test_erlc_opts",
+        deps = ["//deps/rabbit_common:erlang_app"],
     )

@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -13,6 +14,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "amqp10_client"
@@ -55,20 +57,38 @@ DEPS = [
     "//deps/amqp10_common:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app ssl
+# gazelle:erlang_app_extra_app inets
+# gazelle:erlang_app_extra_app crypto
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep amqp10_common
 
 rabbitmq_app(
-    all_srcs = [":all_srcs"],
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_extra_keys = APP_EXTRA_KEYS,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    extra_apps = EXTRA_APPS,
-    deps = DEPS,
+    beam_files = [":beam_files"],
+    extra_apps = [
+        "crypto",
+        "inets",
+        "ssl",
+    ],
+    deps = [
+        "//deps/amqp10_common:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref()
@@ -88,31 +108,25 @@ broker_for_integration_suites(
     extra_plugins = ["//deps/rabbitmq_amqp1_0:erlang_app"],
 )
 
-PACKAGE = "deps/amqp10_client"
-
 rabbitmq_suite(
     name = "msg_SUITE",
     deps = DEPS,
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "system_SUITE",
     size = "medium",
-    additional_hdrs = [
-        "src/amqp10_client.hrl",
-    ],
-    additional_srcs = [
-        "test/activemq_ct_helpers.erl",
-        "test/mock_server.erl",
+    additional_beam = [
+        "test/activemq_ct_helpers.beam",
+        "test/mock_server.beam",
     ],
     data = [
         "@activemq//:exec_dir",
     ],
-    erlc_opts = [
-        "-I",
-        "deps/amqp10_client",
-    ],
+    # erlc_opts = [
+    #     "-I",
+    #     "deps/amqp10_client",
+    # ],
     test_env = {
         "ACTIVEMQ": "$TEST_SRCDIR/$TEST_WORKSPACE/external/activemq/bin/activemq",
     },
@@ -125,4 +139,28 @@ alias(
     name = "amqp10_client",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [
+        ":test_activemq_ct_helpers_beam",
+        ":test_mock_server_beam",
+    ],
+    eunit_mods = [
+        "activemq_ct_helpers",
+        "amqp10_client",
+        "amqp10_client_app",
+        "amqp10_client_connection",
+        "amqp10_client_connection_sup",
+        "amqp10_client_connections_sup",
+        "amqp10_client_frame_reader",
+        "amqp10_client_session",
+        "amqp10_client_sessions_sup",
+        "amqp10_client_sup",
+        "amqp10_client_types",
+        "amqp10_msg",
+        "mock_server",
+    ],
+    deps = [":test_erlang_app"],
 )

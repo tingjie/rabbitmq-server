@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load("//:rabbitmq_home.bzl", "rabbitmq_home")
@@ -16,6 +17,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_shovel_management"
@@ -37,17 +39,32 @@ RUNTIME_DEPS = [
     "//deps/rabbitmq_shovel:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbitmq_management
+# gazelle:erlang_app_dep rabbit
+# gazelle:erlang_app_dep rabbitmq_shovel
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+        "//deps/rabbitmq_management:erlang_app",
+        "//deps/rabbitmq_shovel:erlang_app",
+    ],
 )
 
 xref()
@@ -60,6 +77,16 @@ plt(
 dialyze(
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
     plt = ":base_plt",
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "rabbit_shovel_mgmt",
+        "rabbit_shovel_mgmt_util",
+    ],
+    deps = [":test_erlang_app"],
 )
 
 rabbitmq_home(
@@ -76,21 +103,16 @@ rabbitmq_run(
     home = ":broker-for-tests-home",
 )
 
-PACKAGE = "deps/rabbitmq_shovel_management"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "http_SUITE",
 )
 
 rabbitmq_suite(
     name = "rabbit_shovel_mgmt_SUITE",
-    runtime_deps = [
-        "@meck//:erlang_app",
-    ],
     deps = [
         "//deps/rabbit_common:erlang_app",
         "//deps/rabbitmq_management_agent:erlang_app",
+        "@meck//:erlang_app",
     ],
 )
 

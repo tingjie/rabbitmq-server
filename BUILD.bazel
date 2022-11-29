@@ -48,8 +48,10 @@ string_flag(
 # gazelle:exclude deps/*/priv
 # gazelle:erlang_apps_dirs deps
 # gazelle:erlang_skip_rules test_erlang_app
+# gazelle:erlang_skip_rules ct_test
 # gazelle:erlang_generate_beam_files_macro
-# gazelle:map_kind erlang_app rabbitmq_app //rabbitmq.bzl
+# gazelle:map_kind erlang_app rabbitmq_app //:rabbitmq.bzl
+# gazelle:map_kind assert_suites2 assert_suites //:rabbitmq.bzl
 
 # gazelle:erlang_behaviour_source_lib gen_server2:rabbit_common
 # gazelle:erlang_behaviour_source_lib rabbit_registry_class:rabbit_common

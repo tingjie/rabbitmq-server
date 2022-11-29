@@ -1,8 +1,4 @@
 load(
-    "@rules_erlang//:erlang_bytecode.bzl",
-    "erlang_bytecode",
-)
-load(
     "@rules_erlang//:erlang_app.bzl",
     "DEFAULT_ERLC_OPTS",
     "DEFAULT_TEST_ERLC_OPTS",
@@ -12,8 +8,7 @@ load(
 load(
     "@rules_erlang//:ct.bzl",
     "assert_suites2",
-    "ct_suite",
-    "ct_suite_variant",
+    "ct_test",
 )
 load("//:rabbitmq_home.bzl", "rabbitmq_home")
 load("//:rabbitmq_run.bzl", "rabbitmq_run")
@@ -106,6 +101,7 @@ def with_test_versions(deps):
     return r
 
 def rabbitmq_app(
+        name = "",
         app_name = "",
         app_version = APP_VERSION,
         app_description = "",
@@ -116,15 +112,18 @@ def rabbitmq_app(
         extra_apps = [],
         extra_priv = [],
         beam_files = [":beam_files"],
-        public_hdrs = None,
-        all_srcs = None,
+        hdrs = None,
+        srcs = [":all_srcs"],
         deps = []):
+    if name != "" and name != "erlang_app":
+        fail("name attr exists for compatibility only, and must be set to '\"erlang_app\"'")
     if beam_files != [":beam_files"]:
         fail("beam_files attr exists for compatibility only, and must be set to '[\":beam_files\"]'")
-    if public_hdrs == None:
-        public_hdrs = native.glob(["include/*.hrl"])
+    if hdrs != None and hdrs != [":public_hdrs"]:
+        fail("hdrs attr exists for compatibility only, and must be set to '[\":public_hdrs\"]'")
 
     erlang_app(
+        name = "erlang_app",
         app_name = app_name,
         app_version = app_version,
         app_description = app_description,
@@ -135,12 +134,13 @@ def rabbitmq_app(
         extra_apps = extra_apps,
         extra_priv = extra_priv,
         beam_files = beam_files,
-        public_hdrs = public_hdrs,
-        all_srcs = all_srcs,
+        hdrs = [":public_hdrs"] if hdrs != None else [],
+        srcs = srcs,
         deps = deps,
     )
 
     test_erlang_app(
+        name = "test_erlang_app",
         app_name = app_name,
         app_version = app_version,
         app_description = app_description,
@@ -151,21 +151,35 @@ def rabbitmq_app(
         extra_apps = extra_apps,
         extra_priv = extra_priv,
         beam_files = [":test_beam_files"],
-        public_hdrs = public_hdrs + native.glob(["src/*.hrl"], exclude = public_hdrs),
-        all_srcs = all_srcs,
+        hdrs = [":public_and_private_hdrs"] if hdrs != None else [],
+        srcs = srcs,
         deps = with_test_versions(deps),
     )
 
-def rabbitmq_suite(erlc_opts = [], test_env = {}, **kwargs):
-    ct_suite(
-        erlc_opts = RABBITMQ_TEST_ERLC_OPTS + erlc_opts,
+def rabbitmq_suite(
+        name = None,
+        suite_name = None,
+        data = [],
+        additional_beam = [],
+        test_env = {},
+        deps = [],
+        **kwargs):
+    # suite_name exists in the underying ct_test macro, but we don't
+    # want to use the arg in rabbitmq-server, for the sake of clarity
+    if suite_name != None:
+        fail("rabbitmq_suite cannot be called with a suite_name attr")
+    ct_test(
+        name = name,
+        compiled_suites = [":{}_beam_files".format(name)] + additional_beam,
+        data = native.glob(["test/{}_data/**/*".format(name)]) + data,
         test_env = dict({
             "RABBITMQ_CT_SKIP_AS_ERROR": "true",
             "LANG": "C.UTF-8",
         }.items() + test_env.items()),
+        deps = [":test_erlang_app"] + deps,
         **kwargs
     )
-    return kwargs["name"]
+    return name
 
 def broker_for_integration_suites(extra_plugins = []):
     rabbitmq_home(
@@ -183,47 +197,40 @@ def broker_for_integration_suites(extra_plugins = []):
         testonly = True,
     )
 
-def rabbitmq_test_helper(
-        erlc_opts = RABBITMQ_TEST_ERLC_OPTS,
-        **kwargs):
-    erlang_bytecode(
-        testonly = True,
-        dest = "test",
-        erlc_opts = erlc_opts,
-        **kwargs
-    )
-
 def rabbitmq_integration_suite(
-        package,
         name = None,
+        suite_name = None,
         tags = [],
         data = [],
         erlc_opts = [],
-        additional_hdrs = [],
-        additional_srcs = [],
+        additional_beam = [],
         test_env = {},
         tools = [],
         deps = [],
         runtime_deps = [],
         **kwargs):
-    extra_deps = [
+    # suite_name exists in the underying ct_test macro, but we don't
+    # want to use the arg in rabbitmq-server, for the sake of clarity
+    if suite_name != None:
+        fail("rabbitmq_integration_suite cannot be called with a suite_name attr")
+    assumed_deps = [
+        ":test_erlang_app",
         "//deps/rabbit_common:erlang_app",
         "//deps/rabbitmq_ct_helpers:erlang_app",
+        "//bazel/elixir:erlang_app",
+        "//deps/rabbitmq_cli:rabbitmqctl",
+        "//deps/rabbitmq_ct_client_helpers:erlang_app",
     ]
+    package = native.package_name()
     if package != "deps/amqp_client":
-        extra_deps.append("//deps/amqp_client:erlang_app")
+        assumed_deps.append("//deps/amqp_client:erlang_app")
 
-    ct_suite(
+    ct_test(
         name = name,
         suite_name = name,
+        compiled_suites = [":{}_beam_files".format(name)] + additional_beam,
         tags = tags + [STARTS_BACKGROUND_BROKER_TAG],
-        erlc_opts = select({
-            "@rules_erlang//:debug_build": without("+deterministic", RABBITMQ_TEST_ERLC_OPTS + erlc_opts),
-            "//conditions:default": RABBITMQ_TEST_ERLC_OPTS + erlc_opts,
-        }),
-        additional_hdrs = additional_hdrs,
-        additional_srcs = additional_srcs,
-        data = data,
+        data = native.glob(["test/{}_data/**/*".format(name)]) + data,
         test_env = dict({
             "SKIP_MAKE_TEST_DIST": "true",
             "RABBITMQ_CT_SKIP_AS_ERROR": "true",
@@ -236,20 +243,16 @@ def rabbitmq_integration_suite(
         tools = [
             ":rabbitmq-for-tests-run",
         ] + tools,
-        runtime_deps = [
-            "//bazel/elixir:erlang_app",
-            "//deps/rabbitmq_cli:rabbitmqctl",
-            "//deps/rabbitmq_ct_client_helpers:erlang_app",
-        ] + runtime_deps,
-        deps = extra_deps + deps,
+        deps = assumed_deps + deps + runtime_deps,
         **kwargs
     )
 
-    ct_suite_variant(
+    ct_test(
         name = name + "-mixed",
         suite_name = name,
+        compiled_suites = [":{}_beam_files".format(name)] + additional_beam,
         tags = tags + [STARTS_BACKGROUND_BROKER_TAG, MIXED_VERSION_CLUSTER_TAG],
-        data = data,
+        data = native.glob(["test/{}_data/**/*".format(name)]) + data,
         test_env = dict({
             "SKIP_MAKE_TEST_DIST": "true",
             # The feature flags listed below are required. This means they must
@@ -268,19 +271,14 @@ def rabbitmq_integration_suite(
             "RABBITMQCTL": "$TEST_SRCDIR/$TEST_WORKSPACE/{}/broker-for-tests-home/sbin/rabbitmqctl".format(package),
             "RABBITMQ_PLUGINS": "$TEST_SRCDIR/$TEST_WORKSPACE/{}/broker-for-tests-home/sbin/rabbitmq-plugins".format(package),
             "RABBITMQ_QUEUES": "$TEST_SRCDIR/$TEST_WORKSPACE/{}/broker-for-tests-home/sbin/rabbitmq-queues".format(package),
-            "RABBITMQ_RUN_SECONDARY": "$TEST_SRCDIR/.secondary_umbrella.rabbitmq-server-generic-unix-3.11/rabbitmq-run",
+            "RABBITMQ_RUN_SECONDARY": "$TEST_SRCDIR/_main~secondary_umbrella~rabbitmq-server-generic-unix-3.11/rabbitmq-run",
             "LANG": "C.UTF-8",
         }.items() + test_env.items()),
         tools = [
             ":rabbitmq-for-tests-run",
             "@rabbitmq-server-generic-unix-3.11//:rabbitmq-run",
         ] + tools,
-        runtime_deps = [
-            "//bazel/elixir:erlang_app",
-            "//deps/rabbitmq_cli:rabbitmqctl",
-            "//deps/rabbitmq_ct_client_helpers:erlang_app",
-        ] + runtime_deps,
-        deps = extra_deps + deps,
+        deps = assumed_deps + deps + runtime_deps,
         **kwargs
     )
 

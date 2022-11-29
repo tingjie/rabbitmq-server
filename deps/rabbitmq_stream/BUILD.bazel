@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -14,6 +15,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_stream"
@@ -49,18 +51,30 @@ DEPS = [
     "//deps/rabbit:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbitmq_stream_common
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = APP_DESCRIPTION,
     app_env = APP_ENV,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    deps = DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbitmq_stream_common:erlang_app",
+    ],
 )
 
 xref(
@@ -83,12 +97,32 @@ dialyze(
     warnings_as_errors = False,
 )
 
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.AddSuperStreamCommand",
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.DeleteSuperStreamCommand",
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListStreamConnectionsCommand",
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListStreamConsumerGroupsCommand",
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListStreamConsumersCommand",
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListStreamGroupConsumersCommand",
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListStreamPublishersCommand",
+        "rabbit_stream",
+        "rabbit_stream_connection_sup",
+        "rabbit_stream_manager",
+        "rabbit_stream_metrics",
+        "rabbit_stream_metrics_gc",
+        "rabbit_stream_reader",
+        "rabbit_stream_sup",
+        "rabbit_stream_utils",
+    ],
+    deps = [":test_erlang_app"],
+)
+
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_stream"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "commands_SUITE",
     additional_beam = [
         ":rabbit_stream_SUITE_beam_files",
@@ -101,22 +135,18 @@ rabbitmq_integration_suite(
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_stream_utils_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_stream_manager_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_stream_SUITE",
     shard_count = 3,
     deps = [

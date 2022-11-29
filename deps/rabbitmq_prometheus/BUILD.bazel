@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -13,6 +14,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_prometheus"
@@ -39,16 +41,33 @@ RUNTIME_DEPS = [
     "@accept//:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep prometheus
+# gazelle:erlang_app_dep rabbit
+# gazelle:erlang_app_dep rabbitmq_management_agent
+# gazelle:erlang_app_dep rabbitmq_web_dispatch
+# gazelle:erlang_app_dep accept
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbitmq_management_agent:erlang_app",
+        "//deps/rabbitmq_web_dispatch:erlang_app",
+        "@accept//:erlang_app",
+        "@prometheus//:erlang_app",
+    ],
 )
 
 xref()
@@ -64,18 +83,29 @@ dialyze(
     warnings_as_errors = False,
 )
 
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "prometheus_process_collector",
+        "prometheus_rabbitmq_alarm_metrics_collector",
+        "prometheus_rabbitmq_core_metrics_collector",
+        "prometheus_rabbitmq_global_metrics_collector",
+        "rabbit_prometheus_app",
+        "rabbit_prometheus_dispatcher",
+        "rabbit_prometheus_handler",
+    ],
+    deps = [":test_erlang_app"],
+)
+
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_prometheus"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
     size = "small",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_prometheus_http_SUITE",
     size = "medium",
     flaky = True,

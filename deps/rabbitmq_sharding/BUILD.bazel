@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -14,6 +15,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_sharding"
@@ -25,17 +27,28 @@ DEPS = [
     "//deps/rabbit_common:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_name = APP_NAME,
-    deps = DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref()
@@ -51,17 +64,27 @@ dialyze(
     warnings_as_errors = False,
 )
 
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "rabbit_sharding_exchange_decorator",
+        "rabbit_sharding_exchange_type_modulus_hash",
+        "rabbit_sharding_interceptor",
+        "rabbit_sharding_policy_validator",
+        "rabbit_sharding_shard",
+        "rabbit_sharding_util",
+    ],
+    deps = [":test_erlang_app"],
+)
+
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_sharding"
-
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_hash_exchange_SUITE",
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "rabbit_sharding_SUITE",
     deps = [
         "//deps/rabbit:erlang_app",

@@ -1,25 +1,36 @@
-load("@rules_erlang//:erlang_app.bzl", "erlang_app")
-load("@rules_erlang//:ct.bzl", "assert_suites2")
+load("//:rabbitmq.bzl", "assert_suites", "rabbitmq_app")
 load(
     ":app.bzl",
     "all_beam_files",
     "all_srcs",
+    "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
-all_beam_files()
+# gazelle:erlang_always_generate_test_beam_files
 
-all_srcs()
+all_beam_files(name = "all_beam_files")
 
-erlang_app(
-    all_srcs = [":all_srcs"],
+all_srcs(name = "all_srcs")
+
+all_test_beam_files(name = "all_test_beam_files")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app ssl
+
+# gazelle:erlang_app_dep cowboy
+# gazelle:erlang_app_dep thoas
+
+rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = "Trust store HTTP server",
     app_module = "trust_store_http_app",
     app_name = "trust_store_http",
     app_version = "1.0.0",
     beam_files = [":beam_files"],
-    extra_apps = [
-        "ssl",
-    ],
+    extra_apps = ["ssl"],
     deps = [
         "@cowboy//:erlang_app",
         "@thoas//:erlang_app",
@@ -32,4 +43,4 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-assert_suites2()
+assert_suites()

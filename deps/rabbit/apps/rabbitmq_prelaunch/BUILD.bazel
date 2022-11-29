@@ -1,11 +1,19 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
-load("//:rabbitmq.bzl", "APP_VERSION", "rabbitmq_app", "rabbitmq_suite")
+load(
+    "//:rabbitmq.bzl",
+    "APP_VERSION",
+    "assert_suites",
+    "rabbitmq_app",
+    "rabbitmq_suite",
+)
 load(
     ":app.bzl",
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_NAME = "rabbitmq_prelaunch"
@@ -23,20 +31,30 @@ DEPS = [
     "//deps/rabbit_common:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
 
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep cuttlefish
+# gazelle:erlang_app_dep thoas
 rabbitmq_app(
-    all_srcs = [":all_srcs"],
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_module = APP_MODULE,
     app_name = APP_NAME,
     app_version = APP_VERSION,
     beam_files = [":beam_files"],
-    deps = DEPS + RUNTIME_DEPS,
+    deps = [
+        "//deps/rabbit_common:erlang_app",
+        "@cuttlefish//:erlang_app",
+        "@thoas//:erlang_app",
+    ],
 )
 
 xref(
@@ -56,18 +74,45 @@ dialyze(
     warnings_as_errors = False,
 )
 
-suites = [
-    rabbitmq_suite(
-        name = "rabbit_logger_std_h_SUITE",
-    ),
-    rabbitmq_suite(
-        name = "rabbit_prelaunch_file_SUITE",
-        size = "small",
-    ),
-]
+rabbitmq_suite(
+    name = "rabbit_logger_std_h_SUITE",
+)
+
+rabbitmq_suite(
+    name = "rabbit_prelaunch_file_SUITE",
+    size = "small",
+)
+
+assert_suites()
 
 alias(
     name = "rabbitmq_prelaunch",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "rabbit_boot_state",
+        "rabbit_boot_state_sup",
+        "rabbit_boot_state_systemd",
+        "rabbit_boot_state_xterm_titlebar",
+        "rabbit_logger_fmt_helpers",
+        "rabbit_logger_json_fmt",
+        "rabbit_logger_std_h",
+        "rabbit_logger_text_fmt",
+        "rabbit_prelaunch",
+        "rabbit_prelaunch_app",
+        "rabbit_prelaunch_conf",
+        "rabbit_prelaunch_dist",
+        "rabbit_prelaunch_early_logging",
+        "rabbit_prelaunch_erlang_compat",
+        "rabbit_prelaunch_errors",
+        "rabbit_prelaunch_file",
+        "rabbit_prelaunch_sighandler",
+        "rabbit_prelaunch_sup",
+    ],
+    deps = [":test_erlang_app"],
 )

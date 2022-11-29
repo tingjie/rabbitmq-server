@@ -1,7 +1,7 @@
 load("@rules_erlang//:erlang_bytecode2.bzl", "erlang_bytecode")
 load("@rules_erlang//:filegroup.bzl", "filegroup")
 
-def all_beam_files():
+def all_beam_files(name = "all_beam_files"):
     filegroup(
         name = "beam_files",
         srcs = ["ebin/cth_log_redirect_any_domains.beam", "ebin/rabbit_control_helper.beam", "ebin/rabbit_ct_broker_helpers.beam", "ebin/rabbit_ct_config_schema.beam", "ebin/rabbit_ct_helpers.beam", "ebin/rabbit_ct_proper_helpers.beam", "ebin/rabbit_ct_vm_helpers.beam", "ebin/rabbit_mgmt_test_util.beam"],
@@ -58,7 +58,7 @@ def all_beam_files():
         erlc_opts = "//:erlc_opts",
     )
 
-def all_test_beam_files():
+def all_test_beam_files(name = "all_test_beam_files"):
     filegroup(
         name = "test_beam_files",
         testonly = True,
@@ -124,8 +124,41 @@ def all_test_beam_files():
         erlc_opts = "//:test_erlc_opts",
     )
 
-def all_srcs():
+def all_srcs(name = "all_srcs"):
     filegroup(
         name = "all_srcs",
-        srcs = ["include/rabbit_assert.hrl", "include/rabbit_mgmt_test.hrl", "src/cth_log_redirect_any_domains.erl", "src/rabbit_control_helper.erl", "src/rabbit_ct_broker_helpers.erl", "src/rabbit_ct_config_schema.erl", "src/rabbit_ct_helpers.erl", "src/rabbit_ct_proper_helpers.erl", "src/rabbit_ct_vm_helpers.erl", "src/rabbit_mgmt_test_util.erl"],
+        srcs = [":public_and_private_hdrs", ":srcs"],
+    )
+    filegroup(
+        name = "public_and_private_hdrs",
+        srcs = [":private_hdrs", ":public_hdrs"],
+    )
+    filegroup(
+        name = "licenses",
+        srcs = ["LICENSE", "LICENSE-APACHE2", "LICENSE-MPL-RabbitMQ"],
+    )
+    filegroup(
+        name = "priv",
+        srcs = [],
+    )
+    filegroup(
+        name = "srcs",
+        srcs = ["src/cth_log_redirect_any_domains.erl", "src/rabbit_control_helper.erl", "src/rabbit_ct_broker_helpers.erl", "src/rabbit_ct_config_schema.erl", "src/rabbit_ct_helpers.erl", "src/rabbit_ct_proper_helpers.erl", "src/rabbit_ct_vm_helpers.erl", "src/rabbit_mgmt_test_util.erl"],
+    )
+    filegroup(
+        name = "public_hdrs",
+        srcs = ["include/rabbit_assert.hrl", "include/rabbit_mgmt_test.hrl"],
+    )
+    filegroup(
+        name = "private_hdrs",
+        srcs = [],
+    )
+
+def test_suite_beam_files(name = "test_suite_beam_files"):
+    erlang_bytecode(
+        name = "terraform_SUITE_beam_files",
+        testonly = True,
+        srcs = ["test/terraform_SUITE.erl"],
+        outs = ["test/terraform_SUITE.beam"],
+        erlc_opts = "//:test_erlc_opts",
     )

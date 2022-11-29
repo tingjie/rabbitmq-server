@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load("//:rabbitmq_home.bzl", "rabbitmq_home")
@@ -14,6 +15,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_ENV = """[
@@ -50,14 +52,22 @@ DEPS = [
     "//deps/rabbit_common:erlang_app",
 ]
 
-all_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_test_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_srcs()
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app xmerl
+
+# gazelle:erlang_app_dep rabbit_common
 
 rabbitmq_app(
-    all_srcs = [":all_srcs"],
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = "RabbitMQ AMQP Client",
     app_env = APP_ENV,
     app_extra_keys = APP_EXTRA_KEYS,
@@ -66,10 +76,13 @@ rabbitmq_app(
     app_registered = [
         "amqp_sup",
     ],
-    extra_apps = EXTRA_APPS,
-    deps = DEPS,
+    beam_files = [":beam_files"],
+    extra_apps = ["xmerl"],
+    deps = ["//deps/rabbit_common:erlang_app"],
 )
 
+# TODO: expose the necessary info from the :erlang_app rule, such that defaults for
+#       xref can be better inferred, and the contstants above become unnecessary
 xref()
 
 plt(
@@ -97,10 +110,9 @@ rabbitmq_run(
 )
 
 rabbitmq_integration_suite(
-    "deps/amqp_client",
     name = "system_SUITE",
     size = "large",
-    runtime_deps = [
+    deps = [
         "@meck//:erlang_app",
     ],
 )
@@ -108,10 +120,8 @@ rabbitmq_integration_suite(
 rabbitmq_suite(
     name = "unit_SUITE",
     size = "small",
-    runtime_deps = [
-        "//deps/rabbit:erlang_app",
-    ],
     deps = [
+        "//deps/rabbit:erlang_app",
         "//deps/rabbit_common:erlang_app",
     ],
 )
@@ -122,4 +132,36 @@ alias(
     name = "amqp_client",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "amqp_auth_mechanisms",
+        "amqp_channel",
+        "amqp_channel_sup",
+        "amqp_channel_sup_sup",
+        "amqp_channels_manager",
+        "amqp_client",
+        "amqp_connection",
+        "amqp_connection_sup",
+        "amqp_connection_type_sup",
+        "amqp_direct_connection",
+        "amqp_direct_consumer",
+        "amqp_gen_connection",
+        "amqp_gen_consumer",
+        "amqp_main_reader",
+        "amqp_network_connection",
+        "amqp_rpc_client",
+        "amqp_rpc_server",
+        "amqp_selective_consumer",
+        "amqp_ssl",
+        "amqp_sup",
+        "amqp_uri",
+        "amqp_util",
+        "rabbit_routing_util",
+        "uri_parser",
+    ],
+    deps = [":test_erlang_app"],
 )

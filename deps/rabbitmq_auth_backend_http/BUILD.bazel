@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -15,6 +16,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 APP_ENV = """[
@@ -39,25 +41,32 @@ DEPS = [
     "//deps/rabbit_common:erlang_app",
 ]
 
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-    "//deps/amqp_client:erlang_app",
-]
+all_beam_files(name = "all_beam_files")
 
-all_beam_files()
+all_test_beam_files(name = "all_test_beam_files")
 
-all_test_beam_files()
+all_srcs(name = "all_srcs")
 
-all_srcs()
+test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_dep rabbit_common
+# gazelle:erlang_app_dep rabbit
+# gazelle:erlang_app_dep amqp_client
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
     app_description = APP_DESCRIPTION,
     app_env = APP_ENV,
     app_extra_keys = BROKER_VERSION_REQUIREMENTS_ANY,
     app_module = APP_MODULE,
     app_name = APP_NAME,
-    extra_apps = EXTRA_APPS,
-    deps = DEPS + RUNTIME_DEPS,
+    beam_files = [":beam_files"],
+    deps = [
+        "//deps/amqp_client:erlang_app",
+        "//deps/rabbit:erlang_app",
+        "//deps/rabbit_common:erlang_app",
+    ],
 )
 
 xref()
@@ -77,24 +86,19 @@ dialyze(
 
 broker_for_integration_suites()
 
-PACKAGE = "deps/rabbitmq_auth_backend_http"
-
 rabbitmq_suite(
     name = "auth_SUITE",
     size = "small",
-    additional_srcs = [
-        "test/auth_http_mock.erl",
-    ],
-    runtime_deps = [
-        "@cowboy//:erlang_app",
+    additional_beam = [
+        "test/auth_http_mock.beam",
     ],
     deps = [
         "//deps/rabbit_common:erlang_app",
+        "@cowboy//:erlang_app",
     ],
 )
 
 rabbitmq_integration_suite(
-    PACKAGE,
     name = "config_schema_SUITE",
 )
 
@@ -109,4 +113,15 @@ alias(
     name = "rabbitmq_auth_backend_http",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [":test_auth_http_mock_beam"],
+    eunit_mods = [
+        "auth_http_mock",
+        "rabbit_auth_backend_http",
+        "rabbit_auth_backend_http_app",
+    ],
+    deps = [":test_erlang_app"],
 )

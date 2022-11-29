@@ -1,3 +1,4 @@
+load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
@@ -11,6 +12,7 @@ load(
     "all_beam_files",
     "all_srcs",
     "all_test_beam_files",
+    "test_suite_beam_files",
 )
 
 py_binary(
@@ -89,22 +91,43 @@ EXTRA_APPS = [
     "xmerl",
 ]
 
-all_beam_files()
+# gazelle:erlang_app_extra_app compiler
+# gazelle:erlang_app_extra_app crypto
+# gazelle:erlang_app_extra_app public_key
+# gazelle:erlang_app_extra_app sasl
+# gazelle:erlang_app_extra_app ssl
+# gazelle:erlang_app_extra_app syntax_tools
+# gazelle:erlang_app_extra_app tools
+# gazelle:erlang_app_extra_app xmerl
+# gazelle:erlang_app_dep credentials_obfuscation
+# gazelle:erlang_app_dep recon
+# gazelle:erlang_app_dep thoas
 
-all_test_beam_files()
+all_beam_files(name = "all_beam_files")
 
-all_srcs()
+all_test_beam_files(name = "all_test_beam_files")
+
+all_srcs(name = "all_srcs")
+
+test_suite_beam_files(name = "test_suite_beam_files")
 
 rabbitmq_app(
+    name = "erlang_app",
+    srcs = [":all_srcs"],
+    hdrs = [":public_hdrs"],
     app_description = "Modules shared by rabbitmq-server and rabbitmq-erlang-client",
     app_extra_keys = APP_EXTRA_KEYS,
     app_name = "rabbit_common",
-    extra_apps = EXTRA_APPS,
-    public_hdrs = glob(
-        ["include/*.hrl"],
-        exclude = ["include/rabbit_framing.hrl"],
-    ) + [
-        "include/rabbit_framing.hrl",
+    beam_files = [":beam_files"],
+    extra_apps = [
+        "compiler",
+        "crypto",
+        "public_key",
+        "sasl",
+        "ssl",
+        "syntax_tools",
+        "tools",
+        "xmerl",
     ],
     deps = [
         "@credentials_obfuscation//:erlang_app",
@@ -144,8 +167,8 @@ rabbitmq_suite(
 rabbitmq_suite(
     name = "supervisor2_SUITE",
     size = "small",
-    additional_srcs = [
-        "test/test_event_handler.erl",
+    additional_beam = [
+        "test/test_event_handler.beam",
     ],
 )
 
@@ -157,8 +180,8 @@ rabbitmq_suite(
 rabbitmq_suite(
     name = "unit_SUITE",
     size = "medium",
-    additional_srcs = [
-        "test/gen_server2_test_server.erl",
+    additional_beam = [
+        "test/gen_server2_test_server.beam",
     ],
     deps = [
         "@credentials_obfuscation//:erlang_app",
@@ -177,4 +200,80 @@ alias(
     name = "rabbit_common",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [
+        ":test_gen_server2_test_server_beam",
+        ":test_test_event_handler_beam",
+    ],
+    eunit_mods = [
+        "app_utils",
+        "code_version",
+        "credit_flow",
+        "delegate",
+        "delegate_sup",
+        "file_handle_cache",
+        "file_handle_cache_stats",
+        "gen_server2",
+        "gen_server2_test_server",
+        "mirrored_supervisor_locks",
+        "mnesia_sync",
+        "pmon",
+        "priority_queue",
+        "rabbit_amqp_connection",
+        "rabbit_amqqueue_common",
+        "rabbit_auth_backend_dummy",
+        "rabbit_auth_mechanism",
+        "rabbit_authn_backend",
+        "rabbit_authz_backend",
+        "rabbit_basic_common",
+        "rabbit_binary_generator",
+        "rabbit_binary_parser",
+        "rabbit_cert_info",
+        "rabbit_channel_common",
+        "rabbit_command_assembler",
+        "rabbit_control_misc",
+        "rabbit_core_metrics",
+        "rabbit_data_coercion",
+        "rabbit_date_time",
+        "rabbit_env",
+        "rabbit_error_logger_handler",
+        "rabbit_event",
+        "rabbit_exchange_type",
+        "rabbit_framing_amqp_0_8",
+        "rabbit_framing_amqp_0_9_1",
+        "rabbit_heartbeat",
+        "rabbit_http_util",
+        "rabbit_json",
+        "rabbit_log",
+        "rabbit_misc",
+        "rabbit_msg_store_index",
+        "rabbit_net",
+        "rabbit_nodes_common",
+        "rabbit_numerical",
+        "rabbit_password_hashing",
+        "rabbit_pbe",
+        "rabbit_peer_discovery_backend",
+        "rabbit_policy_validator",
+        "rabbit_queue_collector",
+        "rabbit_registry",
+        "rabbit_registry_class",
+        "rabbit_resource_monitor_misc",
+        "rabbit_runtime",
+        "rabbit_runtime_parameter",
+        "rabbit_semver",
+        "rabbit_semver_parser",
+        "rabbit_ssl_options",
+        "rabbit_types",
+        "rabbit_writer",
+        "supervisor2",
+        "test_event_handler",
+        "vm_memory_monitor",
+        "worker_pool",
+        "worker_pool_sup",
+        "worker_pool_worker",
+    ],
+    deps = [":test_erlang_app"],
 )
