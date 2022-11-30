@@ -60,9 +60,11 @@ rabbitmq_app(
 )
 
 xref(
+    name = "xref",
     additional_libs = [
-        "//deps/rabbitmq_cli:rabbitmqctl",
+        "//deps/rabbitmq_cli:rabbitmqctl",  #keep
     ],
+    target = ":erlang_app",
 )
 
 plt(

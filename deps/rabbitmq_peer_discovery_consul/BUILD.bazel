@@ -60,7 +60,10 @@ rabbitmq_app(
     ],
 )
 
-xref()
+xref(
+    name = "xref",
+    target = ":erlang_app",
+)
 
 plt(
     name = "base_plt",

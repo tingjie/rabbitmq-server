@@ -1,3 +1,4 @@
+load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:erlang_bytecode2.bzl", "erlang_bytecode")
 load(
     "//:rabbitmq.bzl",
@@ -100,3 +101,8 @@ alias(
 )
 
 assert_suites()
+
+xref(
+    name = "xref",
+    target = ":erlang_app",
+)

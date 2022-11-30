@@ -58,10 +58,12 @@ rabbitmq_app(
 )
 
 xref(
+    name = "xref",
     additional_libs = [
-        "@systemd//:erlang_app",
-        "@osiris//:erlang_app",
+        "@systemd//:erlang_app",  #keep
+        "@osiris//:erlang_app",  #keep
     ],
+    target = ":erlang_app",
 )
 
 plt(

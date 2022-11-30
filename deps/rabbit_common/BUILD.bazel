@@ -137,9 +137,11 @@ rabbitmq_app(
 )
 
 xref(
+    name = "xref",
     additional_libs = [
-        "@ranch//:erlang_app",
+        "@ranch//:erlang_app",  #keep
     ],
+    target = ":erlang_app",
 )
 
 plt(

@@ -83,7 +83,10 @@ rabbitmq_app(
 
 # TODO: expose the necessary info from the :erlang_app rule, such that defaults for
 #       xref can be better inferred, and the contstants above become unnecessary
-xref()
+xref(
+    name = "xref",
+    target = ":erlang_app",
+)
 
 plt(
     name = "base_plt",

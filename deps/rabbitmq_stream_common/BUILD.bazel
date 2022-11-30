@@ -37,7 +37,10 @@ rabbitmq_app(
     beam_files = [":beam_files"],
 )
 
-xref()
+xref(
+    name = "xref",
+    target = ":erlang_app",
+)
 
 dialyze(
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,

@@ -29,10 +29,6 @@ APP_NAME = "rabbitmq_amqp1_0"
 
 APP_DESCRIPTION = "AMQP 1.0 support for RabbitMQ"
 
-BUILD_DEPS = [
-    "//deps/rabbitmq_cli:rabbitmqctl",
-]
-
 DEPS = [
     "//deps/rabbit_common:erlang_app",
     "//deps/amqp_client:erlang_app",
@@ -74,7 +70,11 @@ rabbitmq_app(
 )
 
 xref(
-    additional_libs = BUILD_DEPS,
+    name = "xref",
+    additional_libs = [
+        "//deps/rabbitmq_cli:rabbitmqctl",  #keep
+    ],
+    target = ":erlang_app",
 )
 
 plt(

@@ -62,7 +62,10 @@ rabbitmq_app(
     ],
 )
 
-xref()
+xref(
+    name = "xref",
+    target = ":erlang_app",
+)
 
 dialyze(
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,

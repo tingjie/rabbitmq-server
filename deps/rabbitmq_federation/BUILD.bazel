@@ -30,10 +30,6 @@ APP_ENV = """[
 	    {internal_exchange_check_interval, 90000}
 	  ]"""
 
-BUILD_DEPS = [
-    "//deps/rabbitmq_cli:rabbitmqctl",
-]
-
 DEPS = [
     "//deps/amqp_client:erlang_app",
     "//deps/rabbit_common:erlang_app",
@@ -70,7 +66,11 @@ rabbitmq_app(
 )
 
 xref(
-    additional_libs = BUILD_DEPS,
+    name = "xref",
+    additional_libs = [
+        "//deps/rabbitmq_cli:rabbitmqctl",  #keep
+    ],
+    target = ":erlang_app",
 )
 
 plt(
