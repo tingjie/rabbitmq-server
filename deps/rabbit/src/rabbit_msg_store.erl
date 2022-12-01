@@ -584,18 +584,18 @@ read_many(MsgIds0, CState) ->
     %% the order so that we can get as many messages we can from the
     %% cache before we have to look at messages on disk.
     MsgIds = lists:reverse(MsgIds0),
-    read_many_cache(MsgIds, CState, []).
+    read_many_cache(MsgIds, CState, #{}).
 
 %% We read from the cache until we can't. Then we read from disk.
-read_many_cache([], CState, Acc) ->
-    Acc;
-read_many_cache([MsgId|Tail], CState, Acc) ->
+read_many_cache([MsgId|Tail], CState = #client_msstate{ cur_file_cache_ets = CurFileCacheEts }, Acc) ->
     case ets:lookup(CurFileCacheEts, MsgId) of
         [] ->
             read_many_disk([MsgId|Tail], CState, Acc);
         [{MsgId, Msg, _CacheRefCount}] ->
             read_many_cache(Tail, CState, Acc#{MsgId => Msg})
-    end.
+    end;
+read_many_cache([], _CState, Acc) ->
+    Acc.
 
 %% We will read from disk one file at a time in no particular order.
 %% @todo OK I'm not confident we can return messages in the right order.
@@ -610,10 +610,12 @@ read_many_disk([MsgId|Tail], CState, Acc) ->
         %% @todo Can this even happen? Isn't this a bug?
         not_found   -> read_many_disk(Tail, CState, Acc);
         MsgLocation -> read_many_file1([MsgId|Tail], CState, Acc, MsgLocation#msg_location.file)
-    end.
+    end;
+read_many_disk([], _CState, Acc) ->
+    Acc.
 
 %% First we mark ourselves as a reader.
-read_many_file1(MsgIds, CState, Acc, File) ->
+read_many_file1(MsgIds, CState = #client_msstate{ file_summary_ets = FileSummaryEts }, Acc, File) ->
     safe_ets_update_counter(
       FileSummaryEts, File, {#file_summary.readers, +1},
       fun (_) -> read_many_file2(MsgIds, CState, Acc, File) end,
@@ -621,107 +623,137 @@ read_many_file1(MsgIds, CState, Acc, File) ->
       fun () -> read_many_disk(MsgIds, CState, Acc) end).
 
 %% Then we mark the file handle as being open.
-%% @todo If this fails we must -1 readers of the file.
-read_many_file2(
+read_many_file2(MsgIds0, CState = #client_msstate{ dir              = Dir,
+                                                   file_handles_ets = FileHandlesEts,
+                                                   client_ref       = Ref }, Acc0, File) ->
     %% Mark file handle open.
     mark_handle_open(FileHandlesEts, File, Ref),
     %% Get index for all Msgids in File.
     %% It's possible that we get no results here if compaction
     %% was in progress. That's OK: we will try again with those
     %% MsgIds to get them from the new file.
-    MsgLocations0 = index_select_from_file(MsgIds, CState, File),
-    %% At this point either the file is guaranteed to remain
-    %% for us to read from it or we will get zero locations.
-    %% We don't need to handle [] specially because all operations
-    %% will be a no-op.
-    %%
-    %% @todo Probably move this into rabbit_msg_file.
-    %% First we must order the locations so that we can consolidate
-    %% the preads and improve read performance.
-    MsgLocations = lists:keysort(#msg_location.offset, MsgLocations0),
-    %% Then we can do the consolidation to get the pread LocNums.
-    %% @todo
-
-
-
-%consolidate_reads(Reads = [{SeqId, _}|_], SegmentThreshold,
-%        Segment, SegmentEntryCount, Acc, Segs)
-%        when SeqId >= SegmentThreshold ->
-%    %% We Segment + 1 because we expect reads to be contiguous.
-%    consolidate_reads(Reads, SegmentThreshold + SegmentEntryCount,
-%        Segment + 1, SegmentEntryCount, [], Segs#{Segment => lists:reverse(Acc)});
-%%% NextSize does not include the entry header size.
-%consolidate_reads([{_, {?MODULE, NextOffset, NextSize}}|Tail], SegmentThreshold,
-%        Segment, SegmentEntryCount, [{Offset, Size}|Acc], Segs)
-%        when Offset + Size =:= NextOffset ->
-%    consolidate_reads(Tail, SegmentThreshold, Segment, SegmentEntryCount,
-%        [{Offset, Size + NextSize + ?ENTRY_HEADER_SIZE}|Acc], Segs);
-%consolidate_reads([{_, {?MODULE, Offset, Size}}|Tail], SegmentThreshold,
-%        Segment, SegmentEntryCount, Acc, Segs) ->
-%    consolidate_reads(Tail, SegmentThreshold, Segment, SegmentEntryCount,
-%        [{Offset, Size + ?ENTRY_HEADER_SIZE}|Acc], Segs);
-%consolidate_reads([], _, _, _, [], Segs) ->
-%    Segs;
-%consolidate_reads([], _, Segment, _, Acc, Segs) ->
-%    %% We lists:reverse/1 because we need to preserve order.
-%    Segs#{Segment => lists:reverse(Acc)}.
-
-
-
-
-    %% Finally we can do the pread and parsing.
-    %% @todo
-    %% Before we continue the read_many calls we must remove the
-    %% MsgIds we have read from the list.
-    %% @todo
-    %% We must also mark the file handle closed and unmark
-    %% ourselves as a reader.
-    %% @todo
-
-
-
-%fun() -> ok = case ets:update_counter(FileSummaryEts, File,
-%                                              {#file_summary.readers, -1}) of
-%                          0 -> case ets:lookup(FileSummaryEts, File) of
-%                                   [#file_summary { locked = true }] ->
-%                                       %% @todo We can do the truncate here and release the lock.
-%                                       rabbit_msg_store_gc:no_readers(
-%                                         GCPid, File);
-%                                   _ -> ok
-%                               end;
-%                          _ -> ok
-%                      end
-%        end,
-
-    %% Unlike the old code we mark the file as open and close in the same function.
-    %% We don't leave it hanging...
-
-
-
-
-    read_many_disk(..., CState, Acc).
-
-
-%    case MsgLocations of
-%        []
-
-
-
-        %% @todo OK not sure about this need to think some more.
-
-
-        %% Still the same file. We can safely read_many from the file.
-        %% We don't need to check that the file hasn't changed for all
-        %% locations because at this point we know the old file will
-        %% not be deleted. We will just read_many everything we can
-        %% from the old file and ignore locations in the new file
-        %% for now.
-        [#msg_location{file=File}|_] ->
-        %% Otherwise the file must have been compacted.
-
+    MsgLocations0 = index_select_from_file(MsgIds0, CState, File),
+    case MsgLocations0 of
         [] ->
-            %% The file must have been compacted in-between. Retry.
-            ;
+            read_many_file3(MsgIds0, CState, Acc0, File);
+        _ ->
+            %% At this point either the file is guaranteed to remain
+            %% for us to read from it or we will get zero locations.
+            %%
+            %% @todo Probably move this into rabbit_msg_file.
+            %% First we must order the locations so that we can consolidate
+            %% the preads and improve read performance.
+            MsgLocations = lists:keysort(#msg_location.offset, MsgLocations0),
+            %% Then we can do the consolidation to get the pread LocNums.
+            LocNums = consolidate_reads(MsgLocations, []),
+            %% Read the data from the file.
+            {ok, Fd} = file:open(form_filename(Dir, filenum_to_name(File)), [binary, read]),
+            Msgs = rabbit_msg_file:pread(Fd, LocNums),
+            ok = file:close(Fd),
+            %% Before we continue the read_many calls we must remove the
+            %% MsgIds we have read from the list and add the messages to
+            %% the Acc.
+            {Acc, MsgIdsRead} = lists:foldl(fun(Msg = #basic_message{id = MsgIdRead}, {Acc1, MsgIdsAcc}) ->
+                {Acc1#{MsgIdRead => Msg}, [MsgIdRead|MsgIdsAcc]}
+            end, {Acc0, []}, Msgs),
+            MsgIds = MsgIds0 -- MsgIdsRead,
+            %% Unmark opened files and continue.
+            read_many_file3(MsgIds, CState, Acc, File)
+    end.
+
+
+index_select_from_file(MsgIds, #client_msstate { index_module = Index,
+                                                 index_state  = State }, File) ->
+    Index:select_from_file(MsgIds, File, State).
+
+
+
+%    Id == <<1>> orelse Id == <<2>> orelse Id == <<3>>
+%    {'orelse', {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}}, {'==', Id, <<3>>}}
+%    {'orelse', {'==', Id, <<1>>}, {'orelse', {'==', Id, <<2>>}, {'==', Id, <<3>>}}}
+%
+%    [<<1>>, <<2>>, <<3>>, <<4>>]
+%
+%    [{'==', Id, <<1>>}, {'==', Id, <<2>>},                  [A, B, C, D]
+%     {'==', Id, <<3>>}, {'==', Id, <<4>>}]
+%
+%    [{'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},      [E, F]
+%     {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}]
+%
+%    [{'orelse',                                             [Z]
+%        {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%        {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}}]
+%
+%    {'orelse',                                              Z
+%        {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%        {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}}
+%
+%
+%
+%
+%
+%    [{'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%     {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}},
+%     {'==', Id, <<5>>}]
+%
+%    [{'orelse',
+%        {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%        {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}},
+%     {'==', Id, <<5>>}]
+%
+%    [{'orelse',
+%        {'orelse',
+%            {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%            {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}},
+%        {'==', Id, <<5>>}}]
+
+
+%% OR multiple match functions
+
+
+
+
+
+
+
+
+
+
+
+
+
+consolidate_reads([#msg_location{offset=NextOffset, total_size=NextSize}|Locs], [{Offset, Size}|Acc])
+        when Offset + Size =:= NextOffset ->
+    consolidate_reads(Locs, [{Offset, Size + NextSize}|Acc]);
+consolidate_reads([#msg_location{offset=NextOffset, total_size=NextSize}|Locs], Acc) ->
+    consolidate_reads(Locs, [{NextOffset, NextSize}|Acc]);
+consolidate_reads([], Acc) ->
+    lists:reverse(Acc).
+
+%% Cleanup opened files and continue.
+read_many_file3(MsgIds, CState = #client_msstate{ file_handles_ets = FileHandlesEts,
+                                                  file_summary_ets = FileSummaryEts,
+                                                  gc_pid           = GCPid,
+                                                  client_ref       = Ref }, Acc, File) ->
+    mark_handle_closed(FileHandlesEts, File, Ref),
+    ok = case ets:update_counter(FileSummaryEts, File, {#file_summary.readers, -1}) of
+        0 ->
+            case ets:lookup(FileSummaryEts, File) of
+                [#file_summary { locked = true }] ->
+                %% @todo We can do the truncate here and release the lock.
+                rabbit_msg_store_gc:no_readers(GCPid, File);
+                _ -> ok
+            end;
+        _ -> ok
+    end,
+    read_many_disk(MsgIds, CState, Acc).
+
+
+
+
+
+
+
 
 %% @todo
 %%       Once we have a location, we first mark ourselves as a reader.
@@ -740,11 +772,12 @@ read_many_file2(
 
 
 
-read_many([], _CState) ->
-    [];
-read_many([MsgId|Tail], CState) ->
-    {{ok, Msg}, _} = read(MsgId, CState),
-    [Msg|read_many(Tail, CState)].
+%% @todo Remove naive implementation.
+%read_many([], _CState) ->
+%    [];
+%read_many([MsgId|Tail], CState) ->
+%    {{ok, Msg}, _} = read(MsgId, CState),
+%    [Msg|read_many(Tail, CState)].
 
 -spec contains(rabbit_types:msg_id(), client_msstate()) -> boolean().
 
@@ -1743,8 +1776,12 @@ close_handle(Key, FHC) ->
 mark_handle_open(FileHandlesEts, File, Ref) ->
     %% This is fine to fail (already exists). Note it could fail with
     %% the value being close, and not have it updated to open.
+    %% @todo Should it fail? Probably not anymore.
     ets:insert_new(FileHandlesEts, {{Ref, File}, open}),
     true.
+
+mark_handle_closed(FileHandlesEts, File, Ref) ->
+    ets:delete(FileHandlesEts, {Ref, File}).
 
 %% See comment in client_read3 - only call this when the file is locked
 mark_handle_to_close(ClientRefs, FileHandlesEts, File, Invoke) ->

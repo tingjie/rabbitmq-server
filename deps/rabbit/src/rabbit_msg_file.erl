@@ -7,7 +7,7 @@
 
 -module(rabbit_msg_file).
 
--export([append/3, read/2, pread/3, scan/4]).
+-export([append/3, read/2, pread/2, pread/3, scan/4]).
 
 %%----------------------------------------------------------------------------
 
@@ -70,10 +70,12 @@ read(FileHdl, TotalSize) ->
         KO -> KO
     end.
 
+%% @todo spec
+
 pread(FileHdl, Offset, TotalSize) ->
     Size = TotalSize - ?FILE_PACKING_ADJUSTMENT,
     BodyBinSize = Size - ?MSG_ID_SIZE_BYTES,
-    case file:pread(FileHdl, Offset, TotalSize) of %file_handle_cache:read(FileHdl, TotalSize) of
+    case file:pread(FileHdl, Offset, TotalSize) of
         {ok, <<Size:?INTEGER_SIZE_BITS,
                MsgId:?MSG_ID_SIZE_BYTES/binary,
                MsgBodyBin:BodyBinSize/binary,
@@ -82,7 +84,26 @@ pread(FileHdl, Offset, TotalSize) ->
         KO -> KO
     end.
 
-%% @todo read_many
+%% @todo spec
+
+pread(FileHdl, LocNums) ->
+    case file:pread(FileHdl, LocNums) of
+        {ok, DataL} -> pread_parse(DataL);
+        KO -> KO
+    end.
+
+pread_parse([<<Size:?INTEGER_SIZE_BITS,
+               _MsgId:?MSG_ID_SIZE_BYTES/binary,
+               Rest0/bits>>|Tail]) ->
+    BodyBinSize = Size - ?MSG_ID_SIZE_BYTES,
+    <<MsgBodyBin:BodyBinSize/binary,
+      ?WRITE_OK_MARKER:?WRITE_OK_SIZE_BITS,
+      Rest/bits>> = Rest0,
+    [binary_to_term(MsgBodyBin)|pread_parse([Rest|Tail])];
+pread_parse([<<>>]) ->
+    [];
+pread_parse([<<>>|Tail]) ->
+    pread_parse(Tail).
 
 -spec scan(io_device(), file_size(), message_accumulator(A), A) ->
           {'ok', A, position()}.

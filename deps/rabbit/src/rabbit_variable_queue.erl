@@ -1297,19 +1297,15 @@ msg_status(Version, IsPersistent, IsDelivered, SeqId,
                 msg_props     = MsgProps}.
 
 beta_msg_status({Msg = #basic_message{id = MsgId},
-                 SeqId, rabbit_queue_index, MsgProps, IsPersistent}) ->
+                 SeqId, MsgLocation, MsgProps, IsPersistent}) ->
     MS0 = beta_msg_status0(SeqId, MsgProps, IsPersistent),
     MS0#msg_status{msg_id       = MsgId,
                    msg          = Msg,
-                   persist_to   = queue_index,
-                   msg_location = memory};
-
-beta_msg_status({Msg = #basic_message{id = MsgId},
-                 SeqId, {rabbit_classic_queue_store_v2, _, _}, MsgProps, IsPersistent}) ->
-    MS0 = beta_msg_status0(SeqId, MsgProps, IsPersistent),
-    MS0#msg_status{msg_id       = MsgId,
-                   msg          = Msg,
-                   persist_to   = queue_store,
+                   persist_to   = case MsgLocation of
+                                      rabbit_queue_index -> queue_index;
+                                      {rabbit_classic_queue_store_v2, _, _} -> queue_store;
+                                      rabbit_msg_store -> msg_store
+                                  end,
                    msg_location = memory};
 
 beta_msg_status({MsgId, SeqId, MsgLocation, MsgProps, IsPersistent}) ->
@@ -1317,7 +1313,7 @@ beta_msg_status({MsgId, SeqId, MsgLocation, MsgProps, IsPersistent}) ->
     MS0#msg_status{msg_id       = MsgId,
                    msg          = undefined,
                    persist_to   = case is_tuple(MsgLocation) of
-                                      true  -> queue_store;
+                                      true  -> queue_store; %% @todo I'm not sure this clause is triggered anymore.
                                       false -> msg_store
                                   end,
                    msg_location = MsgLocation}.
@@ -2643,16 +2639,17 @@ maybe_deltas_to_betas(DelsAndAcksFun,
         true ->
             List1;
         false ->
-            {ok, ShPersistMsgs} = rabbit_msg_store:read_many(ShPersistReads, MCStateP),
+            ShPersistMsgs = rabbit_msg_store:read_many(ShPersistReads, MCStateP),
             merge_sh_read_msgs(List1, ShPersistMsgs)
     end,
     List = case length(ShTransientReads) < 2 of
         true ->
             List2;
         false ->
-            {ok, ShTransientMsgs} = rabbit_msg_store:read_many(ShTransientReads, MCStateT),
-            merge_sh_read_msgs(List1, ShTransientMsgs)
+            ShTransientMsgs = rabbit_msg_store:read_many(ShTransientReads, MCStateT),
+            merge_sh_read_msgs(List2, ShTransientMsgs)
     end,
+
 
 
 
@@ -2738,11 +2735,14 @@ merge_read_msgs([], [], []) ->
     [].
 
 %% We may not get as many messages as we tried reading.
-merge_sh_read_msgs([M = {MsgId, _, _, _, _}|MTail], [Msg = #basic_message{ id = MsgId }|MsgTail]) ->
-    [setelement(1, M, Msg)|merge_sh_read_msgs(MTail, MsgTail)];
-merge_sh_read_msgs([M|MTail], MsgTail) ->
-    [M|merge_sh_read_msgs(MTail, MsgTail)];
-merge_sh_read_msgs(MTail, []) ->
+merge_sh_read_msgs([M = {MsgId, _, _, _, _}|MTail], Reads) ->
+    case Reads of
+        #{MsgId := Msg} ->
+            [setelement(1, M, Msg)|merge_sh_read_msgs(MTail, Reads)];
+        _ ->
+            [M|merge_sh_read_msgs(MTail, Reads)]
+    end;
+merge_sh_read_msgs(MTail, _Reads) ->
     MTail.
 
 %% Flushes queue index batch caches and updates queue index state.
