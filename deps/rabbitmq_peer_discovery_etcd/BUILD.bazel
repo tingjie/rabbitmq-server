@@ -24,17 +24,6 @@ APP_DESCRIPTION = "etcd-based RabbitMQ peer discovery backend"
 
 APP_MODULE = "rabbitmq_peer_discovery_etcd_app"
 
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-    "//deps/rabbitmq_peer_discovery_common:erlang_app",
-]
-
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-    "@eetcd//:erlang_app",
-    "@gun//:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -72,13 +61,24 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    deps = DEPS,
+    name = "deps_plt",
+    # rather that setting for_target, which will include @gun
+    # (via @eetcd) and fail, we produce the equivalent plt
+    # without it
+    for_target = None,  # keep
+    plt = "//:base_plt",
+    deps = [
+        "//deps/rabbit:erlang_app",  # keep
+        "//deps/rabbit_common:erlang_app",  # keep
+        "//deps/rabbitmq_peer_discovery_common:erlang_app",  # keep
+    ],
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
 )
 

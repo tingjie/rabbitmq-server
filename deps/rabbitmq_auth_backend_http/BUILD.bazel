@@ -33,14 +33,6 @@ APP_DESCRIPTION = "RabbitMQ HTTP Authentication Backend"
 
 APP_MODULE = "rabbit_auth_backend_http_app"
 
-EXTRA_APPS = [
-    "inets",
-]
-
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -48,6 +40,8 @@ all_test_beam_files(name = "all_test_beam_files")
 all_srcs(name = "all_srcs")
 
 test_suite_beam_files(name = "test_suite_beam_files")
+
+# gazelle:erlang_app_extra_app inets
 
 # gazelle:erlang_app_dep rabbit_common
 # gazelle:erlang_app_dep rabbit
@@ -62,6 +56,7 @@ rabbitmq_app(
     app_module = APP_MODULE,
     app_name = APP_NAME,
     beam_files = [":beam_files"],
+    extra_apps = ["inets"],
     deps = [
         "//deps/amqp_client:erlang_app",
         "//deps/rabbit:erlang_app",
@@ -75,16 +70,28 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    apps = EXTRA_APPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = DEPS,
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [":test_auth_http_mock_beam"],
+    eunit_mods = [
+        "auth_http_mock",
+        "rabbit_auth_backend_http",
+        "rabbit_auth_backend_http_app",
+    ],
+    deps = [":test_erlang_app"],
 )
 
 broker_for_integration_suites()
@@ -116,15 +123,4 @@ alias(
     name = "rabbitmq_auth_backend_http",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
-)
-
-eunit(
-    name = "eunit",
-    compiled_suites = [":test_auth_http_mock_beam"],
-    eunit_mods = [
-        "auth_http_mock",
-        "rabbit_auth_backend_http",
-        "rabbit_auth_backend_http_app",
-    ],
-    deps = [":test_erlang_app"],
 )

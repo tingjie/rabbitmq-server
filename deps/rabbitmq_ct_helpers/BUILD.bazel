@@ -1,6 +1,6 @@
 load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
-load("@rules_erlang//:dialyze.bzl", "DEFAULT_PLT_APPS", "dialyze", "plt")
+load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
     "//:rabbitmq.bzl",
     "assert_suites",
@@ -59,26 +59,15 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    apps = DEFAULT_PLT_APPS + [
-        "inets",
-        "eunit",
-        "common_test",
-    ],
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = [
-        # "//bazel/elixir:erlang_app",
-        # "//deps/rabbitmq_cli:rabbitmqctl",
-        "//deps/rabbit_common:erlang_app",
-        "//deps/rabbit:erlang_app",
-        "//deps/rabbit/apps/rabbitmq_prelaunch:erlang_app",
-        "//deps/rabbitmq_management_agent:erlang_app",
-        "@proper//:erlang_app",
-    ],
 )
 
 dialyze(
-    plt = ":base_plt",
+    name = "dialyze",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
 )
 

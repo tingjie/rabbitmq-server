@@ -49,14 +49,6 @@ APP_DESCRIPTION = "RabbitMQ LDAP Authentication Backend"
 
 APP_MODULE = "rabbit_auth_backend_ldap_app"
 
-EXTRA_APPS = [
-    "eldap",
-]
-
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -93,16 +85,29 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    apps = EXTRA_APPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = DEPS,
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
-    warnings_as_errors = False,
+    plt = ":deps_plt",
+    target = ":erlang_app",
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [":test_rabbit_ldap_seed_beam"],
+    eunit_mods = [
+        "rabbit_auth_backend_ldap",
+        "rabbit_auth_backend_ldap_app",
+        "rabbit_auth_backend_ldap_util",
+        "rabbit_ldap_seed",
+        "rabbit_log_ldap",
+    ],
+    deps = [":test_erlang_app"],
 )
 
 broker_for_integration_suites()
@@ -139,17 +144,4 @@ alias(
     name = "rabbitmq_auth_backend_ldap",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
-)
-
-eunit(
-    name = "eunit",
-    compiled_suites = [":test_rabbit_ldap_seed_beam"],
-    eunit_mods = [
-        "rabbit_auth_backend_ldap",
-        "rabbit_auth_backend_ldap_app",
-        "rabbit_auth_backend_ldap_util",
-        "rabbit_ldap_seed",
-        "rabbit_log_ldap",
-    ],
-    deps = [":test_erlang_app"],
 )

@@ -29,20 +29,6 @@ APP_ENV = """[
 	    {providers, [rabbit_trust_store_file_provider]}
 	  ]"""
 
-EXTRA_APPS = [
-    "ssl",
-    "crypto",
-    "public_key",
-]
-
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-]
-
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -83,15 +69,16 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    apps = EXTRA_APPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = DEPS,
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
 )
 
 eunit(

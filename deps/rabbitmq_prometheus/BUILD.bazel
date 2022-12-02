@@ -25,22 +25,6 @@ APP_ENV = """[
 	{return_per_object_metrics, false}
 ]"""
 
-BUILD_DEPS = [
-    "//deps/amqp_client:erlang_app",
-    "//deps/rabbit_common:erlang_app",
-]
-
-DEPS = [
-    "@prometheus//:erlang_app",
-]
-
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-    "//deps/rabbitmq_management_agent:erlang_app",
-    "//deps/rabbitmq_web_dispatch:erlang_app",
-    "@accept//:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -58,6 +42,7 @@ test_suite_beam_files(name = "test_suite_beam_files")
 rabbitmq_app(
     name = "erlang_app",
     srcs = [":all_srcs"],
+    app_env = APP_ENV,
     app_module = APP_MODULE,
     app_name = APP_NAME,
     beam_files = [":beam_files"],
@@ -76,13 +61,16 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    deps = BUILD_DEPS + DEPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
+    plt = "//:base_plt",
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
 )
 

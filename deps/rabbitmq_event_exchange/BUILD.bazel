@@ -23,11 +23,6 @@ APP_NAME = "rabbitmq_event_exchange"
 
 APP_DESCRIPTION = "Event Exchange Type"
 
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-    "//deps/rabbit:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -59,13 +54,16 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    deps = DEPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
+    plt = "//:base_plt",
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
 )
 
 eunit(

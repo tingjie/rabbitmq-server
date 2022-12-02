@@ -29,16 +29,6 @@ APP_NAME = "rabbitmq_amqp1_0"
 
 APP_DESCRIPTION = "AMQP 1.0 support for RabbitMQ"
 
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-    "//deps/amqp_client:erlang_app",
-    "//deps/amqp10_common:erlang_app",
-]
-
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -78,17 +68,40 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    # this ought to include BUILD_DEPS, but not sure how to
-    # get dialyze of elixir code working yet
-    deps = DEPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
+    plt = "//:base_plt",
 )
 
 dialyze(
+    name = "dialyze",
     size = "medium",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS + ["-Wno_undefined_callbacks"],
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand",
+        "rabbit_amqp1_0",
+        "rabbit_amqp1_0_channel",
+        "rabbit_amqp1_0_incoming_link",
+        "rabbit_amqp1_0_link_util",
+        "rabbit_amqp1_0_message",
+        "rabbit_amqp1_0_outgoing_link",
+        "rabbit_amqp1_0_reader",
+        "rabbit_amqp1_0_session",
+        "rabbit_amqp1_0_session_process",
+        "rabbit_amqp1_0_session_sup",
+        "rabbit_amqp1_0_session_sup_sup",
+        "rabbit_amqp1_0_util",
+        "rabbit_amqp1_0_writer",
+    ],
+    deps = [":test_erlang_app"],
 )
 
 broker_for_integration_suites()
@@ -147,26 +160,4 @@ alias(
     name = "rabbitmq_amqp1_0",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
-)
-
-eunit(
-    name = "eunit",
-    compiled_suites = [],
-    eunit_mods = [
-        "Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand",
-        "rabbit_amqp1_0",
-        "rabbit_amqp1_0_channel",
-        "rabbit_amqp1_0_incoming_link",
-        "rabbit_amqp1_0_link_util",
-        "rabbit_amqp1_0_message",
-        "rabbit_amqp1_0_outgoing_link",
-        "rabbit_amqp1_0_reader",
-        "rabbit_amqp1_0_session",
-        "rabbit_amqp1_0_session_process",
-        "rabbit_amqp1_0_session_sup",
-        "rabbit_amqp1_0_session_sup_sup",
-        "rabbit_amqp1_0_util",
-        "rabbit_amqp1_0_writer",
-    ],
-    deps = [":test_erlang_app"],
 )

@@ -44,14 +44,6 @@ APP_EXTRA_KEYS = """%% Hex.pm package informations.
 	  ]}
 """
 
-EXTRA_APPS = [
-    "xmerl",
-]
-
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -81,22 +73,21 @@ rabbitmq_app(
     deps = ["//deps/rabbit_common:erlang_app"],
 )
 
-# TODO: expose the necessary info from the :erlang_app rule, such that defaults for
-#       xref can be better inferred, and the contstants above become unnecessary
 xref(
     name = "xref",
     target = ":erlang_app",
 )
 
 plt(
-    name = "base_plt",
-    apps = EXTRA_APPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = DEPS,
 )
 
 dialyze(
-    plt = ":base_plt",
+    name = "dialyze",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
 )
 

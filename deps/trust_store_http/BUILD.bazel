@@ -1,3 +1,4 @@
+load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("//:rabbitmq.bzl", "assert_suites", "rabbitmq_app")
 load(
@@ -44,9 +45,22 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-assert_suites()
-
 xref(
     name = "xref",
     target = ":erlang_app",
 )
+
+plt(
+    name = "deps_plt",
+    for_target = ":erlang_app",
+    plt = "//:base_plt",
+)
+
+dialyze(
+    name = "dialyze",
+    plt = ":deps_plt",
+    target = ":erlang_app",
+    warnings_as_errors = False,
+)
+
+assert_suites()

@@ -33,14 +33,6 @@ APP_DESCRIPTION = "RabbitMQ Authentication Backend cache"
 
 APP_MODULE = "rabbit_auth_backend_cache_app"
 
-DEPS = [
-    "//deps/rabbit_common:erlang_app",
-]
-
-RUNTIME_DEPS = [
-    "//deps/rabbit:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -73,13 +65,31 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    deps = DEPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
+    plt = "//:base_plt",
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
+)
+
+eunit(
+    name = "eunit",
+    compiled_suites = [],
+    eunit_mods = [
+        "rabbit_auth_backend_cache",
+        "rabbit_auth_backend_cache_app",
+        "rabbit_auth_cache",
+        "rabbit_auth_cache_dict",
+        "rabbit_auth_cache_ets",
+        "rabbit_auth_cache_ets_segmented",
+        "rabbit_auth_cache_ets_segmented_stateless",
+    ],
+    deps = [":test_erlang_app"],
 )
 
 broker_for_integration_suites()
@@ -105,19 +115,4 @@ alias(
     name = "rabbitmq_auth_backend_cache",
     actual = ":erlang_app",
     visibility = ["//visibility:public"],
-)
-
-eunit(
-    name = "eunit",
-    compiled_suites = [],
-    eunit_mods = [
-        "rabbit_auth_backend_cache",
-        "rabbit_auth_backend_cache_app",
-        "rabbit_auth_cache",
-        "rabbit_auth_cache_dict",
-        "rabbit_auth_cache_ets",
-        "rabbit_auth_cache_ets_segmented",
-        "rabbit_auth_cache_ets_segmented_stateless",
-    ],
-    deps = [":test_erlang_app"],
 )

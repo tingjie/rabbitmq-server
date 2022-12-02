@@ -1,6 +1,6 @@
 load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
-load("@rules_erlang//:dialyze.bzl", "dialyze")
+load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
     "//:rabbitmq.bzl",
     "RABBITMQ_DIALYZER_OPTS",
@@ -42,9 +42,17 @@ xref(
     target = ":erlang_app",
 )
 
-dialyze(
-    dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
+plt(
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
+)
+
+dialyze(
+    name = "dialyze",
+    dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
+    plt = ":deps_plt",
+    target = ":erlang_app",
 )
 
 eunit(

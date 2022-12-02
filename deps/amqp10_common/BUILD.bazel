@@ -1,6 +1,6 @@
 load("@rules_erlang//:eunit2.bzl", "eunit")
 load("@rules_erlang//:xref2.bzl", "xref")
-load("@rules_erlang//:dialyze.bzl", "dialyze")
+load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load(
     "//:rabbitmq.bzl",
     "assert_suites",
@@ -92,8 +92,16 @@ xref(
     target = ":erlang_app",
 )
 
-dialyze(
+plt(
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
+)
+
+dialyze(
+    name = "dialyze",
+    plt = ":deps_plt",
+    target = ":erlang_app",
 )
 
 rabbitmq_suite(

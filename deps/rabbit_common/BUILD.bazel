@@ -80,17 +80,6 @@ APP_EXTRA_KEYS = """
 	  ]}
 """
 
-EXTRA_APPS = [
-    "compiler",
-    "crypto",
-    "public_key",
-    "sasl",
-    "ssl",
-    "syntax_tools",
-    "tools",
-    "xmerl",
-]
-
 # gazelle:erlang_app_extra_app compiler
 # gazelle:erlang_app_extra_app crypto
 # gazelle:erlang_app_extra_app public_key
@@ -99,6 +88,7 @@ EXTRA_APPS = [
 # gazelle:erlang_app_extra_app syntax_tools
 # gazelle:erlang_app_extra_app tools
 # gazelle:erlang_app_extra_app xmerl
+
 # gazelle:erlang_app_dep credentials_obfuscation
 # gazelle:erlang_app_dep recon
 # gazelle:erlang_app_dep thoas
@@ -145,17 +135,15 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    apps = [
-        "mnesia",
-        "crypto",
-        "ssl",
-    ] + EXTRA_APPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
 )
 
 dialyze(
-    plt = ":base_plt",
+    name = "dialyze",
+    plt = ":deps_plt",
+    target = ":erlang_app",
 )
 
 rabbitmq_suite(

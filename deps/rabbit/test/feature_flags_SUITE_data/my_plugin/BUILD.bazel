@@ -1,3 +1,4 @@
+load("@rules_erlang//:dialyze.bzl", "dialyze", "plt")
 load("@rules_erlang//:xref2.bzl", "xref")
 load("@rules_erlang//:erlang_bytecode2.bzl", "erlang_bytecode")
 load(
@@ -104,5 +105,17 @@ assert_suites()
 
 xref(
     name = "xref",
+    target = ":erlang_app",
+)
+
+plt(
+    name = "deps_plt",
+    for_target = ":erlang_app",
+    plt = "//:base_plt",
+)
+
+dialyze(
+    name = "dialyze",
+    plt = ":deps_plt",
     target = ":erlang_app",
 )

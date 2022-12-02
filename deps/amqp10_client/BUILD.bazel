@@ -43,20 +43,6 @@ APP_EXTRA_KEYS = """%% Hex.pm package informations.
 	  ]}
 """
 
-EXTRA_APPS = [
-    "ssl",
-    "inets",
-    "crypto",
-]
-
-BUILD_DEPS = [
-    "//deps/rabbit_common:erlang_app",
-]
-
-DEPS = [
-    "//deps/amqp10_common:erlang_app",
-]
-
 all_beam_files(name = "all_beam_files")
 
 all_test_beam_files(name = "all_test_beam_files")
@@ -97,23 +83,28 @@ xref(
 )
 
 plt(
-    name = "base_plt",
-    apps = EXTRA_APPS,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = BUILD_DEPS + DEPS,
 )
 
 dialyze(
-    plt = ":base_plt",
+    name = "dialyze",
+    plt = ":deps_plt",
+    target = ":erlang_app",
 )
 
 broker_for_integration_suites(
     extra_plugins = ["//deps/rabbitmq_amqp1_0:erlang_app"],
 )
 
+TEST_DEPS = [
+    "//deps/amqp10_common:erlang_app",
+]
+
 rabbitmq_suite(
     name = "msg_SUITE",
-    deps = DEPS,
+    deps = TEST_DEPS,
 )
 
 rabbitmq_integration_suite(
@@ -126,14 +117,10 @@ rabbitmq_integration_suite(
     data = [
         "@activemq//:exec_dir",
     ],
-    # erlc_opts = [
-    #     "-I",
-    #     "deps/amqp10_client",
-    # ],
     test_env = {
         "ACTIVEMQ": "$TEST_SRCDIR/$TEST_WORKSPACE/external/activemq/bin/activemq",
     },
-    deps = DEPS,
+    deps = TEST_DEPS,
 )
 
 assert_suites()

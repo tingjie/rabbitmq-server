@@ -145,27 +145,6 @@ _APP_ENV = """[
 	  ]
 """
 
-DEPS = [
-    "//deps/amqp10_common:erlang_app",
-    "//deps/rabbit_common:erlang_app",
-    "@ra//:erlang_app",
-    "@ranch//:erlang_app",
-    "@stdout_formatter//:erlang_app",
-    "@syslog//:erlang_app",
-]
-
-RUNTIME_DEPS = [
-    "//deps/rabbit/apps/rabbitmq_prelaunch:erlang_app",
-    "@cuttlefish//:erlang_app",
-    "@observer_cli//:erlang_app",
-    "@osiris//:erlang_app",
-    "@recon//:erlang_app",
-    "@redbug//:erlang_app",
-    "@seshat//:erlang_app",
-    "@sysmon_handler//:erlang_app",
-    "@systemd//:erlang_app",
-]
-
 APP_MODULE = "rabbit"
 
 APP_REGISTERED = [
@@ -174,19 +153,6 @@ APP_REGISTERED = [
     "rabbit_log",
     "rabbit_node_monitor",
     "rabbit_router",
-]
-
-EXTRA_APPS = [
-    "sasl",
-    "rabbitmq_prelaunch",
-    "os_mon",
-    "inets",
-    "compiler",
-    "public_key",
-    "crypto",
-    "ssl",
-    "syntax_tools",
-    "xmerl",
 ]
 
 all_beam_files(name = "all_beam_files")
@@ -200,7 +166,6 @@ test_suite_beam_files(name = "test_suite_beam_files")
 # gazelle:erlang_apps_dirs apps
 
 # gazelle:erlang_app_extra_app sasl
-# gazelle:erlang_app_extra_app rabbitmq_prelaunch
 # gazelle:erlang_app_extra_app os_mon
 # gazelle:erlang_app_extra_app inets
 # gazelle:erlang_app_extra_app compiler
@@ -208,6 +173,7 @@ test_suite_beam_files(name = "test_suite_beam_files")
 # gazelle:erlang_app_extra_app ssl
 # gazelle:erlang_app_extra_app syntax_tools
 # gazelle:erlang_app_extra_app xmerl
+# gazelle:erlang_app_extra_app mnesia
 
 # gazelle:erlang_app_dep amqp10_common
 # gazelle:erlang_app_dep rabbit_common
@@ -239,11 +205,11 @@ rabbitmq_app(
         "inets",
         "os_mon",
         "public_key",
-        "rabbitmq_prelaunch",
         "sasl",
         "ssl",
         "syntax_tools",
         "xmerl",
+        "mnesia",
     ],
     deps = [
         "//deps/amqp10_common:erlang_app",
@@ -269,22 +235,17 @@ xref(
     target = ":erlang_app",
 )
 
-plt_apps = [
-    "mnesia",
-] + EXTRA_APPS
-
-plt_apps.remove("rabbitmq_prelaunch")
-
 plt(
-    name = "base_plt",
-    apps = plt_apps,
+    name = "deps_plt",
+    for_target = ":erlang_app",
     plt = "//:base_plt",
-    deps = DEPS,
 )
 
 dialyze(
+    name = "dialyze",
     dialyzer_opts = RABBITMQ_DIALYZER_OPTS,
-    plt = ":base_plt",
+    plt = ":deps_plt",
+    target = ":erlang_app",
     warnings_as_errors = False,
 )
 
