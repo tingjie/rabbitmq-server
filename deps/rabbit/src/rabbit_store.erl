@@ -28,12 +28,6 @@
          index_route_table_definition/0, populate_index_route_table/0,
          fold_bindings/2]).
 
-%% TODO used by rabbit_policy, to become internal
--export([update_exchange_in_mnesia/2, update_exchange_in_khepri/2]).
-
-%% TODO used by rabbit policy. to become internal
--export([list_exchanges_in_mnesia/1,
-         list_queues_in_mnesia/1, update_queue_in_mnesia/2, update_queue_in_khepri/2]).
 %% TODO used by topic exchange. Should it be internal?
 -export([match_source_and_destination_in_khepri/2]).
 
@@ -58,6 +52,8 @@
 
 %% TODO to become internal
 -export([lookup_queue_in_khepri_tx/1]).
+
+-export([update_policies/3]).
 
 -export([mnesia_write_to_khepri/2,
          mnesia_delete_to_khepri/2,
@@ -223,13 +219,15 @@ list_exchanges(VHost) ->
               list_exchanges_in_mnesia(VHost)
       end,
       fun() ->
-              list_in_khepri(khepri_exchanges_path() ++ [VHost, if_has_data_wildcard()])
+              list_exchanges_in_khepri(VHost)
       end).
 
-%% TODO should be internal once rabbit_policy is migrated
 list_exchanges_in_mnesia(VHost) ->
     Match = #exchange{name = rabbit_misc:r(VHost, exchange), _ = '_'},
     list_in_mnesia(rabbit_exchange, Match).
+
+list_exchanges_in_khepri(VHost) ->
+    list_in_khepri(khepri_exchanges_path() ++ [VHost, if_has_data_wildcard()]).
 
 list_durable_exchanges() ->
     rabbit_khepri:try_mnesia_or_khepri(
@@ -667,18 +665,21 @@ list_queues(VHost) ->
       fun() ->
               list_queues_in_mnesia(VHost)
       end,
-      fun() -> list_queues_with_possible_retry_in_khepri(
-                 fun() ->
-                         list_in_khepri(khepri_queues_path() ++ [VHost, if_has_data_wildcard()])
-                 end)
+      fun() ->
+              list_queues_in_khepri(VHost)
       end).
 
-%% TODO to become internal, used by rabbit_policy
 list_queues_in_mnesia(VHost) ->
     list_queues_with_possible_retry_in_mnesia(
       fun() ->
               Pattern = amqqueue:pattern_match_on_name(rabbit_misc:r(VHost, queue)),
               list_in_mnesia(rabbit_queue, Pattern)
+      end).
+
+list_queues_in_khepri(VHost) ->
+    list_queues_with_possible_retry_in_khepri(
+      fun() ->
+              list_in_khepri(khepri_queues_path() ++ [VHost, if_has_data_wildcard()])
       end).
 
 list_durable_queues(VHost) ->
@@ -1140,6 +1141,69 @@ delete_topic_trie_bindings(Bs) ->
                end || {Path, Binding} <- Data]
       end, rw),
     ok.
+
+%% Policies
+%% --------------------------------------------------------------
+
+update_policies(VHost, GetUpdatedExchangeFun, GetUpdatedQueueFun) ->
+    rabbit_khepri:try_mnesia_or_khepri(
+      fun() ->
+              update_policies_in_mnesia(VHost, GetUpdatedExchangeFun, GetUpdatedQueueFun)
+      end,
+      fun() ->
+              update_policies_in_khepri(VHost, GetUpdatedExchangeFun, GetUpdatedQueueFun)
+      end).
+
+
+%% [1] We need to prevent this from becoming O(n^2) in a similar
+%% manner to rabbit_binding:remove_for_{source,destination}. So see
+%% the comment in rabbit_binding:lock_route_tables/0 for more rationale.
+update_policies_in_mnesia(VHost, GetUpdatedExchangeFun, GetUpdatedQueueFun) ->
+    Tabs = [rabbit_queue,    rabbit_durable_queue,
+            rabbit_exchange, rabbit_durable_exchange],
+    rabbit_misc:execute_mnesia_transaction(
+      fun() ->
+              [mnesia:lock({table, T}, write) || T <- Tabs], %% [1]
+              Exchanges0 = list_exchanges_in_mnesia(VHost),
+              Queues0 = list_queues_in_mnesia(VHost),
+              Exchanges = [GetUpdatedExchangeFun(X) || X <- Exchanges0],
+              Queues = [GetUpdatedQueueFun(Q) || Q <- Queues0],
+              {[update_exchange_policies(Map, fun update_exchange_in_mnesia/2)
+                || Map <- Exchanges, is_map(Map)],
+               [update_queue_policies(Map, fun update_queue_in_mnesia/2)
+                || Map <- Queues, is_map(Map)]}
+      end).
+
+update_policies_in_khepri(VHost, GetUpdatedExchangeFun, GetUpdatedQueueFun) ->
+    Exchanges0 = list_exchanges_in_khepri(VHost),
+    Queues0 = list_queues_in_khepri(VHost),
+    Exchanges = [GetUpdatedExchangeFun(X) || X <- Exchanges0],
+    Queues = [GetUpdatedQueueFun(Q) || Q <- Queues0],
+    rabbit_khepri:transaction(
+      fun() ->
+              {[update_exchange_policies(Map, fun update_exchange_in_khepri/2)
+                || Map <- Exchanges, is_map(Map)],
+               [update_queue_policies(Map, fun update_queue_in_khepri/2)
+                || Map <- Queues, is_map(Map)]}
+      end, rw).
+
+update_exchange_policies(#{exchange := X = #exchange{name = XName},
+                           update_function := UpdateFun}, StoreFun) ->
+    NewExchange = StoreFun(XName, UpdateFun),
+    case NewExchange of
+        #exchange{} = X1 -> {X, X1};
+        not_found        -> {X, X }
+    end.
+
+update_queue_policies(#{queue := Q0, update_function := UpdateFun}, StoreFun) ->
+    QName = amqqueue:get_name(Q0),
+    NewQueue = StoreFun(QName, UpdateFun),
+    case NewQueue of
+        Q1 when ?is_amqqueue(Q1) ->
+            {Q0, Q1};
+        not_found ->
+            {Q0, Q0}
+    end.
 
 %% Feature flags
 %% --------------------------------------------------------------
