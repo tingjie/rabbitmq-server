@@ -28,9 +28,6 @@
          index_route_table_definition/0, populate_index_route_table/0,
          fold_bindings/2]).
 
-%% TODO used by topic exchange. Should it be internal?
--export([match_source_and_destination_in_khepri/2]).
-
 -export([list_queues/0, list_queues/1, list_durable_queues/0, list_durable_queues/1,
          list_durable_queues_by_type/1, list_queue_names/0, count_queues/0, count_queues/1,
          delete_queue/2, internal_delete_queue/3, update_queue/2, lookup_queues/1,
