@@ -56,39 +56,53 @@ function dispatcher() {
         dispatcher_modules[i](this);
     }
 }
+const CREDENTIALS = 'credentials'
+const AUTH_SCHEME = "auth-scheme"
+const LOGGED_IN = 'loggedIn'
+
 function has_auth_pref() {
-    return get_pref('auth') != undefined && get_cookie_value("auth") != undefined;
+    return get_pref(CREDENTIALS) != undefined && get_pref(AUTH_SCHEME) != undefined &&
+      get_cookie_value(LOGGED_IN) != undefined
 }
 function get_auth_pref() {
-    return get_pref('auth');
+    return get_pref(CREDENTIALS)
 }
 function clear_auth_pref() {
-    clear_local_pref('auth');
-    clear_cookie_value('auth');
+    clear_local_pref(CREDENTIALS)
+    clear_local_pref(AUTH_SCHEME)
+    clear_cookie_value(LOGGED_IN)
 }
-function set_auth_pref(userinfo) {
-    // clear a local storage value used by earlier versions
-    clear_local_pref('auth');
-
-    var b64 = b64_encode_utf8(userinfo);
-    var date  = new Date();
-    var login_session_timeout = get_login_session_timeout();
-
-    if (login_session_timeout) {
-        date.setMinutes(date.getMinutes() + login_session_timeout);
+function set_basic_auth(username, password) {
+  set_auth("Basic", b64_encode_utf8(username + ":" + password), get_session_timeout())
+}
+function set_token_auth(token) {
+  set_auth("Bearer", b64_encode_utf8(token), get_session_timeout())
+}
+function set_auth(auth_scheme, credentials, validUntil) {
+    clear_local_pref(CREDENTIALS)
+    clear_local_pref(AUTH_SCHEME)
+    store_pref(CREDENTIALS, encodeURIComponent(credentials))
+    store_pref(AUTH_SCHEME, auth_scheme)
+    store_cookie_value_with_expiration(LOGGED_IN, "true", validUntil) // session marker
+}
+function auth_header() {
+    if (has_auth_pref()) {
+        return get_pref(AUTH_SCHEME) + ' ' + decodeURIComponent(get_pref(CREDENTIALS));
     } else {
-        // 8 hours from now
-        date.setHours(date.getHours() + 8);
+        return null;
     }
-    store_pref('auth', encodeURIComponent(b64));
-    store_cookie_value_with_expiration('auth', "", date); // session marker
-
 }
+function get_session_timeout() {
+  var date  = new Date();
+  var login_session_timeout = get_login_session_timeout();
 
-function initiateLogoutIfSessionHasExpired(event) {
-  if (get_cookie_value("auth") == undefined && has_auth_pref()) {
-      initiate_logout();
+  if (login_session_timeout) {
+      date.setMinutes(date.getMinutes() + login_session_timeout);
+  } else {
+      // 8 hours from now
+      date.setHours(date.getHours() + 8);
   }
+  return date;
 }
 
 function getParameterByName(name) {
@@ -106,20 +120,14 @@ function start_app_login () {
     this.get('#/', function () {})
     if (!oauth.enabled) {
       this.put('#/login', function() {
-        username = this.params['username'];
-        password = this.params['password'];
-        set_auth_pref(username + ':' + password);
-        check_login();
+        set_basic_auth(this.params['username'], this.params['password'])
+        check_login()
       });
     }
   })
+  // TODO REFACTOR: this code can be simplified
   if (oauth.enabled) {
-    var token = oauth.access_token;
-    if (token != null) {
-      if (oauth.sp_initiated) set_auth_pref(oauth.user_name + ':' + oauth.access_token);
-      else if (has_auth_cookie_value()) set_auth_pref(oauth.access_token);
-      check_login();
-    } else if (has_auth_cookie_value()) {
+    if (has_auth_pref()) {
       check_login();
     } else {
       app.run();
@@ -645,7 +653,7 @@ function submit_import(form) {
             }
 
             if (oauth.enabled) {
-                var form_action = "/definitions" + vhost_part + '?token=' + oauth.access_token;
+                var form_action = "/definitions" + vhost_part + '?token=' + get_auth_pref();
             } else {
                 var form_action = "/definitions" + vhost_part + '?auth=' + get_auth_pref();
             };
@@ -691,7 +699,7 @@ function postprocess() {
             if (oauth.enabled) {
             var path = 'api/definitions' + vhost + '?download=' +
                 esc($('#download-filename').val()) +
-                '&token=' + oauth.access_token;
+                '&token=' + get_auth_pref();
             } else {
                 var path = 'api/definitions' + vhost + '?download=' +
                     esc($('#download-filename').val()) +
@@ -1226,17 +1234,7 @@ function update_status(status) {
     replace_content('status', html);
 }
 
-function auth_header() {
-    if (has_auth_pref() && oauth.enabled) {
-        return "Bearer " + decodeURIComponent(oauth.access_token);
-    } else {
-        if (has_auth_pref()) {
-            return "Basic " + decodeURIComponent(get_auth_pref());
-        } else {
-            return null;
-        }
-    }
-}
+
 
 function with_req(method, path, body, fun) {
     if(!has_auth_pref()) {

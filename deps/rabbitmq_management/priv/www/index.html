@@ -27,11 +27,11 @@
 
       if (oauth.enabled) {
         if (!oauth.sp_initiated) {
-            oauth.logged_in = has_auth_cookie_value();
-            oauth.access_token = get_cookie_value('auth');
+            oauth.logged_in = has_auth_pref();
+            oauth.access_token = get_auth_pref();
         } else {
           oauth_is_logged_in().then( status => {
-            if (status.loggedIn && !has_auth_cookie_value()) {
+            if (status.loggedIn && !has_auth_pref()) {
               oauth.logged_in = false;
               oauth_initiateLogout();
             } else {

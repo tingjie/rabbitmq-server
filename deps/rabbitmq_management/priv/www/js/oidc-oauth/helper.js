@@ -114,6 +114,7 @@ function oauth_initialize(authSettings) {
       _management_logger.error("token expiring failed due to ", err);
     });
     mgr.events.addUserLoaded(function(user) {
+      console.log("addUserLoaded   setting oauth.access_token ")
       oauth.access_token = user.access_token;
     });
 
@@ -155,7 +156,8 @@ function oauth_initiateLogin() {
 }
 
 function oauth_redirectToHome(oauth) {
-  set_auth_pref(oauth.user_name + ":" + oauth.access_token);
+  console.log("oauth_redirectToHome set_token_auth");
+  set_token_auth(oauth.access_token);
   go_to_home();
 }
 function go_to_home() {
