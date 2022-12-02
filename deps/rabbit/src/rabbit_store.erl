@@ -25,7 +25,8 @@
          list_bindings_for_source/1, list_bindings_for_destination/1,
          list_bindings_for_source_and_destination/2, list_explicit_bindings/0,
          recover_bindings/0, recover_bindings/1,
-         index_route_table_definition/0, populate_index_route_table/0]).
+         index_route_table_definition/0, populate_index_route_table/0,
+         fold_bindings/2]).
 
 %% TODO used by rabbit_policy, to become internal
 -export([update_exchange_in_mnesia/2, update_exchange_in_khepri/2]).
@@ -511,6 +512,27 @@ list_bindings(VHost) ->
               lists:foldl(fun(SetOfBindings, Acc) ->
                                   sets:to_list(SetOfBindings) ++ Acc
                           end, [], list_in_khepri(Path))
+      end).
+
+fold_bindings(Fun, Acc) ->
+    %% Used by prometheus_rabbitmq_core_metrics_collector to iterate over the bindings.
+    %% It used to query `rabbit_route` directly, which isn't valid when using Khepri
+    rabbit_khepri:try_mnesia_or_khepri(
+      fun() ->
+              ets:foldl(fun(#route{binding = Binding}, Acc0) ->
+                                Fun(Binding, Acc0)
+                        end, Acc, rabbit_route)
+      end,
+      fun() ->
+              Path = khepri_routes_path() ++ [?KHEPRI_WILDCARD_STAR, if_has_data_wildcard()],
+              {ok, Res} = rabbit_khepri:fold(
+                            Path,
+                            fun(_, #{data := SetOfBindings}, Acc0) ->
+                                    lists:foldl(fun(Binding, Acc1) ->
+                                                        Fun(Binding, Acc1)
+                                                end, Acc0, sets:to_list(SetOfBindings))
+                            end, Acc),
+              Res
       end).
 
 list_bindings_for_source(#resource{virtual_host = VHost, name = Name} = Resource) ->
