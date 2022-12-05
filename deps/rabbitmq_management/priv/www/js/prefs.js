@@ -6,6 +6,78 @@ function local_storage_available() {
     }
 }
 
+/// Credential management
+
+const CREDENTIALS = 'credentials'
+const AUTH_SCHEME = "auth-scheme"
+const LOGGED_IN = 'loggedIn'
+
+function has_auth_credentials() {
+    return get_pref(CREDENTIALS) != undefined && get_pref(AUTH_SCHEME) != undefined &&
+      get_cookie_value(LOGGED_IN) != undefined
+}
+function get_auth_credentials() {
+    return get_pref(CREDENTIALS)
+}
+function get_auth_scheme() {
+    return get_pref(AUTH_SCHEME)
+}
+function clear_auth() {
+    clear_local_pref(CREDENTIALS)
+    clear_local_pref(AUTH_SCHEME)
+    clear_cookie_value(LOGGED_IN)
+}
+function set_basic_auth(username, password) {
+    set_auth("Basic", b64_encode_utf8(username + ":" + password), get_session_timeout())
+}
+function set_token_auth(token) {
+    set_auth("Bearer", token, get_session_timeout())
+}
+function set_auth(auth_scheme, credentials, validUntil) {
+    clear_local_pref(CREDENTIALS)
+    clear_local_pref(AUTH_SCHEME)
+    store_pref(CREDENTIALS, credentials)
+    store_pref(AUTH_SCHEME, auth_scheme)
+    store_cookie_value_with_expiration(LOGGED_IN, "true", validUntil) // session marker
+}
+function authorization_header() {
+    if (has_auth_credentials()) {
+        return get_auth_scheme() + ' ' + get_auth_credentials();
+    } else {
+        return null;
+    }
+}
+function get_session_timeout() {
+  var date  = new Date();
+  var login_session_timeout = get_login_session_timeout();
+
+  if (login_session_timeout) {
+      date.setMinutes(date.getMinutes() + login_session_timeout);
+  } else {
+      // 8 hours from now
+      date.setHours(date.getHours() + 8);
+  }
+  return date;
+}
+function get_login_session_timeout() {
+    parseInt(get_cookie_value('login_session_timeout'));
+}
+
+/// End Credential Management
+
+// Our base64 library takes a string that is really a byte sequence,
+// and will throw if given a string with chars > 255 (and hence not
+// DTRT for chars > 127). So encode a unicode string as a UTF-8
+// sequence of "bytes".
+function b64_encode_utf8(str) {
+    return base64.encode(encode_utf8(str));
+}
+
+// encodeURIComponent handles utf-8, unescape does not. Neat!
+function encode_utf8(str) {
+  return unescape(encodeURIComponent(str));
+}
+
 function store_cookie_value(k, v) {
     var d = parse_cookie();
     d[short_key(k)] = v;
