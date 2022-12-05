@@ -203,5 +203,6 @@ get_limit(VirtualHost, Limit) ->
                                         N when N < 0  -> undefined;
                                         N when N >= 0 -> {ok, N}
                                     end
-                   end
+                   end;
+        {error, {timeout, _}} -> throw({error, {cannot_get_limit, VirtualHost, timeout}})
     end.
