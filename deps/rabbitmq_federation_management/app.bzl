@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_mgmt_beam",
         srcs = ["src/rabbit_federation_mgmt.erl"],
         outs = ["ebin/rabbit_federation_mgmt.beam"],
+        app_name = "rabbitmq_federation_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -25,6 +26,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_mgmt.erl"],
         outs = ["test/rabbit_federation_mgmt.beam"],
+        app_name = "rabbitmq_federation_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )

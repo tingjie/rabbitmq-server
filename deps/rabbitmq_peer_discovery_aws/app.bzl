@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_peer_discovery_aws_beam",
         srcs = ["src/rabbit_peer_discovery_aws.erl"],
         outs = ["ebin/rabbit_peer_discovery_aws.beam"],
+        app_name = "rabbitmq_peer_discovery_aws",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -17,6 +18,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbitmq_peer_discovery_aws_beam",
         srcs = ["src/rabbitmq_peer_discovery_aws.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_aws.beam"],
+        app_name = "rabbitmq_peer_discovery_aws",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -32,6 +34,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_peer_discovery_aws.erl"],
         outs = ["test/rabbit_peer_discovery_aws.beam"],
+        app_name = "rabbitmq_peer_discovery_aws",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -40,6 +43,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbitmq_peer_discovery_aws.erl"],
         outs = ["test/rabbitmq_peer_discovery_aws.beam"],
+        app_name = "rabbitmq_peer_discovery_aws",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

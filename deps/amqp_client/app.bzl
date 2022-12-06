@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_auth_mechanisms.erl"],
         outs = ["ebin/amqp_auth_mechanisms.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -19,6 +20,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_channel.erl"],
         outs = ["ebin/amqp_channel.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -27,6 +29,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_channel_sup.erl"],
         outs = ["ebin/amqp_channel_sup.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -35,6 +38,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_channel_sup_sup.erl"],
         outs = ["ebin/amqp_channel_sup_sup.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -43,6 +47,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_channels_manager.erl"],
         outs = ["ebin/amqp_channels_manager.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -50,6 +55,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_amqp_client_beam",
         srcs = ["src/amqp_client.erl"],
         outs = ["ebin/amqp_client.beam"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -57,6 +63,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_connection.erl"],
         outs = ["ebin/amqp_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -65,6 +72,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_connection_sup.erl"],
         outs = ["ebin/amqp_connection_sup.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -73,6 +81,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_connection_type_sup.erl"],
         outs = ["ebin/amqp_connection_type_sup.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -81,6 +90,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_direct_connection.erl"],
         outs = ["ebin/amqp_direct_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_connection.beam"],
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -90,6 +100,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_direct_consumer.erl"],
         outs = ["ebin/amqp_direct_consumer.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_gen_consumer_spec.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_consumer.beam"],
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -99,6 +110,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_gen_connection.erl"],
         outs = ["ebin/amqp_gen_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -107,6 +119,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_gen_consumer.erl"],
         outs = ["ebin/amqp_gen_consumer.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -115,6 +128,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_main_reader.erl"],
         outs = ["ebin/amqp_main_reader.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -123,6 +137,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_network_connection.erl"],
         outs = ["ebin/amqp_network_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_connection.beam"],
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -132,6 +147,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_rpc_client.erl"],
         outs = ["ebin/amqp_rpc_client.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -140,6 +156,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_rpc_server.erl"],
         outs = ["ebin/amqp_rpc_server.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -148,6 +165,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_selective_consumer.erl"],
         outs = ["ebin/amqp_selective_consumer.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_gen_consumer_spec.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_consumer.beam"],
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -157,6 +175,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_ssl.erl"],
         outs = ["ebin/amqp_ssl.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -165,6 +184,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_sup.erl"],
         outs = ["ebin/amqp_sup.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -173,6 +193,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_uri.erl"],
         outs = ["ebin/amqp_uri.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -181,6 +202,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp_util.erl"],
         outs = ["ebin/amqp_util.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -189,6 +211,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_routing_util.erl"],
         outs = ["ebin/rabbit_routing_util.beam"],
         hdrs = ["include/amqp_client.hrl", "include/rabbit_routing_prefixes.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -196,6 +219,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_uri_parser_beam",
         srcs = ["src/uri_parser.erl"],
         outs = ["ebin/uri_parser.beam"],
+        app_name = "amqp_client",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -206,6 +230,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_auth_mechanisms.erl"],
         outs = ["test/amqp_auth_mechanisms.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -215,6 +240,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_channel.erl"],
         outs = ["test/amqp_channel.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -224,6 +250,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_channel_sup.erl"],
         outs = ["test/amqp_channel_sup.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -233,6 +260,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_channel_sup_sup.erl"],
         outs = ["test/amqp_channel_sup_sup.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -242,6 +270,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_channels_manager.erl"],
         outs = ["test/amqp_channels_manager.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -250,6 +279,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp_client.erl"],
         outs = ["test/amqp_client.beam"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -258,6 +288,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_connection.erl"],
         outs = ["test/amqp_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -267,6 +298,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_connection_sup.erl"],
         outs = ["test/amqp_connection_sup.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -276,6 +308,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_connection_type_sup.erl"],
         outs = ["test/amqp_connection_type_sup.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -285,6 +318,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_direct_connection.erl"],
         outs = ["test/amqp_direct_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_connection.beam"],
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -295,6 +329,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_direct_consumer.erl"],
         outs = ["test/amqp_direct_consumer.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_gen_consumer_spec.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_consumer.beam"],
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -305,6 +340,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_gen_connection.erl"],
         outs = ["test/amqp_gen_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -314,6 +350,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_gen_consumer.erl"],
         outs = ["test/amqp_gen_consumer.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -323,6 +360,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_main_reader.erl"],
         outs = ["test/amqp_main_reader.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -332,6 +370,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_network_connection.erl"],
         outs = ["test/amqp_network_connection.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_connection.beam"],
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -342,6 +381,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_rpc_client.erl"],
         outs = ["test/amqp_rpc_client.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -351,6 +391,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_rpc_server.erl"],
         outs = ["test/amqp_rpc_server.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -360,6 +401,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_selective_consumer.erl"],
         outs = ["test/amqp_selective_consumer.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_gen_consumer_spec.hrl"],
+        app_name = "amqp_client",
         beam = ["ebin/amqp_gen_consumer.beam"],
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
@@ -370,6 +412,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_ssl.erl"],
         outs = ["test/amqp_ssl.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -379,6 +422,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_sup.erl"],
         outs = ["test/amqp_sup.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -388,6 +432,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_uri.erl"],
         outs = ["test/amqp_uri.beam"],
         hdrs = ["include/amqp_client.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -397,6 +442,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp_util.erl"],
         outs = ["test/amqp_util.beam"],
         hdrs = ["include/amqp_client.hrl", "include/amqp_client_internal.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -411,6 +457,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_routing_util.erl"],
         outs = ["test/rabbit_routing_util.beam"],
         hdrs = ["include/amqp_client.hrl", "include/rabbit_routing_prefixes.hrl"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -419,6 +466,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/uri_parser.erl"],
         outs = ["test/uri_parser.beam"],
+        app_name = "amqp_client",
         erlc_opts = "//:test_erlc_opts",
     )
 

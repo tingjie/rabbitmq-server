@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_web_mqtt_examples_app_beam",
         srcs = ["src/rabbit_web_mqtt_examples_app.erl"],
         outs = ["ebin/rabbit_web_mqtt_examples_app.beam"],
+        app_name = "rabbitmq_web_mqtt_examples",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -55,6 +56,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_examples_app.erl"],
         outs = ["test/rabbit_web_mqtt_examples_app.beam"],
+        app_name = "rabbitmq_web_mqtt_examples",
         erlc_opts = "//:test_erlc_opts",
     )
 

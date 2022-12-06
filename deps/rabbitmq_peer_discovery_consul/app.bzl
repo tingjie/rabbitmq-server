@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_peer_discovery_consul.erl"],
         outs = ["ebin/rabbit_peer_discovery_consul.beam"],
         hdrs = ["include/rabbit_peer_discovery_consul.hrl"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -18,12 +19,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbitmq_peer_discovery_consul_app_beam",
         srcs = ["src/rabbitmq_peer_discovery_consul_app.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_consul_app.beam"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbitmq_peer_discovery_consul_beam",
         srcs = ["src/rabbitmq_peer_discovery_consul.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_consul.beam"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -32,6 +35,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_consul_health_check_helper.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_consul_health_check_helper.beam"],
         hdrs = ["include/rabbit_peer_discovery_consul.hrl"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -40,6 +44,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_consul_sup.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_consul_sup.beam"],
         hdrs = ["include/rabbit_peer_discovery_consul.hrl"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -56,6 +61,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_peer_discovery_consul.erl"],
         outs = ["test/rabbit_peer_discovery_consul.beam"],
         hdrs = ["include/rabbit_peer_discovery_consul.hrl"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -64,6 +70,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbitmq_peer_discovery_consul_app.erl"],
         outs = ["test/rabbitmq_peer_discovery_consul_app.beam"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -71,6 +78,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbitmq_peer_discovery_consul.erl"],
         outs = ["test/rabbitmq_peer_discovery_consul.beam"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -80,6 +88,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_consul_health_check_helper.erl"],
         outs = ["test/rabbitmq_peer_discovery_consul_health_check_helper.beam"],
         hdrs = ["include/rabbit_peer_discovery_consul.hrl"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -89,6 +98,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_consul_sup.erl"],
         outs = ["test/rabbitmq_peer_discovery_consul_sup.beam"],
         hdrs = ["include/rabbit_peer_discovery_consul.hrl"],
+        app_name = "rabbitmq_peer_discovery_consul",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

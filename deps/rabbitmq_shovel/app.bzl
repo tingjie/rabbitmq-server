@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.DeleteShovelCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.DeleteShovelCommand.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -19,6 +20,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartShovelCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartShovelCommand.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -27,6 +29,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.ShovelStatusCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.ShovelStatusCommand.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -35,6 +38,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp091_shovel.erl"],
         outs = ["ebin/rabbit_amqp091_shovel.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         beam = ["ebin/rabbit_shovel_behaviour.beam"],
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
@@ -44,6 +48,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp10_shovel.erl"],
         outs = ["ebin/rabbit_amqp10_shovel.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         beam = ["ebin/rabbit_shovel_behaviour.beam"],
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
@@ -53,6 +58,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_log_shovel.erl"],
         outs = ["ebin/rabbit_log_shovel.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -60,12 +66,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_shovel_beam",
         srcs = ["src/rabbit_shovel.erl"],
         outs = ["ebin/rabbit_shovel.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_shovel_behaviour_beam",
         srcs = ["src/rabbit_shovel_behaviour.erl"],
         outs = ["ebin/rabbit_shovel_behaviour.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -73,6 +81,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_config.erl"],
         outs = ["ebin/rabbit_shovel_config.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -81,6 +90,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_dyn_worker_sup.erl"],
         outs = ["ebin/rabbit_shovel_dyn_worker_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -89,6 +99,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_dyn_worker_sup_sup.erl"],
         outs = ["ebin/rabbit_shovel_dyn_worker_sup_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -96,6 +107,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_shovel_locks_beam",
         srcs = ["src/rabbit_shovel_locks.erl"],
         outs = ["ebin/rabbit_shovel_locks.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -103,6 +115,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_parameters.erl"],
         outs = ["ebin/rabbit_shovel_parameters.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -110,6 +123,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_shovel_status_beam",
         srcs = ["src/rabbit_shovel_status.erl"],
         outs = ["ebin/rabbit_shovel_status.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -117,12 +131,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_sup.erl"],
         outs = ["ebin/rabbit_shovel_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_shovel_util_beam",
         srcs = ["src/rabbit_shovel_util.erl"],
         outs = ["ebin/rabbit_shovel_util.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -131,6 +147,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_worker.erl"],
         outs = ["ebin/rabbit_shovel_worker.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -139,6 +156,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_worker_sup.erl"],
         outs = ["ebin/rabbit_shovel_worker_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -150,6 +168,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.DeleteShovelCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.DeleteShovelCommand.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -159,6 +178,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartShovelCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartShovelCommand.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -168,6 +188,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.ShovelStatusCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.ShovelStatusCommand.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -182,6 +203,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp091_shovel.erl"],
         outs = ["test/rabbit_amqp091_shovel.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         beam = ["ebin/rabbit_shovel_behaviour.beam"],
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
@@ -192,6 +214,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp10_shovel.erl"],
         outs = ["test/rabbit_amqp10_shovel.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         beam = ["ebin/rabbit_shovel_behaviour.beam"],
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
@@ -202,6 +225,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_log_shovel.erl"],
         outs = ["test/rabbit_log_shovel.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -210,6 +234,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_shovel.erl"],
         outs = ["test/rabbit_shovel.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -217,6 +242,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_shovel_behaviour.erl"],
         outs = ["test/rabbit_shovel_behaviour.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -225,6 +251,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_config.erl"],
         outs = ["test/rabbit_shovel_config.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -234,6 +261,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_dyn_worker_sup.erl"],
         outs = ["test/rabbit_shovel_dyn_worker_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -243,6 +271,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_dyn_worker_sup_sup.erl"],
         outs = ["test/rabbit_shovel_dyn_worker_sup_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -251,6 +280,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_shovel_locks.erl"],
         outs = ["test/rabbit_shovel_locks.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -259,6 +289,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_parameters.erl"],
         outs = ["test/rabbit_shovel_parameters.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -267,6 +298,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_shovel_status.erl"],
         outs = ["test/rabbit_shovel_status.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -275,6 +307,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_sup.erl"],
         outs = ["test/rabbit_shovel_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -282,6 +315,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_shovel_util.erl"],
         outs = ["test/rabbit_shovel_util.beam"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -291,6 +325,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_worker.erl"],
         outs = ["test/rabbit_shovel_worker.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -300,6 +335,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_worker_sup.erl"],
         outs = ["test/rabbit_shovel_worker_sup.beam"],
         hdrs = ["include/rabbit_shovel.hrl"],
+        app_name = "rabbitmq_shovel",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )

@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_stream_core.erl"],
         outs = ["ebin/rabbit_stream_core.beam"],
         hdrs = ["include/rabbit_stream.hrl"],
+        app_name = "rabbitmq_stream_common",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -26,6 +27,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_stream_core.erl"],
         outs = ["test/rabbit_stream_core.beam"],
         hdrs = ["include/rabbit_stream.hrl"],
+        app_name = "rabbitmq_stream_common",
         erlc_opts = "//:test_erlc_opts",
     )
 

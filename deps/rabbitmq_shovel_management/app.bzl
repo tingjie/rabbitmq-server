@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_mgmt.erl"],
         outs = ["ebin/rabbit_shovel_mgmt.beam"],
         hdrs = ["src/rabbit_shovel_mgmt.hrl"],
+        app_name = "rabbitmq_shovel_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -19,6 +20,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_shovel_mgmt_util.erl"],
         outs = ["ebin/rabbit_shovel_mgmt_util.beam"],
         hdrs = ["src/rabbit_shovel_mgmt.hrl"],
+        app_name = "rabbitmq_shovel_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -35,6 +37,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_mgmt.erl"],
         outs = ["test/rabbit_shovel_mgmt.beam"],
         hdrs = ["src/rabbit_shovel_mgmt.hrl"],
+        app_name = "rabbitmq_shovel_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -44,6 +47,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_shovel_mgmt_util.erl"],
         outs = ["test/rabbit_shovel_mgmt_util.beam"],
         hdrs = ["src/rabbit_shovel_mgmt.hrl"],
+        app_name = "rabbitmq_shovel_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )

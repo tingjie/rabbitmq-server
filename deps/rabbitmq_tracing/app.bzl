@@ -10,12 +10,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_app_beam",
         srcs = ["src/rabbit_tracing_app.erl"],
         outs = ["ebin/rabbit_tracing_app.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_tracing_consumer_beam",
         srcs = ["src/rabbit_tracing_consumer.erl"],
         outs = ["ebin/rabbit_tracing_consumer.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -23,6 +25,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_consumer_sup_beam",
         srcs = ["src/rabbit_tracing_consumer_sup.erl"],
         outs = ["ebin/rabbit_tracing_consumer_sup.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -30,12 +33,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_files_beam",
         srcs = ["src/rabbit_tracing_files.erl"],
         outs = ["ebin/rabbit_tracing_files.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_tracing_mgmt_beam",
         srcs = ["src/rabbit_tracing_mgmt.erl"],
         outs = ["ebin/rabbit_tracing_mgmt.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management:erlang_app"],
     )
@@ -43,6 +48,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_sup_beam",
         srcs = ["src/rabbit_tracing_sup.erl"],
         outs = ["ebin/rabbit_tracing_sup.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -50,18 +56,21 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_traces_beam",
         srcs = ["src/rabbit_tracing_traces.erl"],
         outs = ["ebin/rabbit_tracing_traces.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_tracing_util_beam",
         srcs = ["src/rabbit_tracing_util.erl"],
         outs = ["ebin/rabbit_tracing_util.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_tracing_wm_file_beam",
         srcs = ["src/rabbit_tracing_wm_file.erl"],
         outs = ["ebin/rabbit_tracing_wm_file.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -69,6 +78,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_wm_files_beam",
         srcs = ["src/rabbit_tracing_wm_files.erl"],
         outs = ["ebin/rabbit_tracing_wm_files.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -76,6 +86,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_wm_trace_beam",
         srcs = ["src/rabbit_tracing_wm_trace.erl"],
         outs = ["ebin/rabbit_tracing_wm_trace.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -83,6 +94,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_tracing_wm_traces_beam",
         srcs = ["src/rabbit_tracing_wm_traces.erl"],
         outs = ["ebin/rabbit_tracing_wm_traces.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -98,6 +110,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_app.erl"],
         outs = ["test/rabbit_tracing_app.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -105,6 +118,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_consumer.erl"],
         outs = ["test/rabbit_tracing_consumer.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -113,6 +127,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_consumer_sup.erl"],
         outs = ["test/rabbit_tracing_consumer_sup.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -121,6 +136,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_files.erl"],
         outs = ["test/rabbit_tracing_files.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -128,6 +144,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_mgmt.erl"],
         outs = ["test/rabbit_tracing_mgmt.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management:erlang_app"],
     )
@@ -136,6 +153,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_sup.erl"],
         outs = ["test/rabbit_tracing_sup.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -144,6 +162,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_traces.erl"],
         outs = ["test/rabbit_tracing_traces.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -151,6 +170,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_util.erl"],
         outs = ["test/rabbit_tracing_util.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -158,6 +178,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_wm_file.erl"],
         outs = ["test/rabbit_tracing_wm_file.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -166,6 +187,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_wm_files.erl"],
         outs = ["test/rabbit_tracing_wm_files.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -174,6 +196,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_wm_trace.erl"],
         outs = ["test/rabbit_tracing_wm_trace.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -182,6 +205,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_tracing_wm_traces.erl"],
         outs = ["test/rabbit_tracing_wm_traces.beam"],
+        app_name = "rabbitmq_tracing",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )

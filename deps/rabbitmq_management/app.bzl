@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_app_beam",
         srcs = ["src/rabbit_mgmt_app.erl"],
         outs = ["ebin/rabbit_mgmt_app.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -17,12 +18,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_cors_beam",
         srcs = ["src/rabbit_mgmt_cors.erl"],
         outs = ["ebin/rabbit_mgmt_cors.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_csp_beam",
         srcs = ["src/rabbit_mgmt_csp.erl"],
         outs = ["ebin/rabbit_mgmt_csp.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -30,6 +33,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_db.erl"],
         outs = ["ebin/rabbit_mgmt_db.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -37,18 +41,21 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_db_cache_beam",
         srcs = ["src/rabbit_mgmt_db_cache.erl"],
         outs = ["ebin/rabbit_mgmt_db_cache.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_db_cache_sup_beam",
         srcs = ["src/rabbit_mgmt_db_cache_sup.erl"],
         outs = ["ebin/rabbit_mgmt_db_cache_sup.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_dispatcher_beam",
         srcs = ["src/rabbit_mgmt_dispatcher.erl"],
         outs = ["ebin/rabbit_mgmt_dispatcher.beam"],
+        app_name = "rabbitmq_management",
         beam = ["ebin/rabbit_mgmt_extension.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -56,24 +63,28 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_extension_beam",
         srcs = ["src/rabbit_mgmt_extension.erl"],
         outs = ["ebin/rabbit_mgmt_extension.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_headers_beam",
         srcs = ["src/rabbit_mgmt_headers.erl"],
         outs = ["ebin/rabbit_mgmt_headers.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_hsts_beam",
         srcs = ["src/rabbit_mgmt_hsts.erl"],
         outs = ["ebin/rabbit_mgmt_hsts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_load_definitions_beam",
         srcs = ["src/rabbit_mgmt_load_definitions.erl"],
         outs = ["ebin/rabbit_mgmt_load_definitions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -81,6 +92,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_reset_handler_beam",
         srcs = ["src/rabbit_mgmt_reset_handler.erl"],
         outs = ["ebin/rabbit_mgmt_reset_handler.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -88,6 +100,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_stats_beam",
         srcs = ["src/rabbit_mgmt_stats.erl"],
         outs = ["ebin/rabbit_mgmt_stats.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -95,6 +108,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_sup_beam",
         srcs = ["src/rabbit_mgmt_sup.erl"],
         outs = ["ebin/rabbit_mgmt_sup.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -103,6 +117,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_sup_sup.erl"],
         outs = ["ebin/rabbit_mgmt_sup_sup.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -111,6 +126,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_util.erl"],
         outs = ["ebin/rabbit_mgmt_util.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -119,6 +135,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_aliveness_test.erl"],
         outs = ["ebin/rabbit_mgmt_wm_aliveness_test.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -126,6 +143,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_auth_attempts_beam",
         srcs = ["src/rabbit_mgmt_wm_auth_attempts.erl"],
         outs = ["ebin/rabbit_mgmt_wm_auth_attempts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -133,6 +151,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_auth_beam",
         srcs = ["src/rabbit_mgmt_wm_auth.erl"],
         outs = ["ebin/rabbit_mgmt_wm_auth.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -140,6 +159,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_binding_beam",
         srcs = ["src/rabbit_mgmt_wm_binding.erl"],
         outs = ["ebin/rabbit_mgmt_wm_binding.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -147,6 +167,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_bindings_beam",
         srcs = ["src/rabbit_mgmt_wm_bindings.erl"],
         outs = ["ebin/rabbit_mgmt_wm_bindings.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -154,6 +175,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_channel_beam",
         srcs = ["src/rabbit_mgmt_wm_channel.erl"],
         outs = ["ebin/rabbit_mgmt_wm_channel.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -161,6 +183,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_channels_beam",
         srcs = ["src/rabbit_mgmt_wm_channels.erl"],
         outs = ["ebin/rabbit_mgmt_wm_channels.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -168,6 +191,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_channels_vhost_beam",
         srcs = ["src/rabbit_mgmt_wm_channels_vhost.erl"],
         outs = ["ebin/rabbit_mgmt_wm_channels_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -175,6 +199,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_cluster_name_beam",
         srcs = ["src/rabbit_mgmt_wm_cluster_name.erl"],
         outs = ["ebin/rabbit_mgmt_wm_cluster_name.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -182,6 +207,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_connection_beam",
         srcs = ["src/rabbit_mgmt_wm_connection.erl"],
         outs = ["ebin/rabbit_mgmt_wm_connection.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -189,6 +215,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_connection_channels_beam",
         srcs = ["src/rabbit_mgmt_wm_connection_channels.erl"],
         outs = ["ebin/rabbit_mgmt_wm_connection_channels.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -196,6 +223,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_connection_user_name_beam",
         srcs = ["src/rabbit_mgmt_wm_connection_user_name.erl"],
         outs = ["ebin/rabbit_mgmt_wm_connection_user_name.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -203,6 +231,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_connections_beam",
         srcs = ["src/rabbit_mgmt_wm_connections.erl"],
         outs = ["ebin/rabbit_mgmt_wm_connections.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -210,6 +239,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_connections_vhost_beam",
         srcs = ["src/rabbit_mgmt_wm_connections_vhost.erl"],
         outs = ["ebin/rabbit_mgmt_wm_connections_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -217,6 +247,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_consumers_beam",
         srcs = ["src/rabbit_mgmt_wm_consumers.erl"],
         outs = ["ebin/rabbit_mgmt_wm_consumers.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -225,6 +256,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_definitions.erl"],
         outs = ["ebin/rabbit_mgmt_wm_definitions.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -232,6 +264,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_exchange_beam",
         srcs = ["src/rabbit_mgmt_wm_exchange.erl"],
         outs = ["ebin/rabbit_mgmt_wm_exchange.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -239,6 +272,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_exchange_publish_beam",
         srcs = ["src/rabbit_mgmt_wm_exchange_publish.erl"],
         outs = ["ebin/rabbit_mgmt_wm_exchange_publish.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -246,6 +280,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_exchanges_beam",
         srcs = ["src/rabbit_mgmt_wm_exchanges.erl"],
         outs = ["ebin/rabbit_mgmt_wm_exchanges.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -253,6 +288,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_extensions_beam",
         srcs = ["src/rabbit_mgmt_wm_extensions.erl"],
         outs = ["ebin/rabbit_mgmt_wm_extensions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -260,6 +296,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_feature_flag_enable_beam",
         srcs = ["src/rabbit_mgmt_wm_feature_flag_enable.erl"],
         outs = ["ebin/rabbit_mgmt_wm_feature_flag_enable.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -267,6 +304,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_feature_flags_beam",
         srcs = ["src/rabbit_mgmt_wm_feature_flags.erl"],
         outs = ["ebin/rabbit_mgmt_wm_feature_flags.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -274,6 +312,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_global_parameter_beam",
         srcs = ["src/rabbit_mgmt_wm_global_parameter.erl"],
         outs = ["ebin/rabbit_mgmt_wm_global_parameter.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -281,6 +320,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_global_parameters_beam",
         srcs = ["src/rabbit_mgmt_wm_global_parameters.erl"],
         outs = ["ebin/rabbit_mgmt_wm_global_parameters.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -289,6 +329,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_health_check_alarms.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_alarms.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -296,6 +337,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_health_check_certificate_expiration_beam",
         srcs = ["src/rabbit_mgmt_wm_health_check_certificate_expiration.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_certificate_expiration.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -304,6 +346,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_health_check_local_alarms.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_local_alarms.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -311,6 +354,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_health_check_node_is_mirror_sync_critical_beam",
         srcs = ["src/rabbit_mgmt_wm_health_check_node_is_mirror_sync_critical.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_node_is_mirror_sync_critical.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -318,6 +362,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_health_check_node_is_quorum_critical_beam",
         srcs = ["src/rabbit_mgmt_wm_health_check_node_is_quorum_critical.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_node_is_quorum_critical.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -325,6 +370,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_health_check_port_listener_beam",
         srcs = ["src/rabbit_mgmt_wm_health_check_port_listener.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_port_listener.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -332,6 +378,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_health_check_protocol_listener_beam",
         srcs = ["src/rabbit_mgmt_wm_health_check_protocol_listener.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_protocol_listener.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -339,6 +386,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_health_check_virtual_hosts_beam",
         srcs = ["src/rabbit_mgmt_wm_health_check_virtual_hosts.erl"],
         outs = ["ebin/rabbit_mgmt_wm_health_check_virtual_hosts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -347,6 +395,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_healthchecks.erl"],
         outs = ["ebin/rabbit_mgmt_wm_healthchecks.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -354,6 +403,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_limit_beam",
         srcs = ["src/rabbit_mgmt_wm_limit.erl"],
         outs = ["ebin/rabbit_mgmt_wm_limit.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -361,6 +411,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_limits_beam",
         srcs = ["src/rabbit_mgmt_wm_limits.erl"],
         outs = ["ebin/rabbit_mgmt_wm_limits.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -368,6 +419,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_login_beam",
         srcs = ["src/rabbit_mgmt_wm_login.erl"],
         outs = ["ebin/rabbit_mgmt_wm_login.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -375,6 +427,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_node_beam",
         srcs = ["src/rabbit_mgmt_wm_node.erl"],
         outs = ["ebin/rabbit_mgmt_wm_node.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -382,6 +435,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_node_memory_beam",
         srcs = ["src/rabbit_mgmt_wm_node_memory.erl"],
         outs = ["ebin/rabbit_mgmt_wm_node_memory.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -389,6 +443,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_node_memory_ets_beam",
         srcs = ["src/rabbit_mgmt_wm_node_memory_ets.erl"],
         outs = ["ebin/rabbit_mgmt_wm_node_memory_ets.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -396,6 +451,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_nodes_beam",
         srcs = ["src/rabbit_mgmt_wm_nodes.erl"],
         outs = ["ebin/rabbit_mgmt_wm_nodes.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -403,6 +459,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_operator_policies_beam",
         srcs = ["src/rabbit_mgmt_wm_operator_policies.erl"],
         outs = ["ebin/rabbit_mgmt_wm_operator_policies.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -410,6 +467,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_operator_policy_beam",
         srcs = ["src/rabbit_mgmt_wm_operator_policy.erl"],
         outs = ["ebin/rabbit_mgmt_wm_operator_policy.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -417,6 +475,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_overview_beam",
         srcs = ["src/rabbit_mgmt_wm_overview.erl"],
         outs = ["ebin/rabbit_mgmt_wm_overview.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -424,6 +483,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_parameter_beam",
         srcs = ["src/rabbit_mgmt_wm_parameter.erl"],
         outs = ["ebin/rabbit_mgmt_wm_parameter.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -431,6 +491,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_parameters_beam",
         srcs = ["src/rabbit_mgmt_wm_parameters.erl"],
         outs = ["ebin/rabbit_mgmt_wm_parameters.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -438,6 +499,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_permission_beam",
         srcs = ["src/rabbit_mgmt_wm_permission.erl"],
         outs = ["ebin/rabbit_mgmt_wm_permission.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -445,6 +507,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_permissions_beam",
         srcs = ["src/rabbit_mgmt_wm_permissions.erl"],
         outs = ["ebin/rabbit_mgmt_wm_permissions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -452,6 +515,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_permissions_user_beam",
         srcs = ["src/rabbit_mgmt_wm_permissions_user.erl"],
         outs = ["ebin/rabbit_mgmt_wm_permissions_user.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -459,6 +523,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_permissions_vhost_beam",
         srcs = ["src/rabbit_mgmt_wm_permissions_vhost.erl"],
         outs = ["ebin/rabbit_mgmt_wm_permissions_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -466,6 +531,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_policies_beam",
         srcs = ["src/rabbit_mgmt_wm_policies.erl"],
         outs = ["ebin/rabbit_mgmt_wm_policies.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -473,6 +539,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_policy_beam",
         srcs = ["src/rabbit_mgmt_wm_policy.erl"],
         outs = ["ebin/rabbit_mgmt_wm_policy.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -480,6 +547,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_queue_actions_beam",
         srcs = ["src/rabbit_mgmt_wm_queue_actions.erl"],
         outs = ["ebin/rabbit_mgmt_wm_queue_actions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -487,6 +555,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_queue_beam",
         srcs = ["src/rabbit_mgmt_wm_queue.erl"],
         outs = ["ebin/rabbit_mgmt_wm_queue.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -494,6 +563,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_queue_get_beam",
         srcs = ["src/rabbit_mgmt_wm_queue_get.erl"],
         outs = ["ebin/rabbit_mgmt_wm_queue_get.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -501,6 +571,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_queue_purge_beam",
         srcs = ["src/rabbit_mgmt_wm_queue_purge.erl"],
         outs = ["ebin/rabbit_mgmt_wm_queue_purge.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -508,6 +579,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_queues_beam",
         srcs = ["src/rabbit_mgmt_wm_queues.erl"],
         outs = ["ebin/rabbit_mgmt_wm_queues.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -515,6 +587,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_rebalance_queues_beam",
         srcs = ["src/rabbit_mgmt_wm_rebalance_queues.erl"],
         outs = ["ebin/rabbit_mgmt_wm_rebalance_queues.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -522,12 +595,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_redirect_beam",
         srcs = ["src/rabbit_mgmt_wm_redirect.erl"],
         outs = ["ebin/rabbit_mgmt_wm_redirect.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_wm_reset_beam",
         srcs = ["src/rabbit_mgmt_wm_reset.erl"],
         outs = ["ebin/rabbit_mgmt_wm_reset.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -535,12 +610,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_static_beam",
         srcs = ["src/rabbit_mgmt_wm_static.erl"],
         outs = ["ebin/rabbit_mgmt_wm_static.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_mgmt_wm_topic_permission_beam",
         srcs = ["src/rabbit_mgmt_wm_topic_permission.erl"],
         outs = ["ebin/rabbit_mgmt_wm_topic_permission.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -548,6 +625,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_topic_permissions_beam",
         srcs = ["src/rabbit_mgmt_wm_topic_permissions.erl"],
         outs = ["ebin/rabbit_mgmt_wm_topic_permissions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -555,6 +633,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_topic_permissions_user_beam",
         srcs = ["src/rabbit_mgmt_wm_topic_permissions_user.erl"],
         outs = ["ebin/rabbit_mgmt_wm_topic_permissions_user.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -562,6 +641,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_topic_permissions_vhost_beam",
         srcs = ["src/rabbit_mgmt_wm_topic_permissions_vhost.erl"],
         outs = ["ebin/rabbit_mgmt_wm_topic_permissions_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -569,6 +649,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_user_beam",
         srcs = ["src/rabbit_mgmt_wm_user.erl"],
         outs = ["ebin/rabbit_mgmt_wm_user.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -576,6 +657,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_user_limit_beam",
         srcs = ["src/rabbit_mgmt_wm_user_limit.erl"],
         outs = ["ebin/rabbit_mgmt_wm_user_limit.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -583,6 +665,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_user_limits_beam",
         srcs = ["src/rabbit_mgmt_wm_user_limits.erl"],
         outs = ["ebin/rabbit_mgmt_wm_user_limits.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -590,6 +673,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_users_beam",
         srcs = ["src/rabbit_mgmt_wm_users.erl"],
         outs = ["ebin/rabbit_mgmt_wm_users.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -597,6 +681,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_users_bulk_delete_beam",
         srcs = ["src/rabbit_mgmt_wm_users_bulk_delete.erl"],
         outs = ["ebin/rabbit_mgmt_wm_users_bulk_delete.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -604,6 +689,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_vhost_beam",
         srcs = ["src/rabbit_mgmt_wm_vhost.erl"],
         outs = ["ebin/rabbit_mgmt_wm_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -611,6 +697,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_vhost_restart_beam",
         srcs = ["src/rabbit_mgmt_wm_vhost_restart.erl"],
         outs = ["ebin/rabbit_mgmt_wm_vhost_restart.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -618,6 +705,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_vhosts_beam",
         srcs = ["src/rabbit_mgmt_wm_vhosts.erl"],
         outs = ["ebin/rabbit_mgmt_wm_vhosts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -625,6 +713,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_mgmt_wm_whoami_beam",
         srcs = ["src/rabbit_mgmt_wm_whoami.erl"],
         outs = ["ebin/rabbit_mgmt_wm_whoami.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -640,6 +729,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_app.erl"],
         outs = ["test/rabbit_mgmt_app.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -648,6 +738,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_cors.erl"],
         outs = ["test/rabbit_mgmt_cors.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -655,6 +746,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_csp.erl"],
         outs = ["test/rabbit_mgmt_csp.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -663,6 +755,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_db.erl"],
         outs = ["test/rabbit_mgmt_db.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -671,6 +764,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_db_cache.erl"],
         outs = ["test/rabbit_mgmt_db_cache.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -678,6 +772,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_db_cache_sup.erl"],
         outs = ["test/rabbit_mgmt_db_cache_sup.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -685,6 +780,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_dispatcher.erl"],
         outs = ["test/rabbit_mgmt_dispatcher.beam"],
+        app_name = "rabbitmq_management",
         beam = ["ebin/rabbit_mgmt_extension.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -693,6 +789,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_extension.erl"],
         outs = ["test/rabbit_mgmt_extension.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -700,6 +797,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_headers.erl"],
         outs = ["test/rabbit_mgmt_headers.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -707,6 +805,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_hsts.erl"],
         outs = ["test/rabbit_mgmt_hsts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -714,6 +813,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_load_definitions.erl"],
         outs = ["test/rabbit_mgmt_load_definitions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -722,6 +822,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_reset_handler.erl"],
         outs = ["test/rabbit_mgmt_reset_handler.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -730,6 +831,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_stats.erl"],
         outs = ["test/rabbit_mgmt_stats.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -738,6 +840,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_sup.erl"],
         outs = ["test/rabbit_mgmt_sup.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -747,6 +850,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_sup_sup.erl"],
         outs = ["test/rabbit_mgmt_sup_sup.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -756,6 +860,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_util.erl"],
         outs = ["test/rabbit_mgmt_util.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -765,6 +870,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_aliveness_test.erl"],
         outs = ["test/rabbit_mgmt_wm_aliveness_test.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -773,6 +879,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_auth_attempts.erl"],
         outs = ["test/rabbit_mgmt_wm_auth_attempts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -781,6 +888,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_auth.erl"],
         outs = ["test/rabbit_mgmt_wm_auth.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -789,6 +897,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_binding.erl"],
         outs = ["test/rabbit_mgmt_wm_binding.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -797,6 +906,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_bindings.erl"],
         outs = ["test/rabbit_mgmt_wm_bindings.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -805,6 +915,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_channel.erl"],
         outs = ["test/rabbit_mgmt_wm_channel.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -813,6 +924,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_channels.erl"],
         outs = ["test/rabbit_mgmt_wm_channels.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -821,6 +933,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_channels_vhost.erl"],
         outs = ["test/rabbit_mgmt_wm_channels_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -829,6 +942,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_cluster_name.erl"],
         outs = ["test/rabbit_mgmt_wm_cluster_name.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -837,6 +951,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_connection.erl"],
         outs = ["test/rabbit_mgmt_wm_connection.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -845,6 +960,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_connection_channels.erl"],
         outs = ["test/rabbit_mgmt_wm_connection_channels.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -853,6 +969,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_connection_user_name.erl"],
         outs = ["test/rabbit_mgmt_wm_connection_user_name.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -861,6 +978,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_connections.erl"],
         outs = ["test/rabbit_mgmt_wm_connections.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -869,6 +987,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_connections_vhost.erl"],
         outs = ["test/rabbit_mgmt_wm_connections_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -877,6 +996,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_consumers.erl"],
         outs = ["test/rabbit_mgmt_wm_consumers.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -886,6 +1006,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_definitions.erl"],
         outs = ["test/rabbit_mgmt_wm_definitions.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -894,6 +1015,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_exchange.erl"],
         outs = ["test/rabbit_mgmt_wm_exchange.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -902,6 +1024,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_exchange_publish.erl"],
         outs = ["test/rabbit_mgmt_wm_exchange_publish.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -910,6 +1033,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_exchanges.erl"],
         outs = ["test/rabbit_mgmt_wm_exchanges.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -918,6 +1042,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_extensions.erl"],
         outs = ["test/rabbit_mgmt_wm_extensions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -926,6 +1051,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_feature_flag_enable.erl"],
         outs = ["test/rabbit_mgmt_wm_feature_flag_enable.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -934,6 +1060,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_feature_flags.erl"],
         outs = ["test/rabbit_mgmt_wm_feature_flags.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -942,6 +1069,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_global_parameter.erl"],
         outs = ["test/rabbit_mgmt_wm_global_parameter.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -950,6 +1078,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_global_parameters.erl"],
         outs = ["test/rabbit_mgmt_wm_global_parameters.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -959,6 +1088,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_health_check_alarms.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_alarms.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -967,6 +1097,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_health_check_certificate_expiration.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_certificate_expiration.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -976,6 +1107,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_health_check_local_alarms.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_local_alarms.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -984,6 +1116,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_health_check_node_is_mirror_sync_critical.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_node_is_mirror_sync_critical.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -992,6 +1125,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_health_check_node_is_quorum_critical.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_node_is_quorum_critical.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1000,6 +1134,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_health_check_port_listener.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_port_listener.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1008,6 +1143,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_health_check_protocol_listener.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_protocol_listener.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1016,6 +1152,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_health_check_virtual_hosts.erl"],
         outs = ["test/rabbit_mgmt_wm_health_check_virtual_hosts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1025,6 +1162,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_mgmt_wm_healthchecks.erl"],
         outs = ["test/rabbit_mgmt_wm_healthchecks.beam"],
         hdrs = ["include/rabbit_mgmt.hrl"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1033,6 +1171,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_limit.erl"],
         outs = ["test/rabbit_mgmt_wm_limit.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1041,6 +1180,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_limits.erl"],
         outs = ["test/rabbit_mgmt_wm_limits.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1049,6 +1189,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_login.erl"],
         outs = ["test/rabbit_mgmt_wm_login.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1057,6 +1198,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_node.erl"],
         outs = ["test/rabbit_mgmt_wm_node.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1065,6 +1207,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_node_memory.erl"],
         outs = ["test/rabbit_mgmt_wm_node_memory.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1073,6 +1216,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_node_memory_ets.erl"],
         outs = ["test/rabbit_mgmt_wm_node_memory_ets.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1081,6 +1225,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_nodes.erl"],
         outs = ["test/rabbit_mgmt_wm_nodes.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1089,6 +1234,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_operator_policies.erl"],
         outs = ["test/rabbit_mgmt_wm_operator_policies.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1097,6 +1243,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_operator_policy.erl"],
         outs = ["test/rabbit_mgmt_wm_operator_policy.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1105,6 +1252,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_overview.erl"],
         outs = ["test/rabbit_mgmt_wm_overview.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1113,6 +1261,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_parameter.erl"],
         outs = ["test/rabbit_mgmt_wm_parameter.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1121,6 +1270,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_parameters.erl"],
         outs = ["test/rabbit_mgmt_wm_parameters.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1129,6 +1279,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_permission.erl"],
         outs = ["test/rabbit_mgmt_wm_permission.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1137,6 +1288,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_permissions.erl"],
         outs = ["test/rabbit_mgmt_wm_permissions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1145,6 +1297,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_permissions_user.erl"],
         outs = ["test/rabbit_mgmt_wm_permissions_user.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1153,6 +1306,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_permissions_vhost.erl"],
         outs = ["test/rabbit_mgmt_wm_permissions_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1161,6 +1315,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_policies.erl"],
         outs = ["test/rabbit_mgmt_wm_policies.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1169,6 +1324,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_policy.erl"],
         outs = ["test/rabbit_mgmt_wm_policy.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1177,6 +1333,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_queue_actions.erl"],
         outs = ["test/rabbit_mgmt_wm_queue_actions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1185,6 +1342,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_queue.erl"],
         outs = ["test/rabbit_mgmt_wm_queue.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1193,6 +1351,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_queue_get.erl"],
         outs = ["test/rabbit_mgmt_wm_queue_get.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1201,6 +1360,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_queue_purge.erl"],
         outs = ["test/rabbit_mgmt_wm_queue_purge.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1209,6 +1369,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_queues.erl"],
         outs = ["test/rabbit_mgmt_wm_queues.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1217,6 +1378,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_rebalance_queues.erl"],
         outs = ["test/rabbit_mgmt_wm_rebalance_queues.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1225,6 +1387,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_redirect.erl"],
         outs = ["test/rabbit_mgmt_wm_redirect.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -1232,6 +1395,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_reset.erl"],
         outs = ["test/rabbit_mgmt_wm_reset.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1240,6 +1404,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_static.erl"],
         outs = ["test/rabbit_mgmt_wm_static.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -1247,6 +1412,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_topic_permission.erl"],
         outs = ["test/rabbit_mgmt_wm_topic_permission.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1255,6 +1421,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_topic_permissions.erl"],
         outs = ["test/rabbit_mgmt_wm_topic_permissions.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1263,6 +1430,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_topic_permissions_user.erl"],
         outs = ["test/rabbit_mgmt_wm_topic_permissions_user.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1271,6 +1439,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_topic_permissions_vhost.erl"],
         outs = ["test/rabbit_mgmt_wm_topic_permissions_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1279,6 +1448,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_user.erl"],
         outs = ["test/rabbit_mgmt_wm_user.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1287,6 +1457,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_user_limit.erl"],
         outs = ["test/rabbit_mgmt_wm_user_limit.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1295,6 +1466,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_user_limits.erl"],
         outs = ["test/rabbit_mgmt_wm_user_limits.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1303,6 +1475,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_users.erl"],
         outs = ["test/rabbit_mgmt_wm_users.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1311,6 +1484,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_users_bulk_delete.erl"],
         outs = ["test/rabbit_mgmt_wm_users_bulk_delete.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1319,6 +1493,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_vhost.erl"],
         outs = ["test/rabbit_mgmt_wm_vhost.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1327,6 +1502,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_vhost_restart.erl"],
         outs = ["test/rabbit_mgmt_wm_vhost_restart.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1335,6 +1511,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_vhosts.erl"],
         outs = ["test/rabbit_mgmt_wm_vhosts.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -1343,6 +1520,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_mgmt_wm_whoami.erl"],
         outs = ["test/rabbit_mgmt_wm_whoami.beam"],
+        app_name = "rabbitmq_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )

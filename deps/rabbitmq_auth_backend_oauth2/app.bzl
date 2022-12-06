@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_Elixir_RabbitMQ_CLI_Ctl_Commands_AddUaaKeyCommand_beam",
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.AddUaaKeyCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.AddUaaKeyCommand.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -17,12 +18,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_auth_backend_oauth2_app_beam",
         srcs = ["src/rabbit_auth_backend_oauth2_app.erl"],
         outs = ["ebin/rabbit_auth_backend_oauth2_app.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_auth_backend_oauth2_beam",
         srcs = ["src/rabbit_auth_backend_oauth2.erl"],
         outs = ["ebin/rabbit_auth_backend_oauth2.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -30,6 +33,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_oauth2_scope_beam",
         srcs = ["src/rabbit_oauth2_scope.erl"],
         outs = ["ebin/rabbit_oauth2_scope.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -37,12 +41,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_uaa_jwks_beam",
         srcs = ["src/uaa_jwks.erl"],
         outs = ["ebin/uaa_jwks.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_uaa_jwt_beam",
         srcs = ["src/uaa_jwt.erl"],
         outs = ["ebin/uaa_jwt.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
         deps = ["@jose//:erlang_app"],
     )
@@ -50,6 +56,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_uaa_jwt_jwk_beam",
         srcs = ["src/uaa_jwt_jwk.erl"],
         outs = ["ebin/uaa_jwt_jwk.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
         deps = ["@jose//:erlang_app"],
     )
@@ -57,6 +64,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_uaa_jwt_jwt_beam",
         srcs = ["src/uaa_jwt_jwt.erl"],
         outs = ["ebin/uaa_jwt_jwt.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
         deps = ["@jose//:erlang_app"],
     )
@@ -64,6 +72,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_wildcard_beam",
         srcs = ["src/wildcard.erl"],
         outs = ["ebin/wildcard.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -73,6 +82,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.AddUaaKeyCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.AddUaaKeyCommand.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -86,6 +96,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_auth_backend_oauth2_app.erl"],
         outs = ["test/rabbit_auth_backend_oauth2_app.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -93,6 +104,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_auth_backend_oauth2.erl"],
         outs = ["test/rabbit_auth_backend_oauth2.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -101,6 +113,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_oauth2_scope.erl"],
         outs = ["test/rabbit_oauth2_scope.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -109,6 +122,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/uaa_jwks.erl"],
         outs = ["test/uaa_jwks.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -116,6 +130,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/uaa_jwt.erl"],
         outs = ["test/uaa_jwt.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@jose//:erlang_app"],
     )
@@ -124,6 +139,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/uaa_jwt_jwk.erl"],
         outs = ["test/uaa_jwt_jwk.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@jose//:erlang_app"],
     )
@@ -132,6 +148,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/uaa_jwt_jwt.erl"],
         outs = ["test/uaa_jwt_jwt.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@jose//:erlang_app"],
     )
@@ -140,6 +157,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/wildcard.erl"],
         outs = ["test/wildcard.beam"],
+        app_name = "rabbitmq_auth_backend_oauth2",
         erlc_opts = "//:test_erlc_opts",
     )
 

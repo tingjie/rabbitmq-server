@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_peer_discovery_etcd.erl"],
         outs = ["ebin/rabbit_peer_discovery_etcd.beam"],
         hdrs = ["include/rabbit_peer_discovery_etcd.hrl"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -18,12 +19,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbitmq_peer_discovery_etcd_app_beam",
         srcs = ["src/rabbitmq_peer_discovery_etcd_app.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_etcd_app.beam"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbitmq_peer_discovery_etcd_beam",
         srcs = ["src/rabbitmq_peer_discovery_etcd.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_etcd.beam"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -32,6 +35,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_etcd_sup.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_etcd_sup.beam"],
         hdrs = ["include/rabbit_peer_discovery_etcd.hrl"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -40,6 +44,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_etcd_v3_client.erl"],
         outs = ["ebin/rabbitmq_peer_discovery_etcd_v3_client.beam"],
         hdrs = ["include/rabbit_peer_discovery_etcd.hrl"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -55,6 +60,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_peer_discovery_etcd.erl"],
         outs = ["test/rabbit_peer_discovery_etcd.beam"],
         hdrs = ["include/rabbit_peer_discovery_etcd.hrl"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_peer_discovery_common:erlang_app"],
     )
@@ -63,6 +69,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbitmq_peer_discovery_etcd_app.erl"],
         outs = ["test/rabbitmq_peer_discovery_etcd_app.beam"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -70,6 +77,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbitmq_peer_discovery_etcd.erl"],
         outs = ["test/rabbitmq_peer_discovery_etcd.beam"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -79,6 +87,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_etcd_sup.erl"],
         outs = ["test/rabbitmq_peer_discovery_etcd_sup.beam"],
         hdrs = ["include/rabbit_peer_discovery_etcd.hrl"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -88,6 +97,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbitmq_peer_discovery_etcd_v3_client.erl"],
         outs = ["test/rabbitmq_peer_discovery_etcd_v3_client.beam"],
         hdrs = ["include/rabbit_peer_discovery_etcd.hrl"],
+        app_name = "rabbitmq_peer_discovery_etcd",
         erlc_opts = "//:test_erlc_opts",
     )
 

@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_sharding_exchange_decorator_beam",
         srcs = ["src/rabbit_sharding_exchange_decorator.erl"],
         outs = ["ebin/rabbit_sharding_exchange_decorator.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -17,6 +18,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_sharding_exchange_type_modulus_hash_beam",
         srcs = ["src/rabbit_sharding_exchange_type_modulus_hash.erl"],
         outs = ["ebin/rabbit_sharding_exchange_type_modulus_hash.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -24,6 +26,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_sharding_interceptor_beam",
         srcs = ["src/rabbit_sharding_interceptor.erl"],
         outs = ["ebin/rabbit_sharding_interceptor.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -31,6 +34,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_sharding_policy_validator_beam",
         srcs = ["src/rabbit_sharding_policy_validator.erl"],
         outs = ["ebin/rabbit_sharding_policy_validator.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -38,6 +42,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_sharding_shard_beam",
         srcs = ["src/rabbit_sharding_shard.erl"],
         outs = ["ebin/rabbit_sharding_shard.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -45,6 +50,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_sharding_util_beam",
         srcs = ["src/rabbit_sharding_util.erl"],
         outs = ["ebin/rabbit_sharding_util.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -60,6 +66,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_sharding_exchange_decorator.erl"],
         outs = ["test/rabbit_sharding_exchange_decorator.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -68,6 +75,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_sharding_exchange_type_modulus_hash.erl"],
         outs = ["test/rabbit_sharding_exchange_type_modulus_hash.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -76,6 +84,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_sharding_interceptor.erl"],
         outs = ["test/rabbit_sharding_interceptor.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -84,6 +93,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_sharding_policy_validator.erl"],
         outs = ["test/rabbit_sharding_policy_validator.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -92,6 +102,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_sharding_shard.erl"],
         outs = ["test/rabbit_sharding_shard.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -100,6 +111,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_sharding_util.erl"],
         outs = ["test/rabbit_sharding_util.beam"],
+        app_name = "rabbitmq_sharding",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

@@ -10,18 +10,21 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_web_mqtt_app_beam",
         srcs = ["src/rabbit_web_mqtt_app.erl"],
         outs = ["ebin/rabbit_web_mqtt_app.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_mqtt_connection_info_beam",
         srcs = ["src/rabbit_web_mqtt_connection_info.erl"],
         outs = ["ebin/rabbit_web_mqtt_connection_info.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_mqtt_connection_sup_beam",
         srcs = ["src/rabbit_web_mqtt_connection_sup.erl"],
         outs = ["ebin/rabbit_web_mqtt_connection_sup.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "@ranch//:erlang_app"],
     )
@@ -29,6 +32,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_web_mqtt_handler_beam",
         srcs = ["src/rabbit_web_mqtt_handler.erl"],
         outs = ["ebin/rabbit_web_mqtt_handler.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "@cowboy//:erlang_app"],
     )
@@ -36,6 +40,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_web_mqtt_middleware_beam",
         srcs = ["src/rabbit_web_mqtt_middleware.erl"],
         outs = ["ebin/rabbit_web_mqtt_middleware.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -43,6 +48,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_web_mqtt_stream_handler_beam",
         srcs = ["src/rabbit_web_mqtt_stream_handler.erl"],
         outs = ["ebin/rabbit_web_mqtt_stream_handler.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -58,6 +64,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_app.erl"],
         outs = ["test/rabbit_web_mqtt_app.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -65,6 +72,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_connection_info.erl"],
         outs = ["test/rabbit_web_mqtt_connection_info.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -72,6 +80,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_connection_sup.erl"],
         outs = ["test/rabbit_web_mqtt_connection_sup.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "@ranch//:erlang_app"],
     )
@@ -80,6 +89,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_handler.erl"],
         outs = ["test/rabbit_web_mqtt_handler.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "@cowboy//:erlang_app"],
     )
@@ -88,6 +98,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_middleware.erl"],
         outs = ["test/rabbit_web_mqtt_middleware.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -96,6 +107,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_mqtt_stream_handler.erl"],
         outs = ["test/rabbit_web_mqtt_stream_handler.beam"],
+        app_name = "rabbitmq_web_mqtt",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )

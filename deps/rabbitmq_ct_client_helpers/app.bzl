@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_ct_client_helpers_beam",
         srcs = ["src/rabbit_ct_client_helpers.erl"],
         outs = ["ebin/rabbit_ct_client_helpers.beam"],
+        app_name = "rabbitmq_ct_client_helpers",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -56,6 +57,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_ct_client_helpers.erl"],
         outs = ["test/rabbit_ct_client_helpers.beam"],
+        app_name = "rabbitmq_ct_client_helpers",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )

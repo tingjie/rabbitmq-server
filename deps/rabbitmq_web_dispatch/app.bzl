@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_cowboy_middleware_beam",
         srcs = ["src/rabbit_cowboy_middleware.erl"],
         outs = ["ebin/rabbit_cowboy_middleware.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -17,12 +18,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_cowboy_redirect_beam",
         srcs = ["src/rabbit_cowboy_redirect.erl"],
         outs = ["ebin/rabbit_cowboy_redirect.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_cowboy_stream_h_beam",
         srcs = ["src/rabbit_cowboy_stream_h.erl"],
         outs = ["ebin/rabbit_cowboy_stream_h.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -30,36 +33,42 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_web_dispatch_app_beam",
         srcs = ["src/rabbit_web_dispatch_app.erl"],
         outs = ["ebin/rabbit_web_dispatch_app.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_dispatch_beam",
         srcs = ["src/rabbit_web_dispatch.erl"],
         outs = ["ebin/rabbit_web_dispatch.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_dispatch_listing_handler_beam",
         srcs = ["src/rabbit_web_dispatch_listing_handler.erl"],
         outs = ["ebin/rabbit_web_dispatch_listing_handler.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_dispatch_registry_beam",
         srcs = ["src/rabbit_web_dispatch_registry.erl"],
         outs = ["ebin/rabbit_web_dispatch_registry.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_dispatch_sup_beam",
         srcs = ["src/rabbit_web_dispatch_sup.erl"],
         outs = ["ebin/rabbit_web_dispatch_sup.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_web_dispatch_util_beam",
         srcs = ["src/rabbit_web_dispatch_util.erl"],
         outs = ["ebin/rabbit_web_dispatch_util.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -67,6 +76,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/webmachine_log.erl"],
         outs = ["ebin/webmachine_log.beam"],
         hdrs = ["src/webmachine_logger.hrl"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -74,6 +84,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/webmachine_log_handler.erl"],
         outs = ["ebin/webmachine_log_handler.beam"],
         hdrs = ["src/webmachine_logger.hrl"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -88,6 +99,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_cowboy_middleware.erl"],
         outs = ["test/rabbit_cowboy_middleware.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -96,6 +108,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_cowboy_redirect.erl"],
         outs = ["test/rabbit_cowboy_redirect.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -103,6 +116,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_cowboy_stream_h.erl"],
         outs = ["test/rabbit_cowboy_stream_h.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -111,6 +125,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_dispatch_app.erl"],
         outs = ["test/rabbit_web_dispatch_app.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -118,6 +133,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_dispatch.erl"],
         outs = ["test/rabbit_web_dispatch.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -125,6 +141,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_dispatch_listing_handler.erl"],
         outs = ["test/rabbit_web_dispatch_listing_handler.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -132,6 +149,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_dispatch_registry.erl"],
         outs = ["test/rabbit_web_dispatch_registry.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -139,6 +157,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_dispatch_sup.erl"],
         outs = ["test/rabbit_web_dispatch_sup.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -146,6 +165,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_web_dispatch_util.erl"],
         outs = ["test/rabbit_web_dispatch_util.beam"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -154,6 +174,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/webmachine_log.erl"],
         outs = ["test/webmachine_log.beam"],
         hdrs = ["src/webmachine_logger.hrl"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -162,6 +183,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/webmachine_log_handler.erl"],
         outs = ["test/webmachine_log_handler.beam"],
         hdrs = ["src/webmachine_logger.hrl"],
+        app_name = "rabbitmq_web_dispatch",
         erlc_opts = "//:test_erlc_opts",
     )
 

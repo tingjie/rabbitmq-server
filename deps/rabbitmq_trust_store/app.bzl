@@ -10,24 +10,28 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_trust_store_app_beam",
         srcs = ["src/rabbit_trust_store_app.erl"],
         outs = ["ebin/rabbit_trust_store_app.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_trust_store_beam",
         srcs = ["src/rabbit_trust_store.erl"],
         outs = ["ebin/rabbit_trust_store.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_trust_store_certificate_provider_beam",
         srcs = ["src/rabbit_trust_store_certificate_provider.erl"],
         outs = ["ebin/rabbit_trust_store_certificate_provider.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_trust_store_file_provider_beam",
         srcs = ["src/rabbit_trust_store_file_provider.erl"],
         outs = ["ebin/rabbit_trust_store_file_provider.beam"],
+        app_name = "rabbitmq_trust_store",
         beam = ["ebin/rabbit_trust_store_certificate_provider.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -35,6 +39,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_trust_store_http_provider_beam",
         srcs = ["src/rabbit_trust_store_http_provider.erl"],
         outs = ["ebin/rabbit_trust_store_http_provider.beam"],
+        app_name = "rabbitmq_trust_store",
         beam = ["ebin/rabbit_trust_store_certificate_provider.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -42,6 +47,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_trust_store_sup_beam",
         srcs = ["src/rabbit_trust_store_sup.erl"],
         outs = ["ebin/rabbit_trust_store_sup.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -57,6 +63,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_trust_store_app.erl"],
         outs = ["test/rabbit_trust_store_app.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -64,6 +71,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_trust_store.erl"],
         outs = ["test/rabbit_trust_store.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -71,6 +79,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_trust_store_certificate_provider.erl"],
         outs = ["test/rabbit_trust_store_certificate_provider.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -78,6 +87,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_trust_store_file_provider.erl"],
         outs = ["test/rabbit_trust_store_file_provider.beam"],
+        app_name = "rabbitmq_trust_store",
         beam = ["ebin/rabbit_trust_store_certificate_provider.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -86,6 +96,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_trust_store_http_provider.erl"],
         outs = ["test/rabbit_trust_store_http_provider.beam"],
+        app_name = "rabbitmq_trust_store",
         beam = ["ebin/rabbit_trust_store_certificate_provider.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -94,6 +105,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_trust_store_sup.erl"],
         outs = ["test/rabbit_trust_store_sup.beam"],
+        app_name = "rabbitmq_trust_store",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.FederationStatusCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.FederationStatusCommand.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -19,6 +20,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartFederationLinkCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartFederationLinkCommand.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -27,6 +29,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_app.erl"],
         outs = ["ebin/rabbit_federation_app.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -34,6 +37,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_db.erl"],
         outs = ["ebin/rabbit_federation_db.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -41,6 +45,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_event_beam",
         srcs = ["src/rabbit_federation_event.erl"],
         outs = ["ebin/rabbit_federation_event.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -48,6 +53,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_exchange_beam",
         srcs = ["src/rabbit_federation_exchange.erl"],
         outs = ["ebin/rabbit_federation_exchange.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -56,6 +62,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_exchange_link.erl"],
         outs = ["ebin/rabbit_federation_exchange_link.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -63,6 +70,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_exchange_link_sup_sup_beam",
         srcs = ["src/rabbit_federation_exchange_link_sup_sup.erl"],
         outs = ["ebin/rabbit_federation_exchange_link_sup_sup.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -71,6 +79,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_link_sup.erl"],
         outs = ["ebin/rabbit_federation_link_sup.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -79,6 +88,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_link_util.erl"],
         outs = ["ebin/rabbit_federation_link_util.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -86,6 +96,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_parameters_beam",
         srcs = ["src/rabbit_federation_parameters.erl"],
         outs = ["ebin/rabbit_federation_parameters.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -94,6 +105,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_pg.erl"],
         outs = ["ebin/rabbit_federation_pg.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -101,6 +113,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_queue.erl"],
         outs = ["ebin/rabbit_federation_queue.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -109,6 +122,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_queue_link.erl"],
         outs = ["ebin/rabbit_federation_queue_link.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -116,6 +130,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_queue_link_sup_sup_beam",
         srcs = ["src/rabbit_federation_queue_link_sup_sup.erl"],
         outs = ["ebin/rabbit_federation_queue_link_sup_sup.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -124,6 +139,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_status.erl"],
         outs = ["ebin/rabbit_federation_status.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -131,6 +147,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_federation_sup_beam",
         srcs = ["src/rabbit_federation_sup.erl"],
         outs = ["ebin/rabbit_federation_sup.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -139,6 +156,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_upstream.erl"],
         outs = ["ebin/rabbit_federation_upstream.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -147,6 +165,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_upstream_exchange.erl"],
         outs = ["ebin/rabbit_federation_upstream_exchange.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -155,6 +174,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_federation_util.erl"],
         outs = ["ebin/rabbit_federation_util.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -163,6 +183,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_log_federation.erl"],
         outs = ["ebin/rabbit_log_federation.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -174,6 +195,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.FederationStatusCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.FederationStatusCommand.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -183,6 +205,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartFederationLinkCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.RestartFederationLinkCommand.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_cli:erlang_app"],
     )
@@ -197,6 +220,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_app.erl"],
         outs = ["test/rabbit_federation_app.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -205,6 +229,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_db.erl"],
         outs = ["test/rabbit_federation_db.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -213,6 +238,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_event.erl"],
         outs = ["test/rabbit_federation_event.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -221,6 +247,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_exchange.erl"],
         outs = ["test/rabbit_federation_exchange.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -230,6 +257,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_exchange_link.erl"],
         outs = ["test/rabbit_federation_exchange_link.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -238,6 +266,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_exchange_link_sup_sup.erl"],
         outs = ["test/rabbit_federation_exchange_link_sup_sup.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -247,6 +276,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_link_sup.erl"],
         outs = ["test/rabbit_federation_link_sup.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -256,6 +286,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_link_util.erl"],
         outs = ["test/rabbit_federation_link_util.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -264,6 +295,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_parameters.erl"],
         outs = ["test/rabbit_federation_parameters.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -273,6 +305,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_pg.erl"],
         outs = ["test/rabbit_federation_pg.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -281,6 +314,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_queue.erl"],
         outs = ["test/rabbit_federation_queue.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -290,6 +324,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_queue_link.erl"],
         outs = ["test/rabbit_federation_queue_link.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -298,6 +333,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_queue_link_sup_sup.erl"],
         outs = ["test/rabbit_federation_queue_link_sup_sup.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -307,6 +343,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_status.erl"],
         outs = ["test/rabbit_federation_status.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -315,6 +352,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_federation_sup.erl"],
         outs = ["test/rabbit_federation_sup.beam"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -324,6 +362,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_upstream.erl"],
         outs = ["test/rabbit_federation_upstream.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -333,6 +372,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_upstream_exchange.erl"],
         outs = ["test/rabbit_federation_upstream_exchange.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -342,6 +382,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_federation_util.erl"],
         outs = ["test/rabbit_federation_util.beam"],
         hdrs = ["include/rabbit_federation.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbit:erlang_app"],
     )
@@ -351,6 +392,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_log_federation.erl"],
         outs = ["test/rabbit_log_federation.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbitmq_federation",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

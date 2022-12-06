@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_amqp10_client_app_beam",
         srcs = ["src/amqp10_client_app.erl"],
         outs = ["ebin/amqp10_client_app.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -17,6 +18,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_client.erl"],
         outs = ["ebin/amqp10_client.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -25,6 +27,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_client_connection.erl"],
         outs = ["ebin/amqp10_client_connection.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -32,12 +35,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_amqp10_client_connection_sup_beam",
         srcs = ["src/amqp10_client_connection_sup.erl"],
         outs = ["ebin/amqp10_client_connection_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_amqp10_client_connections_sup_beam",
         srcs = ["src/amqp10_client_connections_sup.erl"],
         outs = ["ebin/amqp10_client_connections_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -45,6 +50,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_client_frame_reader.erl"],
         outs = ["ebin/amqp10_client_frame_reader.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -53,6 +59,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_client_session.erl"],
         outs = ["ebin/amqp10_client_session.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -60,18 +67,21 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_amqp10_client_sessions_sup_beam",
         srcs = ["src/amqp10_client_sessions_sup.erl"],
         outs = ["ebin/amqp10_client_sessions_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_amqp10_client_sup_beam",
         srcs = ["src/amqp10_client_sup.erl"],
         outs = ["ebin/amqp10_client_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_amqp10_client_types_beam",
         srcs = ["src/amqp10_client_types.erl"],
         outs = ["ebin/amqp10_client_types.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -79,6 +89,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_amqp10_msg_beam",
         srcs = ["src/amqp10_msg.erl"],
         outs = ["ebin/amqp10_msg.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -89,6 +100,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_client_app.erl"],
         outs = ["test/amqp10_client_app.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -97,6 +109,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_client.erl"],
         outs = ["test/amqp10_client.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -106,6 +119,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_client_connection.erl"],
         outs = ["test/amqp10_client_connection.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -114,6 +128,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_client_connection_sup.erl"],
         outs = ["test/amqp10_client_connection_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -121,6 +136,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_client_connections_sup.erl"],
         outs = ["test/amqp10_client_connections_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -129,6 +145,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_client_frame_reader.erl"],
         outs = ["test/amqp10_client_frame_reader.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -138,6 +155,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_client_session.erl"],
         outs = ["test/amqp10_client_session.beam"],
         hdrs = ["src/amqp10_client.hrl"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -146,6 +164,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_client_sessions_sup.erl"],
         outs = ["test/amqp10_client_sessions_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -153,6 +172,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_client_sup.erl"],
         outs = ["test/amqp10_client_sup.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -160,6 +180,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_client_types.erl"],
         outs = ["test/amqp10_client_types.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -168,6 +189,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/amqp10_msg.erl"],
         outs = ["test/amqp10_msg.beam"],
+        app_name = "amqp10_client",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )

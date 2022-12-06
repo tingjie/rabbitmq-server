@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_boot_state_beam",
         srcs = ["src/rabbit_boot_state.erl"],
         outs = ["ebin/rabbit_boot_state.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -17,12 +18,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_boot_state_sup_beam",
         srcs = ["src/rabbit_boot_state_sup.erl"],
         outs = ["ebin/rabbit_boot_state_sup.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_boot_state_systemd_beam",
         srcs = ["src/rabbit_boot_state_systemd.erl"],
         outs = ["ebin/rabbit_boot_state_systemd.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -30,6 +33,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_boot_state_xterm_titlebar_beam",
         srcs = ["src/rabbit_boot_state_xterm_titlebar.erl"],
         outs = ["ebin/rabbit_boot_state_xterm_titlebar.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -37,36 +41,42 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_logger_fmt_helpers_beam",
         srcs = ["src/rabbit_logger_fmt_helpers.erl"],
         outs = ["ebin/rabbit_logger_fmt_helpers.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_logger_json_fmt_beam",
         srcs = ["src/rabbit_logger_json_fmt.erl"],
         outs = ["ebin/rabbit_logger_json_fmt.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_logger_std_h_beam",
         srcs = ["src/rabbit_logger_std_h.erl"],
         outs = ["ebin/rabbit_logger_std_h.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_logger_text_fmt_beam",
         srcs = ["src/rabbit_logger_text_fmt.erl"],
         outs = ["ebin/rabbit_logger_text_fmt.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_prelaunch_app_beam",
         srcs = ["src/rabbit_prelaunch_app.erl"],
         outs = ["ebin/rabbit_prelaunch_app.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_prelaunch_beam",
         srcs = ["src/rabbit_prelaunch.erl"],
         outs = ["ebin/rabbit_prelaunch.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -74,6 +84,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_prelaunch_conf_beam",
         srcs = ["src/rabbit_prelaunch_conf.erl"],
         outs = ["ebin/rabbit_prelaunch_conf.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -81,6 +92,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_prelaunch_dist_beam",
         srcs = ["src/rabbit_prelaunch_dist.erl"],
         outs = ["ebin/rabbit_prelaunch_dist.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -88,6 +100,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_prelaunch_early_logging_beam",
         srcs = ["src/rabbit_prelaunch_early_logging.erl"],
         outs = ["ebin/rabbit_prelaunch_early_logging.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -95,6 +108,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_prelaunch_erlang_compat_beam",
         srcs = ["src/rabbit_prelaunch_erlang_compat.erl"],
         outs = ["ebin/rabbit_prelaunch_erlang_compat.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -102,6 +116,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_prelaunch_errors_beam",
         srcs = ["src/rabbit_prelaunch_errors.erl"],
         outs = ["ebin/rabbit_prelaunch_errors.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -109,18 +124,21 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_prelaunch_file_beam",
         srcs = ["src/rabbit_prelaunch_file.erl"],
         outs = ["ebin/rabbit_prelaunch_file.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_prelaunch_sighandler_beam",
         srcs = ["src/rabbit_prelaunch_sighandler.erl"],
         outs = ["ebin/rabbit_prelaunch_sighandler.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_prelaunch_sup_beam",
         srcs = ["src/rabbit_prelaunch_sup.erl"],
         outs = ["ebin/rabbit_prelaunch_sup.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -135,6 +153,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_boot_state.erl"],
         outs = ["test/rabbit_boot_state.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -143,6 +162,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_boot_state_sup.erl"],
         outs = ["test/rabbit_boot_state_sup.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -150,6 +170,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_boot_state_systemd.erl"],
         outs = ["test/rabbit_boot_state_systemd.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -158,6 +179,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_boot_state_xterm_titlebar.erl"],
         outs = ["test/rabbit_boot_state_xterm_titlebar.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -166,6 +188,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_logger_fmt_helpers.erl"],
         outs = ["test/rabbit_logger_fmt_helpers.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -173,6 +196,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_logger_json_fmt.erl"],
         outs = ["test/rabbit_logger_json_fmt.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -180,6 +204,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_logger_std_h.erl"],
         outs = ["test/rabbit_logger_std_h.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -187,6 +212,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_logger_text_fmt.erl"],
         outs = ["test/rabbit_logger_text_fmt.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -194,6 +220,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_app.erl"],
         outs = ["test/rabbit_prelaunch_app.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -201,6 +228,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch.erl"],
         outs = ["test/rabbit_prelaunch.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -209,6 +237,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_conf.erl"],
         outs = ["test/rabbit_prelaunch_conf.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -217,6 +246,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_dist.erl"],
         outs = ["test/rabbit_prelaunch_dist.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -225,6 +255,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_early_logging.erl"],
         outs = ["test/rabbit_prelaunch_early_logging.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -233,6 +264,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_erlang_compat.erl"],
         outs = ["test/rabbit_prelaunch_erlang_compat.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -241,6 +273,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_errors.erl"],
         outs = ["test/rabbit_prelaunch_errors.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -249,6 +282,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_file.erl"],
         outs = ["test/rabbit_prelaunch_file.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -256,6 +290,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_sighandler.erl"],
         outs = ["test/rabbit_prelaunch_sighandler.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -263,6 +298,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_prelaunch_sup.erl"],
         outs = ["test/rabbit_prelaunch_sup.beam"],
+        app_name = "rabbitmq_prelaunch",
         erlc_opts = "//:test_erlc_opts",
     )
 

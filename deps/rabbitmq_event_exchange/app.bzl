@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_event_exchange_decorator.erl"],
         outs = ["ebin/rabbit_event_exchange_decorator.beam"],
         hdrs = ["include/rabbit_event_exchange.hrl"],
+        app_name = "rabbitmq_event_exchange",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -19,6 +20,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_exchange_type_event.erl"],
         outs = ["ebin/rabbit_exchange_type_event.beam"],
         hdrs = ["include/rabbit_event_exchange.hrl"],
+        app_name = "rabbitmq_event_exchange",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -35,6 +37,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_event_exchange_decorator.erl"],
         outs = ["test/rabbit_event_exchange_decorator.beam"],
         hdrs = ["include/rabbit_event_exchange.hrl"],
+        app_name = "rabbitmq_event_exchange",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -44,6 +47,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_exchange_type_event.erl"],
         outs = ["test/rabbit_exchange_type_event.beam"],
         hdrs = ["include/rabbit_event_exchange.hrl"],
+        app_name = "rabbitmq_event_exchange",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

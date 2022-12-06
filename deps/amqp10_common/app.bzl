@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_framing0.erl"],
         outs = ["ebin/amqp10_framing0.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -18,6 +19,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_binary_generator.erl"],
         outs = ["ebin/amqp10_binary_generator.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -25,6 +27,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_binary_parser.erl"],
         outs = ["ebin/amqp10_binary_parser.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -32,6 +35,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/amqp10_framing.erl"],
         outs = ["ebin/amqp10_framing.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -42,6 +46,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_framing0.erl"],
         outs = ["test/amqp10_framing0.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:test_erlc_opts",
     )
     filegroup(
@@ -55,6 +60,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_binary_generator.erl"],
         outs = ["test/amqp10_binary_generator.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -63,6 +69,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_binary_parser.erl"],
         outs = ["test/amqp10_binary_parser.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -71,6 +78,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/amqp10_framing.erl"],
         outs = ["test/amqp10_framing.beam"],
         hdrs = ["include/amqp10_framing.hrl"],
+        app_name = "amqp10_common",
         erlc_opts = "//:test_erlc_opts",
     )
 

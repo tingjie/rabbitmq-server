@@ -7,6 +7,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_framing_amqp_0_9_1.erl"],
         outs = ["ebin/rabbit_framing_amqp_0_9_1.beam"],
         hdrs = ["include/rabbit_framing.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -14,6 +15,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_framing_amqp_0_8.erl"],
         outs = ["ebin/rabbit_framing_amqp_0_8.beam"],
         hdrs = ["include/rabbit_framing.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     filegroup(
@@ -24,24 +26,28 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_app_utils_beam",
         srcs = ["src/app_utils.erl"],
         outs = ["ebin/app_utils.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_code_version_beam",
         srcs = ["src/code_version.erl"],
         outs = ["ebin/code_version.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_credit_flow_beam",
         srcs = ["src/credit_flow.erl"],
         outs = ["ebin/credit_flow.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_delegate_beam",
         srcs = ["src/delegate.erl"],
         outs = ["ebin/delegate.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -49,12 +55,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_delegate_sup_beam",
         srcs = ["src/delegate_sup.erl"],
         outs = ["ebin/delegate_sup.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_file_handle_cache_beam",
         srcs = ["src/file_handle_cache.erl"],
         outs = ["ebin/file_handle_cache.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -62,48 +70,56 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_file_handle_cache_stats_beam",
         srcs = ["src/file_handle_cache_stats.erl"],
         outs = ["ebin/file_handle_cache_stats.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_gen_server2_beam",
         srcs = ["src/gen_server2.erl"],
         outs = ["ebin/gen_server2.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_mirrored_supervisor_locks_beam",
         srcs = ["src/mirrored_supervisor_locks.erl"],
         outs = ["ebin/mirrored_supervisor_locks.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_mnesia_sync_beam",
         srcs = ["src/mnesia_sync.erl"],
         outs = ["ebin/mnesia_sync.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_pmon_beam",
         srcs = ["src/pmon.erl"],
         outs = ["ebin/pmon.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_priority_queue_beam",
         srcs = ["src/priority_queue.erl"],
         outs = ["ebin/priority_queue.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_amqp_connection_beam",
         srcs = ["src/rabbit_amqp_connection.erl"],
         outs = ["ebin/rabbit_amqp_connection.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_amqqueue_common_beam",
         srcs = ["src/rabbit_amqqueue_common.erl"],
         outs = ["ebin/rabbit_amqqueue_common.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -111,6 +127,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_auth_backend_dummy.erl"],
         outs = ["ebin/rabbit_auth_backend_dummy.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_authn_backend.beam", "ebin/rabbit_authz_backend.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -118,6 +135,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_auth_mechanism_beam",
         srcs = ["src/rabbit_auth_mechanism.erl"],
         outs = ["ebin/rabbit_auth_mechanism.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -126,6 +144,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_authn_backend.erl"],
         outs = ["ebin/rabbit_authn_backend.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -133,6 +152,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_authz_backend.erl"],
         outs = ["ebin/rabbit_authz_backend.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -140,6 +160,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_basic_common.erl"],
         outs = ["ebin/rabbit_basic_common.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -147,6 +168,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_binary_generator.erl"],
         outs = ["ebin/rabbit_binary_generator.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -154,18 +176,21 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_binary_parser.erl"],
         outs = ["ebin/rabbit_binary_parser.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_cert_info_beam",
         srcs = ["src/rabbit_cert_info.erl"],
         outs = ["ebin/rabbit_cert_info.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_channel_common_beam",
         srcs = ["src/rabbit_channel_common.erl"],
         outs = ["ebin/rabbit_channel_common.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -173,12 +198,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_command_assembler.erl"],
         outs = ["ebin/rabbit_command_assembler.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_control_misc_beam",
         srcs = ["src/rabbit_control_misc.erl"],
         outs = ["ebin/rabbit_control_misc.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -186,18 +213,21 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_core_metrics.erl"],
         outs = ["ebin/rabbit_core_metrics.beam"],
         hdrs = ["include/rabbit_core_metrics.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_data_coercion_beam",
         srcs = ["src/rabbit_data_coercion.erl"],
         outs = ["ebin/rabbit_data_coercion.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_date_time_beam",
         srcs = ["src/rabbit_date_time.erl"],
         outs = ["ebin/rabbit_date_time.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -205,12 +235,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_env.erl"],
         outs = ["ebin/rabbit_env.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_error_logger_handler_beam",
         srcs = ["src/rabbit_error_logger_handler.erl"],
         outs = ["ebin/rabbit_error_logger_handler.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -218,12 +250,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_event.erl"],
         outs = ["ebin/rabbit_event.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_exchange_type_beam",
         srcs = ["src/rabbit_exchange_type.erl"],
         outs = ["ebin/rabbit_exchange_type.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -232,18 +266,21 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_heartbeat.erl"],
         outs = ["ebin/rabbit_heartbeat.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_http_util_beam",
         srcs = ["src/rabbit_http_util.erl"],
         outs = ["ebin/rabbit_http_util.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_json_beam",
         srcs = ["src/rabbit_json.erl"],
         outs = ["ebin/rabbit_json.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -251,6 +288,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_log.erl"],
         outs = ["ebin/rabbit_log.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -258,6 +296,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_misc.erl"],
         outs = ["ebin/rabbit_misc.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/rabbit_misc.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -265,24 +304,28 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_msg_store_index.erl"],
         outs = ["ebin/rabbit_msg_store_index.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_msg_store.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_net_beam",
         srcs = ["src/rabbit_net.erl"],
         outs = ["ebin/rabbit_net.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_nodes_common_beam",
         srcs = ["src/rabbit_nodes_common.erl"],
         outs = ["ebin/rabbit_nodes_common.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_numerical_beam",
         srcs = ["src/rabbit_numerical.erl"],
         outs = ["ebin/rabbit_numerical.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -290,12 +333,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_password_hashing.erl"],
         outs = ["ebin/rabbit_password_hashing.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_pbe_beam",
         srcs = ["src/rabbit_pbe.erl"],
         outs = ["ebin/rabbit_pbe.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -303,12 +348,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_peer_discovery_backend.erl"],
         outs = ["ebin/rabbit_peer_discovery_backend.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_policy_validator_beam",
         srcs = ["src/rabbit_policy_validator.erl"],
         outs = ["ebin/rabbit_policy_validator.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -317,36 +364,42 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_queue_collector.erl"],
         outs = ["ebin/rabbit_queue_collector.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_registry_beam",
         srcs = ["src/rabbit_registry.erl"],
         outs = ["ebin/rabbit_registry.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_registry_class_beam",
         srcs = ["src/rabbit_registry_class.erl"],
         outs = ["ebin/rabbit_registry_class.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_resource_monitor_misc_beam",
         srcs = ["src/rabbit_resource_monitor_misc.erl"],
         outs = ["ebin/rabbit_resource_monitor_misc.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_runtime_beam",
         srcs = ["src/rabbit_runtime.erl"],
         outs = ["ebin/rabbit_runtime.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_runtime_parameter_beam",
         srcs = ["src/rabbit_runtime_parameter.erl"],
         outs = ["ebin/rabbit_runtime_parameter.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -354,18 +407,21 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_semver_beam",
         srcs = ["src/rabbit_semver.erl"],
         outs = ["ebin/rabbit_semver.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_semver_parser_beam",
         srcs = ["src/rabbit_semver_parser.erl"],
         outs = ["ebin/rabbit_semver_parser.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_ssl_options_beam",
         srcs = ["src/rabbit_ssl_options.erl"],
         outs = ["ebin/rabbit_ssl_options.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -373,6 +429,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_types.erl"],
         outs = ["ebin/rabbit_types.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -380,12 +437,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_writer.erl"],
         outs = ["ebin/rabbit_writer.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_supervisor2_beam",
         srcs = ["src/supervisor2.erl"],
         outs = ["ebin/supervisor2.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -393,12 +452,14 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/vm_memory_monitor.erl"],
         outs = ["ebin/vm_memory_monitor.beam"],
         hdrs = ["include/rabbit_memory.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_worker_pool_beam",
         srcs = ["src/worker_pool.erl"],
         outs = ["ebin/worker_pool.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -406,12 +467,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_worker_pool_sup_beam",
         srcs = ["src/worker_pool_sup.erl"],
         outs = ["ebin/worker_pool_sup.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_worker_pool_worker_beam",
         srcs = ["src/worker_pool_worker.erl"],
         outs = ["ebin/worker_pool_worker.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:erlc_opts",
     )
@@ -423,6 +486,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_framing_amqp_0_9_1.erl"],
         outs = ["test/rabbit_framing_amqp_0_9_1.beam"],
         hdrs = ["include/rabbit_framing.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -431,6 +495,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_framing_amqp_0_8.erl"],
         outs = ["test/rabbit_framing_amqp_0_8.beam"],
         hdrs = ["include/rabbit_framing.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     filegroup(
@@ -443,6 +508,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/app_utils.erl"],
         outs = ["test/app_utils.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -450,6 +516,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/code_version.erl"],
         outs = ["test/code_version.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -457,6 +524,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/credit_flow.erl"],
         outs = ["test/credit_flow.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -464,6 +532,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/delegate.erl"],
         outs = ["test/delegate.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -472,6 +541,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/delegate_sup.erl"],
         outs = ["test/delegate_sup.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -479,6 +549,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/file_handle_cache.erl"],
         outs = ["test/file_handle_cache.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -487,6 +558,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/file_handle_cache_stats.erl"],
         outs = ["test/file_handle_cache_stats.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -494,6 +566,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/gen_server2.erl"],
         outs = ["test/gen_server2.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -501,6 +574,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/mirrored_supervisor_locks.erl"],
         outs = ["test/mirrored_supervisor_locks.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -508,6 +582,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/mnesia_sync.erl"],
         outs = ["test/mnesia_sync.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -515,6 +590,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/pmon.erl"],
         outs = ["test/pmon.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -522,6 +598,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/priority_queue.erl"],
         outs = ["test/priority_queue.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -529,6 +606,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_amqp_connection.erl"],
         outs = ["test/rabbit_amqp_connection.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -536,6 +614,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_amqqueue_common.erl"],
         outs = ["test/rabbit_amqqueue_common.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -544,6 +623,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_auth_backend_dummy.erl"],
         outs = ["test/rabbit_auth_backend_dummy.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_authn_backend.beam", "ebin/rabbit_authz_backend.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -552,6 +632,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_auth_mechanism.erl"],
         outs = ["test/rabbit_auth_mechanism.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -561,6 +642,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_authn_backend.erl"],
         outs = ["test/rabbit_authn_backend.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -569,6 +651,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_authz_backend.erl"],
         outs = ["test/rabbit_authz_backend.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -577,6 +660,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_basic_common.erl"],
         outs = ["test/rabbit_basic_common.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -585,6 +669,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_binary_generator.erl"],
         outs = ["test/rabbit_binary_generator.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -593,6 +678,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_binary_parser.erl"],
         outs = ["test/rabbit_binary_parser.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -600,6 +686,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_cert_info.erl"],
         outs = ["test/rabbit_cert_info.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -607,6 +694,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_channel_common.erl"],
         outs = ["test/rabbit_channel_common.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -615,6 +703,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_command_assembler.erl"],
         outs = ["test/rabbit_command_assembler.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -622,6 +711,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_control_misc.erl"],
         outs = ["test/rabbit_control_misc.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -630,6 +720,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_core_metrics.erl"],
         outs = ["test/rabbit_core_metrics.beam"],
         hdrs = ["include/rabbit_core_metrics.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -637,6 +728,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_data_coercion.erl"],
         outs = ["test/rabbit_data_coercion.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -644,6 +736,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_date_time.erl"],
         outs = ["test/rabbit_date_time.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -652,6 +745,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_env.erl"],
         outs = ["test/rabbit_env.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -659,6 +753,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_error_logger_handler.erl"],
         outs = ["test/rabbit_error_logger_handler.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -667,6 +762,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_event.erl"],
         outs = ["test/rabbit_event.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -674,6 +770,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_exchange_type.erl"],
         outs = ["test/rabbit_exchange_type.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -683,6 +780,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_heartbeat.erl"],
         outs = ["test/rabbit_heartbeat.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -690,6 +788,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_http_util.erl"],
         outs = ["test/rabbit_http_util.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -697,6 +796,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_json.erl"],
         outs = ["test/rabbit_json.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -705,6 +805,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_log.erl"],
         outs = ["test/rabbit_log.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -713,6 +814,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_misc.erl"],
         outs = ["test/rabbit_misc.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/rabbit_misc.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -721,6 +823,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_msg_store_index.erl"],
         outs = ["test/rabbit_msg_store_index.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_msg_store.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -728,6 +831,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_net.erl"],
         outs = ["test/rabbit_net.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -735,6 +839,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_nodes_common.erl"],
         outs = ["test/rabbit_nodes_common.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -742,6 +847,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_numerical.erl"],
         outs = ["test/rabbit_numerical.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -750,6 +856,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_password_hashing.erl"],
         outs = ["test/rabbit_password_hashing.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -757,6 +864,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_pbe.erl"],
         outs = ["test/rabbit_pbe.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -765,6 +873,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_peer_discovery_backend.erl"],
         outs = ["test/rabbit_peer_discovery_backend.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -772,6 +881,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_policy_validator.erl"],
         outs = ["test/rabbit_policy_validator.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -781,6 +891,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_queue_collector.erl"],
         outs = ["test/rabbit_queue_collector.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -788,6 +899,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_registry.erl"],
         outs = ["test/rabbit_registry.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -795,6 +907,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_registry_class.erl"],
         outs = ["test/rabbit_registry_class.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -802,6 +915,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_resource_monitor_misc.erl"],
         outs = ["test/rabbit_resource_monitor_misc.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -809,6 +923,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_runtime.erl"],
         outs = ["test/rabbit_runtime.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -816,6 +931,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_runtime_parameter.erl"],
         outs = ["test/rabbit_runtime_parameter.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/rabbit_registry_class.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -824,6 +940,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_semver.erl"],
         outs = ["test/rabbit_semver.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -831,6 +948,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_semver_parser.erl"],
         outs = ["test/rabbit_semver_parser.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -838,6 +956,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_ssl_options.erl"],
         outs = ["test/rabbit_ssl_options.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -846,6 +965,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_types.erl"],
         outs = ["test/rabbit_types.beam"],
         hdrs = ["include/rabbit.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -854,6 +974,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_writer.erl"],
         outs = ["test/rabbit_writer.beam"],
         hdrs = ["include/rabbit.hrl", "include/rabbit_framing.hrl", "include/resource.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -861,6 +982,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/supervisor2.erl"],
         outs = ["test/supervisor2.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -869,6 +991,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/vm_memory_monitor.erl"],
         outs = ["test/vm_memory_monitor.beam"],
         hdrs = ["include/rabbit_memory.hrl"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -876,6 +999,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/worker_pool.erl"],
         outs = ["test/worker_pool.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:test_erlc_opts",
     )
@@ -884,6 +1008,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/worker_pool_sup.erl"],
         outs = ["test/worker_pool_sup.beam"],
+        app_name = "rabbit_common",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -891,6 +1016,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/worker_pool_worker.erl"],
         outs = ["test/worker_pool_worker.beam"],
+        app_name = "rabbit_common",
         beam = ["ebin/gen_server2.beam"],
         erlc_opts = "//:test_erlc_opts",
     )

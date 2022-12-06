@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand.erl"],
         outs = ["ebin/Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/rabbitmq_cli:erlang_app"],
     )
@@ -18,6 +19,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_amqp1_0_beam",
         srcs = ["src/rabbit_amqp1_0.erl"],
         outs = ["ebin/rabbit_amqp1_0.beam"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -25,6 +27,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_channel.erl"],
         outs = ["ebin/rabbit_amqp1_0_channel.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -33,6 +36,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_incoming_link.erl"],
         outs = ["ebin/rabbit_amqp1_0_incoming_link.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -41,6 +45,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_link_util.erl"],
         outs = ["ebin/rabbit_amqp1_0_link_util.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -49,6 +54,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_message.erl"],
         outs = ["ebin/rabbit_amqp1_0_message.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -57,6 +63,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_outgoing_link.erl"],
         outs = ["ebin/rabbit_amqp1_0_outgoing_link.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -65,6 +72,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_reader.erl"],
         outs = ["ebin/rabbit_amqp1_0_reader.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -73,6 +81,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_session.erl"],
         outs = ["ebin/rabbit_amqp1_0_session.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -81,6 +90,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_session_process.erl"],
         outs = ["ebin/rabbit_amqp1_0_session_process.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -88,6 +98,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_amqp1_0_session_sup_beam",
         srcs = ["src/rabbit_amqp1_0_session_sup.erl"],
         outs = ["ebin/rabbit_amqp1_0_session_sup.beam"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -95,6 +106,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_amqp1_0_session_sup_sup_beam",
         srcs = ["src/rabbit_amqp1_0_session_sup_sup.erl"],
         outs = ["ebin/rabbit_amqp1_0_session_sup_sup.beam"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -102,6 +114,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_util.erl"],
         outs = ["ebin/rabbit_amqp1_0_util.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -110,6 +123,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_amqp1_0_writer.erl"],
         outs = ["ebin/rabbit_amqp1_0_writer.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -121,6 +135,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand.erl"],
         outs = ["test/Elixir.RabbitMQ.CLI.Ctl.Commands.ListAmqp10ConnectionsCommand.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/rabbitmq_cli:erlang_app"],
     )
@@ -134,6 +149,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_amqp1_0.erl"],
         outs = ["test/rabbit_amqp1_0.beam"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -142,6 +158,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_channel.erl"],
         outs = ["test/rabbit_amqp1_0_channel.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -151,6 +168,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_incoming_link.erl"],
         outs = ["test/rabbit_amqp1_0_incoming_link.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -160,6 +178,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_link_util.erl"],
         outs = ["test/rabbit_amqp1_0_link_util.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -169,6 +188,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_message.erl"],
         outs = ["test/rabbit_amqp1_0_message.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -178,6 +198,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_outgoing_link.erl"],
         outs = ["test/rabbit_amqp1_0_outgoing_link.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -187,6 +208,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_reader.erl"],
         outs = ["test/rabbit_amqp1_0_reader.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -196,6 +218,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_session.erl"],
         outs = ["test/rabbit_amqp1_0_session.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app"],
     )
@@ -205,6 +228,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_session_process.erl"],
         outs = ["test/rabbit_amqp1_0_session_process.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/amqp_client:erlang_app", "//deps/rabbit_common:erlang_app"],
     )
@@ -213,6 +237,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_amqp1_0_session_sup.erl"],
         outs = ["test/rabbit_amqp1_0_session_sup.beam"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app"],
     )
@@ -221,6 +246,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_amqp1_0_session_sup_sup.erl"],
         outs = ["test/rabbit_amqp1_0_session_sup_sup.beam"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -229,6 +255,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_util.erl"],
         outs = ["test/rabbit_amqp1_0_util.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app"],
     )
@@ -238,6 +265,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_amqp1_0_writer.erl"],
         outs = ["test/rabbit_amqp1_0_writer.beam"],
         hdrs = ["include/rabbit_amqp1_0.hrl"],
+        app_name = "rabbitmq_amqp1_0",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp10_common:erlang_app", "//deps/rabbit_common:erlang_app"],
     )

@@ -10,6 +10,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_connection_consumers_mgmt_beam",
         srcs = ["src/rabbit_stream_connection_consumers_mgmt.erl"],
         outs = ["ebin/rabbit_stream_connection_consumers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -17,6 +18,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_connection_mgmt_beam",
         srcs = ["src/rabbit_stream_connection_mgmt.erl"],
         outs = ["ebin/rabbit_stream_connection_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -24,6 +26,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_connection_publishers_mgmt_beam",
         srcs = ["src/rabbit_stream_connection_publishers_mgmt.erl"],
         outs = ["ebin/rabbit_stream_connection_publishers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -31,6 +34,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_connections_mgmt_beam",
         srcs = ["src/rabbit_stream_connections_mgmt.erl"],
         outs = ["ebin/rabbit_stream_connections_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -38,6 +42,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_connections_vhost_mgmt_beam",
         srcs = ["src/rabbit_stream_connections_vhost_mgmt.erl"],
         outs = ["ebin/rabbit_stream_connections_vhost_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -45,6 +50,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_consumers_mgmt_beam",
         srcs = ["src/rabbit_stream_consumers_mgmt.erl"],
         outs = ["ebin/rabbit_stream_consumers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -52,6 +58,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_management_utils_beam",
         srcs = ["src/rabbit_stream_management_utils.erl"],
         outs = ["ebin/rabbit_stream_management_utils.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -59,6 +66,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_mgmt_db_beam",
         srcs = ["src/rabbit_stream_mgmt_db.erl"],
         outs = ["ebin/rabbit_stream_mgmt_db.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_stream:erlang_app"],
     )
@@ -66,6 +74,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_stream_publishers_mgmt_beam",
         srcs = ["src/rabbit_stream_publishers_mgmt.erl"],
         outs = ["ebin/rabbit_stream_publishers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -81,6 +90,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_connection_consumers_mgmt.erl"],
         outs = ["test/rabbit_stream_connection_consumers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -89,6 +99,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_connection_mgmt.erl"],
         outs = ["test/rabbit_stream_connection_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -97,6 +108,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_connection_publishers_mgmt.erl"],
         outs = ["test/rabbit_stream_connection_publishers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -105,6 +117,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_connections_mgmt.erl"],
         outs = ["test/rabbit_stream_connections_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -113,6 +126,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_connections_vhost_mgmt.erl"],
         outs = ["test/rabbit_stream_connections_vhost_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/amqp_client:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -121,6 +135,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_consumers_mgmt.erl"],
         outs = ["test/rabbit_stream_consumers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )
@@ -129,6 +144,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_management_utils.erl"],
         outs = ["test/rabbit_stream_management_utils.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -137,6 +153,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_mgmt_db.erl"],
         outs = ["test/rabbit_stream_mgmt_db.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_stream:erlang_app"],
     )
@@ -145,6 +162,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_stream_publishers_mgmt.erl"],
         outs = ["test/rabbit_stream_publishers_mgmt.beam"],
+        app_name = "rabbitmq_stream_management",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app", "//deps/rabbitmq_management:erlang_app", "//deps/rabbitmq_management_agent:erlang_app"],
     )

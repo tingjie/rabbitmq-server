@@ -10,24 +10,28 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_trust_store_http_app_beam",
         srcs = ["src/trust_store_http_app.erl"],
         outs = ["ebin/trust_store_http_app.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_trust_store_http_beam",
         srcs = ["src/trust_store_http.erl"],
         outs = ["ebin/trust_store_http.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_trust_store_http_sup_beam",
         srcs = ["src/trust_store_http_sup.erl"],
         outs = ["ebin/trust_store_http_sup.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_trust_store_invalid_handler_beam",
         srcs = ["src/trust_store_invalid_handler.erl"],
         outs = ["ebin/trust_store_invalid_handler.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -35,6 +39,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_trust_store_list_handler_beam",
         srcs = ["src/trust_store_list_handler.erl"],
         outs = ["ebin/trust_store_list_handler.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -81,6 +86,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/trust_store_http_app.erl"],
         outs = ["test/trust_store_http_app.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -88,6 +94,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/trust_store_http.erl"],
         outs = ["test/trust_store_http.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -95,6 +102,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/trust_store_http_sup.erl"],
         outs = ["test/trust_store_http_sup.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -102,6 +110,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/trust_store_invalid_handler.erl"],
         outs = ["test/trust_store_invalid_handler.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )
@@ -110,6 +119,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/trust_store_list_handler.erl"],
         outs = ["test/trust_store_list_handler.beam"],
+        app_name = "trust_store_http",
         erlc_opts = "//:test_erlc_opts",
         deps = ["@cowboy//:erlang_app"],
     )

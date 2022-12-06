@@ -10,12 +10,14 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_auth_backend_ldap_app_beam",
         srcs = ["src/rabbit_auth_backend_ldap_app.erl"],
         outs = ["ebin/rabbit_auth_backend_ldap_app.beam"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
         name = "ebin_rabbit_auth_backend_ldap_beam",
         srcs = ["src/rabbit_auth_backend_ldap.erl"],
         outs = ["ebin/rabbit_auth_backend_ldap.beam"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -23,6 +25,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_rabbit_auth_backend_ldap_util_beam",
         srcs = ["src/rabbit_auth_backend_ldap_util.erl"],
         outs = ["ebin/rabbit_auth_backend_ldap_util.beam"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:erlc_opts",
     )
     erlang_bytecode(
@@ -30,6 +33,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_log_ldap.erl"],
         outs = ["ebin/rabbit_log_ldap.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -45,6 +49,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_auth_backend_ldap_app.erl"],
         outs = ["test/rabbit_auth_backend_ldap_app.beam"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -52,6 +57,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_auth_backend_ldap.erl"],
         outs = ["test/rabbit_auth_backend_ldap.beam"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -60,6 +66,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/rabbit_auth_backend_ldap_util.erl"],
         outs = ["test/rabbit_auth_backend_ldap_util.beam"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:test_erlc_opts",
     )
     erlang_bytecode(
@@ -68,6 +75,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_log_ldap.erl"],
         outs = ["test/rabbit_log_ldap.beam"],
         hdrs = ["include/logging.hrl"],
+        app_name = "rabbitmq_auth_backend_ldap",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )

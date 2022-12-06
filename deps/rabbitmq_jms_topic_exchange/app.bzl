@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_jms_topic_exchange.erl"],
         outs = ["ebin/rabbit_jms_topic_exchange.beam"],
         hdrs = ["include/rabbit_jms_topic_exchange.hrl"],
+        app_name = "rabbitmq_jms_topic_exchange",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -18,6 +19,7 @@ def all_beam_files(name = "all_beam_files"):
         name = "ebin_sjx_evaluator_beam",
         srcs = ["src/sjx_evaluator.erl"],
         outs = ["ebin/sjx_evaluator.beam"],
+        app_name = "rabbitmq_jms_topic_exchange",
         erlc_opts = "//:erlc_opts",
     )
 
@@ -33,6 +35,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_jms_topic_exchange.erl"],
         outs = ["test/rabbit_jms_topic_exchange.beam"],
         hdrs = ["include/rabbit_jms_topic_exchange.hrl"],
+        app_name = "rabbitmq_jms_topic_exchange",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -41,6 +44,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         testonly = True,
         srcs = ["src/sjx_evaluator.erl"],
         outs = ["test/sjx_evaluator.beam"],
+        app_name = "rabbitmq_jms_topic_exchange",
         erlc_opts = "//:test_erlc_opts",
     )
 

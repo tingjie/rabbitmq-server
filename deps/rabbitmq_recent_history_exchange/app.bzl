@@ -11,6 +11,7 @@ def all_beam_files(name = "all_beam_files"):
         srcs = ["src/rabbit_exchange_type_recent_history.erl"],
         outs = ["ebin/rabbit_exchange_type_recent_history.beam"],
         hdrs = ["include/rabbit_recent_history.hrl"],
+        app_name = "rabbitmq_recent_history_exchange",
         erlc_opts = "//:erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
@@ -27,6 +28,7 @@ def all_test_beam_files(name = "all_test_beam_files"):
         srcs = ["src/rabbit_exchange_type_recent_history.erl"],
         outs = ["test/rabbit_exchange_type_recent_history.beam"],
         hdrs = ["include/rabbit_recent_history.hrl"],
+        app_name = "rabbitmq_recent_history_exchange",
         erlc_opts = "//:test_erlc_opts",
         deps = ["//deps/rabbit_common:erlang_app"],
     )
