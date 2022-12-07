@@ -74,7 +74,7 @@ function start_app_login () {
       this.put('#/login', function() {
         set_basic_auth(this.params['username'], this.params['password'])
         check_login()
-      });
+      });    
     }
   })
   // TODO REFACTOR: this code can be simplified
