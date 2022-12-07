@@ -58,6 +58,7 @@
 
 -export([init/0, sync/0]).
 -export([set_migration_flag/1, is_migration_done/1]).
+-export([retry/1]).
 
 -define(WAIT_SECONDS, 30).
 

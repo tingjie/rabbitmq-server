@@ -98,14 +98,6 @@
 -define(GEN_SERVER, gen_server2).
 -define(SUP_MODULE, mirrored_supervisor_sups).
 
--define(TABLE, mirrored_sup_childspec).
--define(TABLE_DEF,
-        {?TABLE,
-         [{record_name, mirrored_sup_childspec},
-          {type, ordered_set},
-          {attributes, record_info(fields, mirrored_sup_childspec)}]}).
--define(TABLE_MATCH, {match, #mirrored_sup_childspec{ _ = '_' }}).
-
 -export([start_link/3, start_link/4,
          start_child/2, restart_child/2,
          delete_child/2, terminate_child/2,
@@ -113,15 +105,12 @@
 
 -behaviour(?GEN_SERVER).
 
--include_lib("khepri/include/khepri.hrl").
-
 -export([init/1, handle_call/3, handle_info/2, terminate/2, code_change/3,
          handle_cast/2]).
 
 -export([start_internal/2]).
 -export([create_tables/0, table_definitions/0]).
-
--record(mirrored_sup_childspec, {key, mirroring_pid, childspec}).
+-export([supervisor/1, child/2]).
 
 -record(state, {overall,
                 delegate,
@@ -219,28 +208,8 @@ find_call(Sup, Id, Msg) ->
         Err -> Err
     end.
 
-find_mirror(Group, {SimpleId, _} = Id) ->
-    MatchHead = #mirrored_sup_childspec{mirroring_pid = '$1',
-                                        key           = {Group, Id},
-                                        _             = '_'},
-    %% If we did this inside a tx we could still have failover
-    %% immediately after the tx - we can't be 100% here. So we may as
-    %% well dirty_select.
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              case mnesia:dirty_select(?TABLE, [{MatchHead, [], ['$1']}]) of
-                  [Mirror] -> {ok, Mirror};
-                  _ -> {error, not_found}
-              end
-      end,
-      fun() ->
-              case rabbit_khepri:get(khepri_mirrored_supervisor_path(Group, SimpleId)) of
-                  {ok, #mirrored_sup_childspec{mirroring_pid = Pid}} ->
-                      {ok, Pid};
-                  _ ->
-                      {error, not_found}
-              end
-      end).
+find_mirror(Group, Id) ->
+    rabbit_db_msup:find_mirror(Group, Id).
 
 fold(FunAtom, Sup, AggFun) ->
     Group = call(Sup, group),
@@ -398,7 +367,8 @@ tell_all_peers_to_die(Group, Reason) ->
     [cast(P, {die, Reason}) || P <- pg:get_members(Group) -- [self()]].
 
 maybe_start(Group, Overall, Delegate, ChildSpec) ->
-    rabbit_log:debug("Mirrored supervisor: asked to consider starting, group: ~tp", [Group]),
+    rabbit_log:debug("Mirrored supervisor: asked to consider starting, group: ~tp",
+                     [Group]),
     try check_start(Group, Overall, Delegate, ChildSpec) of
         start      ->
             rabbit_log:debug("Mirrored supervisor: check_start for group ~tp,"
@@ -408,9 +378,10 @@ maybe_start(Group, Overall, Delegate, ChildSpec) ->
             rabbit_log:debug("Mirrored supervisor: check_start for group ~tp,"
                              " overall ~tp returned 'undefined'", [Group, Overall]),
             already_in_store;
-        Pid        ->
+        Pid ->
             rabbit_log:debug("Mirrored supervisor: check_start for group ~tp,"
-                             " overall ~tp returned 'already running (~tp)'", [Group, Overall, Pid]),
+                             " overall ~tp returned 'already running (~tp)'",
+                             [Group, Overall, Pid]),
             {already_in_store, Pid}
     catch
         %% If we are torn down while in the transaction...
@@ -418,98 +389,18 @@ maybe_start(Group, Overall, Delegate, ChildSpec) ->
     end.
 
 check_start(Group, Overall, Delegate, ChildSpec) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              check_start_in_mnesia(Group, Overall, Delegate, ChildSpec)
-      end,
-      fun() ->
-              check_start_in_khepri(Group, Overall, Delegate, ChildSpec)
-      end).
-
-check_start_in_mnesia(Group, Overall, Delegate, ChildSpec) ->
-    rabbit_misc:execute_mnesia_transaction(
-      fun() ->
-              rabbit_log:debug("Mirrored supervisor: check_start for group ~tp, id: ~tp, overall: ~tp",
-                               [Group, id(ChildSpec), Overall]),
-              ReadResult = mnesia:wread({?TABLE, {Group, id(ChildSpec)}}),
-              rabbit_log:debug("Mirrored supervisor: check_start table ~ts read for key ~tp returned ~tp",
-                               [?TABLE, {Group, id(ChildSpec)}, ReadResult]),
-              case ReadResult of
-                  []  -> _ = write_in_mnesia(Group, Overall, ChildSpec),
-                         start;
-                  [S] -> #mirrored_sup_childspec{key           = {Group, Id},
-                                                 mirroring_pid = Pid} = S,
-                         case Overall of
-                             Pid ->
-                                 rabbit_log:debug("Mirrored supervisor: overall matched mirrored pid ~tp", [Pid]),
-                                 child(Delegate, Id);
-                             _   ->
-                                 rabbit_log:debug("Mirrored supervisor: overall ~tp did not match mirrored pid ~tp", [Overall, Pid]),
-                                 rabbit_log:debug("Mirrored supervisor: supervisor(~tp) returned ~tp", [Pid, supervisor(Pid)]),
-                                 case supervisor(Pid) of
-                                     dead      ->
-                                         _ = write_in_mnesia(Group, Overall, ChildSpec),
-                                         start;
-                                     Delegate0 ->
-                                         child(Delegate0, Id)
-                                 end
-                         end
-              end
-      end).
-
-check_start_in_khepri(Group, Overall, Delegate, ChildSpec) ->
-    {SimpleId, _} = Id = id(ChildSpec),
-    rabbit_log:debug("Mirrored supervisor: check_start for group ~tp, id: ~tp, overall: ~tp",
-                     [Group, Id, Overall]),
-    case rabbit_khepri:get(khepri_mirrored_supervisor_path(Group, SimpleId)) of
-        {ok, #mirrored_sup_childspec{mirroring_pid = Pid}} ->
-            case Overall of
-                Pid ->
-                    child(Delegate, Id);
-                _   ->
-                    %% The supervisor(Pid) call can't happen inside of a transaction.
-                    %% We have to read and update the record in two different khepri calls
-                    case supervisor(Pid) of
-                        dead ->
-                            ok = write_in_khepri(Group, Id, Overall, ChildSpec),
-                            start;
-                        Delegate0 ->
-                            child(Delegate0, Id)
-                    end
-            end;
-        _  ->
-            ok = write_in_khepri(Group, Id, Overall, ChildSpec),
-            start
+    Id = id(ChildSpec),
+    rabbit_log:debug("Mirrored supervisor: check_start for group ~tp, id: ~tp, "
+                     "overall: ~tp", [Group, Id, Overall]),
+    case rabbit_db_msup:create_or_update(Group, Overall, Delegate, ChildSpec, Id) of
+        Delegate0 when is_pid(Delegate0) ->
+            child(Delegate0, Id);
+        Other ->
+            Other
     end.
 
 supervisor(Pid) -> with_exit_handler(fun() -> dead end,
                                      fun() -> delegate(Pid) end).
-
-write_in_mnesia(Group, Overall, ChildSpec) ->
-    S = #mirrored_sup_childspec{key           = {Group, id(ChildSpec)},
-                                mirroring_pid = Overall,
-                                childspec     = ChildSpec},
-    ok = mnesia:write(?TABLE, S, write),
-    ChildSpec.
-
-write_in_khepri(Group, {SimpleId, _} = Id, Overall, ChildSpec) ->
-    S = #mirrored_sup_childspec{key           = {Group, Id},
-                                mirroring_pid = Overall,
-                                childspec     = ChildSpec},
-    ok = rabbit_khepri:put(khepri_mirrored_supervisor_path(Group, SimpleId), S).
-
-write_in_khepri_tx(Group, {SimpleId, _} = Id, Overall, ChildSpec) ->
-    S = #mirrored_sup_childspec{key           = {Group, Id},
-                                mirroring_pid = Overall,
-                                childspec     = ChildSpec},
-    ok = khepri_tx:put(khepri_mirrored_supervisor_path(Group, SimpleId), S),
-    ChildSpec.
-
-delete_in_mnesia(Group, Id) ->
-    ok = mnesia:delete({?TABLE, {Group, Id}}).
-
-delete_in_khepri(Group, {SimpleId, _}) ->
-    ok = khepri_tx:delete(khepri_mirrored_supervisor_path(Group, SimpleId)).
 
 start(Delegate, ChildSpec) ->
     apply(?SUPERVISOR, start_child, [Delegate, ChildSpec]).
@@ -523,127 +414,31 @@ stop(Group, Delegate, Id) ->
     end.
 
 check_stop(Group, Delegate, Id) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              check_stop_in_mnesia(Group, Delegate, Id)
-      end,
-      fun() ->
-              check_stop_in_khepri(Group, Delegate, Id)
-      end).
-
-check_stop_in_mnesia(Group, Delegate, Id) ->
     case child(Delegate, Id) of
         undefined ->
-            rabbit_misc:execute_mnesia_transaction(
-              fun() -> delete_in_mnesia(Group, Id) end),
+            rabbit_db_msup:delete(Group, Id),
             deleted;
-        _         ->
+        _ ->
             running
-    end.
-
-check_stop_in_khepri(Group, Delegate, {SimpleId, _} = Id) ->
-    case child(Delegate, Id) of
-        undefined ->
-            ok = rabbit_khepri:delete(khepri_mirrored_supervisor_path(Group, SimpleId)),
-            deleted;
-        _         -> running
     end.
 
 id({Id, _, _, _, _, _}) -> Id.
 
 update_all(Overall, OldOverall) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              update_all_in_mnesia(Overall, OldOverall)
-      end,
-      fun() ->
-              update_all_in_khepri(Overall, OldOverall)
-      end).
-
-update_all_in_mnesia(Overall, OldOverall) ->
-    rabbit_misc:execute_mnesia_transaction(
-      fun() ->
-              MatchHead = #mirrored_sup_childspec{mirroring_pid = OldOverall,
-                                                  key           = '$1',
-                                                  childspec     = '$2',
-                                                  _             = '_'},
-              [write_in_mnesia(Group, Overall, C) ||
-                  [{Group, _Id}, C] <- mnesia:select(?TABLE, [{MatchHead, [], ['$$']}])]
-      end).
-
-update_all_in_khepri(Overall, OldOverall) ->
-    Pattern = #mirrored_sup_childspec{mirroring_pid = OldOverall,
-                                      _             = '_'},
-    rabbit_khepri:transaction(
-      fun() ->
-              Conditions = [?KHEPRI_WILDCARD_STAR_STAR, #if_data_matches{pattern = Pattern}],
-              case khepri_tx:get_many(khepri_mirrored_supervisor_path() ++
-                                          [#if_all{conditions = Conditions}] ) of
-                  {ok, Map} ->
-                      [write_in_khepri_tx(Group, Id, Overall, C) ||
-                          #mirrored_sup_childspec{key = {Group, Id},
-                                                  childspec = C} <- maps:values(Map)]
-              end
-      end).
+    rabbit_db_msup:update_all(Overall, OldOverall).
 
 delete_all(Group) ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              delete_all_in_mnesia(Group)
-      end,
-      fun() ->
-              delete_all_in_khepri(Group)
-      end).
-
-delete_all_in_mnesia(Group) ->
-    rabbit_misc:execute_mnesia_transaction(
-      fun() ->
-              MatchHead = #mirrored_sup_childspec{key       = {Group, '_'},
-                                                  childspec = '$1',
-                                                  _         = '_'},
-              [delete_in_mnesia(Group, id(C)) ||
-                  C <- mnesia:select(?TABLE, [{MatchHead, [], ['$1']}])]
-      end).
-
-delete_all_in_khepri(Group) ->
-    Pattern = #mirrored_sup_childspec{key = {Group, '_'},
-                                      _   = '_'},
-    rabbit_khepri:transaction(
-      fun() ->
-              Conditions = [?KHEPRI_WILDCARD_STAR_STAR, #if_data_matches{pattern = Pattern}],
-              case khepri_tx:get_many(khepri_mirrored_supervisor_path() ++
-                                          [#if_all{conditions = Conditions}] ) of
-                  {ok, Map} ->
-                      [delete_in_khepri(Group, id(C)) ||
-                          #mirrored_sup_childspec{childspec = C} <- maps:values(Map)]
-              end
-      end).
+    rabbit_db_msup:delete_all(Group).
 
 errors(Results) -> [E || {error, E} <- Results].
 
 %%----------------------------------------------------------------------------
 
 create_tables() ->
-    rabbit_khepri:try_mnesia_or_khepri(
-      fun() ->
-              create_tables([?TABLE_DEF])
-      end,
-      fun() ->
-              ok
-      end).
-
-create_tables([]) ->
-    ok;
-create_tables([{Table, Attributes} | Ts]) ->
-    case mnesia:create_table(Table, Attributes) of
-        {atomic, ok}                        -> create_tables(Ts);
-        {aborted, {already_exists, ?TABLE}} -> create_tables(Ts);
-        Err                                 -> Err
-    end.
+    rabbit_db_msup:create_tables().
 
 table_definitions() ->
-    {Name, Attributes} = ?TABLE_DEF,
-    [{Name, [?TABLE_MATCH | Attributes]}].
+    rabbit_db_msup:table_definitions().
 
 %%----------------------------------------------------------------------------
 
@@ -684,9 +479,3 @@ maybe_log_lock_acquisition_failure(undefined = _LockId, Group) ->
     rabbit_log:warning("Mirrored supervisor: could not acquire lock for group ~ts", [Group]);
 maybe_log_lock_acquisition_failure(_, _) ->
     ok.
-
-khepri_mirrored_supervisor_path() ->
-    [?MODULE, mirrored_supervisor_childspec].
-
-khepri_mirrored_supervisor_path(Group, Id) ->
-    [?MODULE, mirrored_supervisor_childspec, Group] ++ Id.
