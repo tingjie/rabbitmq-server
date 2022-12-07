@@ -81,11 +81,12 @@ defmodule SetGlobalParameterCommandTest do
   defp assert_parameter_fields(context) do
     result_params = list_global_parameters()
 
-    exp = MapSet.new(
-               name: context[:key],
-               value: context[:value]
-             )
-    assert List.foldl(result_params, false, fn param, acc -> (MapSet.new(param) == exp) or acc end)
+    exp =
+      MapSet.new(
+        name: context[:key],
+        value: context[:value]
+      )
 
+    assert List.foldl(result_params, false, fn param, acc -> MapSet.new(param) == exp or acc end)
   end
 end
