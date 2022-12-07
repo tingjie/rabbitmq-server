@@ -424,12 +424,12 @@ list_global() ->
 
 list_global_in_mnesia() ->
     %% list only atom keys
-    mnesia:async_dirty(
-        fun () ->
-            Match = #runtime_parameters{key = '_', _ = '_'},
-            [p(P) || P <- mnesia:match_object(?TABLE, Match, read),
-                is_atom(P#runtime_parameters.key)]
-        end),
+    All = mnesia:async_dirty(
+            fun () ->
+                    Match = #runtime_parameters{key = '_', _ = '_'},
+                    [p(P) || P <- mnesia:match_object(?TABLE, Match, read),
+                             is_atom(P#runtime_parameters.key)]
+            end),
     %% filter out global parameters that are not meant to be exposed
     %% publicly
     lists:filter(fun(PL) ->
