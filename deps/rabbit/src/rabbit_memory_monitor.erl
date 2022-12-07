@@ -215,6 +215,7 @@ desired_duration_average(#state{disk_alarm           = true}) ->
 desired_duration_average(#state{disk_alarm           = false,
                                 queue_duration_sum   = Sum,
                                 queue_duration_count = Count}) ->
+    %% @todo Remove this.
     {ok, LimitThreshold} =
         application:get_env(rabbit, vm_memory_high_watermark_paging_ratio),
     MemoryRatio = memory_use(ratio),

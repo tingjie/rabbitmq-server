@@ -39,18 +39,58 @@ lookup(Key, State) ->
         [Entry] -> Entry
     end.
 
-select_from_file(MsgIds, File, State) ->
-    ets:select(State #state.table, [{
-        #msg_location{
-            msg_id = MsgId,
-            ref_count = '_',
-            file = File,
-            offset = '_',
-            total_size = '_'
-        },
-        [],
-        ['$_']
-    } || MsgId <- MsgIds]).
+select_from_file(MsgIds, _File, State) ->
+    [lookup(Id, State) || Id <- MsgIds].
+
+%    ets:select(State #state.table, [{
+%        #msg_location{
+%            msg_id = '$1',
+%            ref_count = '_',
+%            file = File,
+%            offset = '_',
+%            total_size = '_'
+%        },
+%        select_from_file_guards(MsgIds),
+%        ['$_']
+%    }]).% || MsgId <- MsgIds]).
+
+%select_from_file_guards(MsgIds) ->
+%    Tests = [{'==', '$1', Id} || Id <- MsgIds],
+%    [list_to_tuple(['orelse'|Tests])].
+%    select_from_file_guards(Tests, []).
+
+%% We don't care about the order.
+%select_from_file_guards([GuardA, GuardB|Tail], Acc) ->
+%    select_from_file_guards(Tail, [{'orelse', GuardA, GuardB}|Acc]);
+%select_from_file_guards([], Acc) ->
+%    select_from_file_guards(Acc, []);
+%select_from_file_guards([Guard], []) ->
+%    [Guard];
+%select_from_file_guards([Guard], Acc) ->
+%    select_from_file_guards([Guard|Acc], []).
+
+
+%    Id == <<1>> orelse Id == <<2>> orelse Id == <<3>>
+%    {'orelse', {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}}, {'==', Id, <<3>>}}
+%    {'orelse', {'==', Id, <<1>>}, {'orelse', {'==', Id, <<2>>}, {'==', Id, <<3>>}}}
+%
+%    [<<1>>, <<2>>, <<3>>, <<4>>]
+%
+%    [{'==', Id, <<1>>}, {'==', Id, <<2>>},                  [A, B, C, D]
+%     {'==', Id, <<3>>}, {'==', Id, <<4>>}]
+%
+%    [{'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},      [E, F]
+%     {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}]
+%
+%    [{'orelse',                                             [Z]
+%        {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%        {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}}]
+%
+%    {'orelse',                                              Z
+%        {'orelse', {'==', Id, <<1>>}, {'==', Id, <<2>>}},
+%        {'orelse', {'==', Id, <<3>>}, {'==', Id, <<4>>}}}
+%
+
 
 insert(Obj, State) ->
     true = ets:insert_new(State #state.table, Obj),
