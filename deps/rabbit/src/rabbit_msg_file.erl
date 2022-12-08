@@ -45,7 +45,8 @@ append(FileHdl, MsgId, MsgBody)
     MsgBodyBin  = term_to_binary(MsgBody),
     MsgBodyBinSize = size(MsgBodyBin),
     Size = MsgBodyBinSize + ?MSG_ID_SIZE_BYTES,
-    case file:write(FileHdl, %file_handle_cache:append(FileHdl,
+    case %file:write(FileHdl, %
+        file_handle_cache:append(FileHdl,
                                   <<Size:?INTEGER_SIZE_BITS,
                                     MsgId:?MSG_ID_SIZE_BYTES/binary,
                                     MsgBodyBin:MsgBodyBinSize/binary,

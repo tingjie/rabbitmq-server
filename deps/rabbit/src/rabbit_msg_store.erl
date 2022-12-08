@@ -1102,14 +1102,14 @@ init([VHost, Type, BaseDir, ClientRefs, StartupFunState]) ->
     rabbit_log:debug("Finished rebuilding index", []),
     %% read is only needed so that we can seek
     %% @todo file:open DONENOW
-    {ok, CurHdl} = file:open(form_filename(Dir, filenum_to_name(CurFile)),
-                             [binary, append]),
-    {ok, CurOffset} = file:position(CurHdl, cur),
-%    {ok, CurHdl} = open_file(Dir, filenum_to_name(CurFile),
-%                             [read | ?WRITE_MODE]),
+%    {ok, CurHdl} = file:open(form_filename(Dir, filenum_to_name(CurFile)),
+%                             [binary, append]),
+%    {ok, CurOffset} = file:position(CurHdl, cur),
+    {ok, CurHdl} = open_file(Dir, filenum_to_name(CurFile),
+                             [read | ?WRITE_MODE]),
     %% @todo Not sure why this is done? DONENOW
-%    {ok, Offset} = file_handle_cache:position(CurHdl, Offset),
-%    ok = file_handle_cache:truncate(CurHdl),
+    {ok, CurOffset} = file_handle_cache:position(CurHdl, CurOffset),
+    ok = file_handle_cache:truncate(CurHdl),
 
     {ok, maybe_compact(State1 #msstate { current_file_handle = CurHdl,
                                          current_file_offset = CurOffset }),
@@ -1312,8 +1312,8 @@ terminate(_Reason, State = #msstate { index_state         = IndexState,
                               State2
              end,
     %% @todo DONENOW Do a file:close of current handle
-%    State3 = close_all_handles(State1),
-    ok = file:close(CurHdl),
+    State3 = close_all_handles(State1),
+%    ok = file:close(CurHdl),
     case store_file_summary(FileSummaryEts, Dir) of
         ok           -> ok;
         {error, FSErr} ->
@@ -1335,7 +1335,7 @@ terminate(_Reason, State = #msstate { index_state         = IndexState,
                              " for directory ~tp~nError: ~tp",
                              [Dir, RTErr])
     end,
-    State1 #msstate { index_state         = undefined,
+    State3 #msstate { index_state         = undefined,
                       current_file_handle = undefined,
                       current_file_offset = 0 }.
 
@@ -1384,9 +1384,13 @@ internal_sync(State = #msstate { current_file_handle = CurHdl,
                                 false -> [{CRef, MsgIds} | NS]
                             end
                     end, [], CTM),
+
+    %% @todo This is where we would write to disk if we buffer.
+
     ok = case CGs of
              [] -> ok;
-             _  -> file:sync(CurHdl) %% @todo DONENOW file_handle_cache:sync(CurHdl)
+             _  -> %file:sync(CurHdl) %% @todo DONENOW
+                file_handle_cache:sync(CurHdl)
          end,
     lists:foldl(fun ({CRef, MsgIds}, StateN) ->
                         client_confirm(CRef, MsgIds, written, StateN)
@@ -2226,12 +2230,13 @@ maybe_roll_to_new_file(
   when Offset >= FileSizeLimit ->
     State1 = internal_sync(State),
     %% @todo Same, just replace. DONENOW
-    ok = file:close(CurHdl), % file_handle_cache:close(CurHdl),
+%    ok = file:close(CurHdl), %
+    file_handle_cache:close(CurHdl),
     NextFile = CurFile + 1,
     %% @todo Do a file:open DONENOW.
-%    {ok, NextHdl} = open_file(Dir, filenum_to_name(NextFile), ?WRITE_MODE),
-    {ok, NextHdl} = file:open(form_filename(Dir, filenum_to_name(NextFile)),
-                             [binary, append]),
+    {ok, NextHdl} = open_file(Dir, filenum_to_name(NextFile), ?WRITE_MODE),
+%    {ok, NextHdl} = file:open(form_filename(Dir, filenum_to_name(NextFile)),
+%                             [binary, append]),
     true = ets:insert_new(FileSummaryEts, #file_summary {
                             file             = NextFile,
                             valid_total_size = 0,
