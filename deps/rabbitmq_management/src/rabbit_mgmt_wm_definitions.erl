@@ -106,7 +106,7 @@ vhost_definitions(ReqData, VHost, Context) ->
       [{rabbit_version, rabbit_data_coercion:to_binary(Vsn)}] ++
           filter(
             [{parameters,  Parameters},
-             {policies,    rabbit_mgmt_wm_policies:basic(ReqData)},
+             {policies,    [strip_vhost(P) || P <- rabbit_mgmt_wm_policies:basic(ReqData)]},
              {queues,      Qs},
              {exchanges,   Xs},
              {bindings,    Bs}]),
