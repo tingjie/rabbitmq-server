@@ -39,8 +39,12 @@ lookup(Key, State) ->
         [Entry] -> Entry
     end.
 
-select_from_file(MsgIds, _File, State) ->
-    [lookup(Id, State) || Id <- MsgIds].
+%% We currently fetch all and then filter by file. This
+%% might lead to too many lookups... How to best optimize
+%% this? ets:select didn't seem great.
+select_from_file(MsgIds, File, State) ->
+    All = [lookup(Id, State) || Id <- MsgIds],
+    [MsgLoc || MsgLoc=#msg_location{file=MsgFile} <- All, MsgFile =:= File].
 
 %    ets:select(State #state.table, [{
 %        #msg_location{

@@ -646,6 +646,7 @@ read_many_file2(MsgIds0, CState = #client_msstate{ dir              = Dir,
             MsgLocations = lists:keysort(#msg_location.offset, MsgLocations0),
             %% Then we can do the consolidation to get the pread LocNums.
             LocNums = consolidate_reads(MsgLocations, []),
+%            logger:error("read_many HEREHERE~n~p~n~p", [MsgLocations, LocNums]),
             %% Read the data from the file.
             {ok, Fd} = file:open(form_filename(Dir, filenum_to_name(File)), [binary, read]),
             Msgs = rabbit_msg_file:pread(Fd, LocNums),
