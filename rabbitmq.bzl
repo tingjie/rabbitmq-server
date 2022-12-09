@@ -23,12 +23,10 @@ STARTS_BACKGROUND_BROKER_TAG = "starts-background-broker"
 MIXED_VERSION_CLUSTER_TAG = "mixed-version-cluster"
 
 RABBITMQ_ERLC_OPTS = DEFAULT_ERLC_OPTS + [
-    "-server",
     "-DINSTR_MOD=gm",
 ]
 
 RABBITMQ_TEST_ERLC_OPTS = DEFAULT_TEST_ERLC_OPTS + [
-    "-server",
     "+nowarn_export_all",
     "-DINSTR_MOD=gm",
 ]
