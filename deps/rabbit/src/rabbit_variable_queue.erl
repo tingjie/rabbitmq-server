@@ -1306,7 +1306,10 @@ beta_msg_status({Msg = #basic_message{id = MsgId},
                                       {rabbit_classic_queue_store_v2, _, _} -> queue_store;
                                       rabbit_msg_store -> msg_store
                                   end,
-                   msg_location = memory};
+                   msg_location = case MsgLocation of
+                                      rabbit_queue_index -> memory;
+                                      _ -> MsgLocation
+                                  end};
 
 beta_msg_status({MsgId, SeqId, MsgLocation, MsgProps, IsPersistent}) ->
     MS0 = beta_msg_status0(SeqId, MsgProps, IsPersistent),
